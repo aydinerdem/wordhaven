@@ -46,6 +46,9 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
    eşit-genişlik yerine yatay kaydırmalı davransın. */
 .main-nav{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .main-nav::-webkit-scrollbar{display:none;}
+.main-nav-wrap{position:relative;margin-bottom:18px;}
+.main-nav-wrap .main-nav{margin-bottom:0;}
+.main-nav-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:26px;background:linear-gradient(to right, transparent, var(--bg));pointer-events:none;border-radius:0 var(--rsm) var(--rsm) 0;}
 .main-nav-btn{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}
 .nav-btn.active{background:var(--text);color:var(--bg);}
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
@@ -271,6 +274,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="header-sub">A1 · A2 · B1 · B2 · C1 · Spaced Repetition</div>
     </div>
   </div>
+  <div class="main-nav-wrap">
   <div class="nav main-nav">
     <button class="nav-btn main-nav-btn active" id="nav-dash" onclick="showView('dash')">Özet</button>
     <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')">Tekrar Et</button>
@@ -279,6 +283,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')">Kelime Listem</button>
     <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')">Cümle Kur</button>
     <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')">Asmaca</button>
+  </div>
   </div>
 
   <!-- (Kelime ara: artık "Kelime Ekle" sekmesinde) -->
@@ -25566,7 +25571,13 @@ async function ttsGetEngine() {
   if (ttsEngine) return ttsEngine;
   if (ttsLoadPromise) return ttsLoadPromise;
   const loadTask = (async () => {
-    const { KokoroTTS } = await import('https://esm.sh/kokoro-js@1.2.1');
+    let KokoroTTS;
+    try {
+      ({ KokoroTTS } = await import('https://esm.sh/kokoro-js@1.2.1'));
+    } catch (e1) {
+      console.warn('esm.sh üzerinden yüklenemedi, jsdelivr deneniyor:', e1);
+      ({ KokoroTTS } = await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm'));
+    }
     const modelId = 'onnx-community/Kokoro-82M-v1.0-ONNX';
     // GEÇİCİ: WebGPU denemesi kaldırıldı — kütüphane device:'wasm' seçeneğini
     // yok sayıp yine de WebGPU'ya düşüyor gibi görünüyor. Sadece WASM'ı
