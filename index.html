@@ -25640,7 +25640,11 @@ async function ttsSpeakElevenLabs(text) {
       headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
       body: JSON.stringify({ text, model_id: 'eleven_turbo_v2_5' })
     });
-    if (!res.ok) throw new Error('ElevenLabs hata: ' + res.status);
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.text()).slice(0, 300); } catch (_) {}
+      throw new Error(`ElevenLabs ${res.status}: ${detail || 'detay yok'}`);
+    }
     const blob = await res.blob();
     url = URL.createObjectURL(blob);
     ttsElevenCache.set(text, url);
@@ -25696,6 +25700,12 @@ async function ttsSpeak(text, btnEl) {
       await ttsSpeakElevenLabs(text);
     } catch (e1) {
       console.warn('ElevenLabs başarısız, Web Speech\'e düşülüyor:', e1.message);
+      // GEÇİCİ TEŞHİS: bir kullanıcı anahtarı kayıtlıysa (yani ElevenLabs
+      // çalışması BEKLENİYORSA) ama başarısız oluyorsa, sebebi görünür yap —
+      // aksi halde neden mekanik sesin çaldığı hiç anlaşılmaz.
+      if (localStorage.getItem(TTS_USER_KEY_STORAGE)) {
+        alert('ElevenLabs çalışmadı, mekanik sese düşüldü.\n\nGerçek neden: ' + e1.message + '\n\nBu satırı ekran görüntüsüyle paylaş, birlikte bakalım.');
+      }
       await ttsSpeakWebSpeech(text);
     }
   } catch (e) {
