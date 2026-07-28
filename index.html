@@ -25625,7 +25625,7 @@ function clearTtsUserKey() {
   document.getElementById('tts-key-input').value = '';
   renderTtsStatus();
 }
-const ELEVENLABS_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; // "Rachel" — istersen elevenlabs.io/app/voice-library'den başka bir voice_id seç
+const ELEVENLABS_VOICE_ID = 'JBFqnCBsd6RMkjVDRZzb'; // Premade ses (ElevenLabs'ın kendi quickstart örneğinden) — "Voice Library" sesleri ücretsiz planda API'den engelli, bu yüzden kütüphane yerine temel/premade bir ses kullanıyoruz
 const ttsElevenCache = new Map(); // metin -> blob URL (oturum boyunca, aynı metin için krediyi tekrar harcamamak için)
 
 async function ttsSpeakElevenLabs(text) {
