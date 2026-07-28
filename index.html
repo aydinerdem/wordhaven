@@ -300,6 +300,31 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="streak-days" id="streak-days"></div>
     </div>
     <div id="cefr-sections"></div>
+
+    <!-- SES AYARLARI -->
+    <div style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:16px;margin-top:16px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">🔊 Ses Ayarları</div>
+      <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
+      <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveTtsUserKey()" style="flex:1;padding:9px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">Kaydet</button>
+        <button onclick="clearTtsUserKey()" style="padding:9px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">Kaldır</button>
+      </div>
+      <details style="margin-top:12px;">
+        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl ücretsiz API anahtarı alırım?</summary>
+        <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
+          <li><a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>'ya git, ücretsiz hesap oluştur (Sign up)</li>
+          <li>Platform seçimi çıkarsa <b>"ElevenCreative"</b>'i seç → Continue</li>
+          <li>İsim/dil gibi kişiselleştirme sorularını istediğin gibi geç, yaş onay kutusunu işaretle → Next</li>
+          <li>"Ne yapmak istersin?" ekranında hepsini seçebilirsin, önemli değil → Continue</li>
+          <li>Ana sayfada <b>"Create an API Key"</b>'e dokun</li>
+          <li>İsim ver (örn. "benim-sesim"), aşağı kaydırıp <b>"Text to Speech"</b> satırında <b>"Access"</b>'i seç — <u>diğer tüm satırları "No Access" bırak</u></li>
+          <li><b>"Create Key"</b>'e bas, çıkan anahtarı kopyala</li>
+          <li>Buraya (yukarıdaki kutuya) yapıştır, <b>Kaydet</b>'e bas</li>
+        </ol>
+        <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">Ücretsiz plan ayda ~10 dakika ses veriyor. Anahtar girmezsen veya bitince, otomatik olarak cihazının kendi (daha mekanik) sesine geçilir — uygulama her zaman çalışmaya devam eder.</p>
+      </details>
+    </div>
   </div>
 
   <!-- FILTER -->
@@ -25557,27 +25582,79 @@ function analyzePanel(idx) {
 function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 
-// ── TELAFFUZ (Kokoro TTS) ────────────────────────────────────────────────
-// Tamamen tarayıcıda çalışır (WebAssembly/WebGPU), sunucu veya API anahtarı
-// gerektirmez. İlk kullanımda model dosyası indirilip tarayıcı önbelleğine
-// yerleşir (bir kereye mahsus, sonraki oynatmalar hızlıdır). Kaynak: Kokoro-82M
-// (Apache lisanslı, açık ağırlıklı model) — https://github.com/hexgrad/kokoro
-// ── TELAFFUZ (Web Speech API) ────────────────────────────────────────────
-// Kokoro/kokoro-js denemesi gerçek cihazlarda (özellikle iOS Safari'de,
-// hem WiFi hem hücresel veride) tekrar tekrar farklı şekillerde başarısız
-// oldu (file:// kısıtlaması, WebGPU adaptör hatası, genel modül yükleme
-// hatası). Güvenilirlik kalite artışından daha önemli olduğu için tarayıcının
-// kendi yerleşik sesine (Web Speech API) geçildi — hiçbir dış kaynak
-// indirmiyor, CDN/ağ bağımlılığı yok, anında çalışır. Ses kalitesi Kokoro
-// kadar insan sesine yakın değil ama her cihazda güvenilir şekilde çalışır.
+// ── TELAFFUZ ──────────────────────────────────────────────────────────────
+// Önce ElevenLabs (insan sesine yakın, kotalı) dener; herhangi bir sebeple
+// başarısız olursa (kota bitti, anahtar yok, ağ hatası) sessizce tarayıcının
+// kendi sesine (Web Speech API) düşer — kullanıcı hiçbir zaman "hiç ses
+// çıkmadı" durumuyla karşılaşmaz, sadece kalite düşer.
+const ELEVENLABS_API_KEY = 'YOUR_API_KEY'; // ← İstersen tüm cihazlar için ortak varsayılan anahtar (opsiyonel, genelde boş bırakılır)
+const TTS_USER_KEY_STORAGE = 'userElevenLabsKey';
+
+// Öncelik: kullanıcının kendi girdiği anahtar (bu cihaza özel, localStorage) >
+// koddaki ortak varsayılan anahtar > (ikisi de yoksa) Web Speech'e düş.
+function ttsGetActiveKey() {
+  const userKey = localStorage.getItem(TTS_USER_KEY_STORAGE);
+  if (userKey && userKey.trim()) return userKey.trim();
+  if (ELEVENLABS_API_KEY && ELEVENLABS_API_KEY !== 'YOUR_API_KEY') return ELEVENLABS_API_KEY;
+  return null;
+}
+
+function renderTtsStatus() {
+  const el = document.getElementById('tts-status-line');
+  if (!el) return;
+  const hasKey = !!localStorage.getItem(TTS_USER_KEY_STORAGE);
+  el.textContent = hasKey
+    ? '✅ Kaliteli ses (ElevenLabs) aktif — kendi anahtarınla.'
+    : 'Şu an cihazının kendi (mekanik) sesi kullanılıyor. İstersen aşağıya kendi ücretsiz ElevenLabs anahtarını ekleyip daha doğal bir ses elde edebilirsin.';
+}
+
+function saveTtsUserKey() {
+  const input = document.getElementById('tts-key-input');
+  const val = input.value.trim();
+  if (!val) { alert('Önce bir anahtar yapıştır.'); return; }
+  localStorage.setItem(TTS_USER_KEY_STORAGE, val);
+  ttsElevenCache.clear(); // eski anahtarla üretilmiş ses önbelleği geçersiz olsun
+  input.value = '';
+  renderTtsStatus();
+  alert('Kaydedildi! Artık kaliteli ses kullanılacak.');
+}
+
+function clearTtsUserKey() {
+  localStorage.removeItem(TTS_USER_KEY_STORAGE);
+  ttsElevenCache.clear();
+  document.getElementById('tts-key-input').value = '';
+  renderTtsStatus();
+}
+const ELEVENLABS_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; // "Rachel" — istersen elevenlabs.io/app/voice-library'den başka bir voice_id seç
+const ttsElevenCache = new Map(); // metin -> blob URL (oturum boyunca, aynı metin için krediyi tekrar harcamamak için)
+
+async function ttsSpeakElevenLabs(text) {
+  const apiKey = ttsGetActiveKey();
+  if (!apiKey) {
+    throw new Error('ElevenLabs anahtarı ayarlanmamış');
+  }
+  let url = ttsElevenCache.get(text);
+  if (!url) {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`, {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+      body: JSON.stringify({ text, model_id: 'eleven_turbo_v2_5' })
+    });
+    if (!res.ok) throw new Error('ElevenLabs hata: ' + res.status);
+    const blob = await res.blob();
+    url = URL.createObjectURL(blob);
+    ttsElevenCache.set(text, url);
+  }
+  const audioEl = new Audio(url);
+  await audioEl.play();
+}
+
 let ttsVoicesReady = null;
 function ttsGetVoices() {
   if (ttsVoicesReady) return ttsVoicesReady;
   ttsVoicesReady = new Promise(resolve => {
     const existing = window.speechSynthesis.getVoices();
     if (existing.length) { resolve(existing); return; }
-    // Bazı tarayıcılarda ses listesi asenkron yükleniyor (ilk çağrıda boş
-    // gelebilir) — 'voiceschanged' olayını bekle, ama sonsuza kadar değil.
     const onReady = () => { resolve(window.speechSynthesis.getVoices()); };
     window.speechSynthesis.addEventListener('voiceschanged', onReady, { once: true });
     setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1500);
@@ -25586,8 +25663,6 @@ function ttsGetVoices() {
 }
 
 function ttsPickVoice(voices) {
-  // Tercih sırası: Enhanced/Premium İngilizce kadın (Ava), sonra Enhanced
-  // erkek (Daniel), sonra herhangi bir en-US, sonra herhangi bir İngilizce.
   return voices.find(v => /Ava/i.test(v.name) && /Enhanced|Premium/i.test(v.name))
     || voices.find(v => /Daniel/i.test(v.name) && /Enhanced|Premium/i.test(v.name))
     || voices.find(v => v.lang === 'en-US' && /Enhanced|Premium/i.test(v.name))
@@ -25596,27 +25671,33 @@ function ttsPickVoice(voices) {
     || voices[0] || null;
 }
 
-async function ttsSpeak(text, btnEl) {
-  if (!text || !text.trim()) return;
-  if (!('speechSynthesis' in window)) {
-    alert('Bu tarayıcı sesli okumayı desteklemiyor.');
-    return;
-  }
-  const origLabel = btnEl ? btnEl.textContent : null;
-  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '⏳'; }
-  try {
-    window.speechSynthesis.cancel(); // önceki okuma varsa kes
+function ttsSpeakWebSpeech(text) {
+  return new Promise(async (resolve, reject) => {
+    if (!('speechSynthesis' in window)) { reject(new Error('speechSynthesis yok')); return; }
+    window.speechSynthesis.cancel();
     const voices = await ttsGetVoices();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
     utter.rate = 0.88;
     const voice = ttsPickVoice(voices);
     if (voice) utter.voice = voice;
-    await new Promise((resolve, reject) => {
-      utter.onend = resolve;
-      utter.onerror = (e) => reject(new Error(e.error || 'Bilinmeyen ses hatası'));
-      window.speechSynthesis.speak(utter);
-    });
+    utter.onend = resolve;
+    utter.onerror = (e) => reject(new Error(e.error || 'Bilinmeyen ses hatası'));
+    window.speechSynthesis.speak(utter);
+  });
+}
+
+async function ttsSpeak(text, btnEl) {
+  if (!text || !text.trim()) return;
+  const origLabel = btnEl ? btnEl.textContent : null;
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '⏳'; }
+  try {
+    try {
+      await ttsSpeakElevenLabs(text);
+    } catch (e1) {
+      console.warn('ElevenLabs başarısız, Web Speech\'e düşülüyor:', e1.message);
+      await ttsSpeakWebSpeech(text);
+    }
   } catch (e) {
     console.error('TTS hatası:', e);
     alert('Ses oynatılamadı.\n\nTeknik detay: ' + (e && e.message ? e.message : String(e)) + '\n\nBu satırı ekran görüntüsüyle paylaşırsan tam nedeni görebilirim.');
@@ -26849,6 +26930,7 @@ hgRenderLevels();
 hgPickWord();
 hgLoadStats();
 renderListCefrRow();
+renderTtsStatus();
 
 </script>
 </body>
