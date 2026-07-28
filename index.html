@@ -48,7 +48,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .main-nav::-webkit-scrollbar{display:none;}
 .main-nav-wrap{position:relative;margin-bottom:18px;}
 .main-nav-wrap .main-nav{margin-bottom:0;}
-.main-nav-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:26px;background:linear-gradient(to right, transparent, var(--bg));pointer-events:none;border-radius:0 var(--rsm) var(--rsm) 0;}
+.main-nav-wrap::after{content:'›';position:absolute;top:0;right:2px;bottom:0;width:22px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);background:var(--accentbg);border-radius:50%;height:22px;margin:auto 2px auto 0;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.15);}
 .main-nav-btn{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}
 .nav-btn.active{background:var(--text);color:var(--bg);}
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
@@ -25562,104 +25562,69 @@ function escAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 // gerektirmez. İlk kullanımda model dosyası indirilip tarayıcı önbelleğine
 // yerleşir (bir kereye mahsus, sonraki oynatmalar hızlıdır). Kaynak: Kokoro-82M
 // (Apache lisanslı, açık ağırlıklı model) — https://github.com/hexgrad/kokoro
-const TTS_VOICE = 'af_heart'; // Amerikan İngilizcesi, kadın ses
-let ttsEngine = null;
-let ttsLoadPromise = null;
-const ttsAudioCache = new Map(); // metin -> blob URL (oturum boyunca, aynı metni yeniden üretmemek için)
-
-async function ttsGetEngine() {
-  if (ttsEngine) return ttsEngine;
-  if (ttsLoadPromise) return ttsLoadPromise;
-  const loadTask = (async () => {
-    let KokoroTTS;
-    try {
-      ({ KokoroTTS } = await import('https://esm.sh/kokoro-js@1.2.1'));
-    } catch (e1) {
-      console.warn('esm.sh üzerinden yüklenemedi, jsdelivr deneniyor:', e1);
-      ({ KokoroTTS } = await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm'));
-    }
-    const modelId = 'onnx-community/Kokoro-82M-v1.0-ONNX';
-    // GEÇİCİ: WebGPU denemesi kaldırıldı — kütüphane device:'wasm' seçeneğini
-    // yok sayıp yine de WebGPU'ya düşüyor gibi görünüyor. Sadece WASM'ı
-    // zorluyoruz; bu, sorunun kokoro-js'te mi yoksa bizim WebGPU tespitimizde
-    // mi olduğunu netleştirecek.
-    ttsEngine = await KokoroTTS.from_pretrained(modelId, { dtype: 'q8', device: 'wasm' });
-    return ttsEngine;
-  })();
-  const timeoutTask = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('90 saniyede tamamlanmadı (indirme takılmış olabilir) — internet bağlantını kontrol edip sayfayı yenile.')), 90000);
+// ── TELAFFUZ (Web Speech API) ────────────────────────────────────────────
+// Kokoro/kokoro-js denemesi gerçek cihazlarda (özellikle iOS Safari'de,
+// hem WiFi hem hücresel veride) tekrar tekrar farklı şekillerde başarısız
+// oldu (file:// kısıtlaması, WebGPU adaptör hatası, genel modül yükleme
+// hatası). Güvenilirlik kalite artışından daha önemli olduğu için tarayıcının
+// kendi yerleşik sesine (Web Speech API) geçildi — hiçbir dış kaynak
+// indirmiyor, CDN/ağ bağımlılığı yok, anında çalışır. Ses kalitesi Kokoro
+// kadar insan sesine yakın değil ama her cihazda güvenilir şekilde çalışır.
+let ttsVoicesReady = null;
+function ttsGetVoices() {
+  if (ttsVoicesReady) return ttsVoicesReady;
+  ttsVoicesReady = new Promise(resolve => {
+    const existing = window.speechSynthesis.getVoices();
+    if (existing.length) { resolve(existing); return; }
+    // Bazı tarayıcılarda ses listesi asenkron yükleniyor (ilk çağrıda boş
+    // gelebilir) — 'voiceschanged' olayını bekle, ama sonsuza kadar değil.
+    const onReady = () => { resolve(window.speechSynthesis.getVoices()); };
+    window.speechSynthesis.addEventListener('voiceschanged', onReady, { once: true });
+    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1500);
   });
-  ttsLoadPromise = Promise.race([loadTask, timeoutTask]).catch(e => { ttsLoadPromise = null; throw e; });
-  return ttsLoadPromise;
+  return ttsVoicesReady;
 }
 
-// İlk kullanımda model yüklenirken (birkaç saniye sürebilir) ekranın altında
-// beliren, engelleyici olmayan bilgi şeridi — motor hazır olunca kendiliğinden
-// kalkar. Sadece gerçekten ilk yüklemede gösterilir, sonraki oynatmalarda çıkmaz.
-let ttsToastTimers = [];
-function ttsShowLoadingToast() {
-  if (document.getElementById('tts-loading-toast')) return;
-  const toast = document.createElement('div');
-  toast.id = 'tts-loading-toast';
-  toast.textContent = '🔊 Ses ilk kez hazırlanıyor, lütfen bekleyin...';
-  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);padding:12px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.35);border:1px solid var(--border2);max-width:90vw;text-align:center;';
-  document.body.appendChild(toast);
-  // Uzun süren yükleme hâlâ "donmuş mu" diye şüphe uyandırmasın diye mesajı
-  // kademeli olarak güncelliyoruz — sessiz kalan bir yükleme en kötü UX.
-  ttsToastTimers.push(setTimeout(() => {
-    const t = document.getElementById('tts-loading-toast');
-    if (t) t.textContent = '🔊 Hâlâ hazırlanıyor... (ses dosyası indiriliyor, WiFi\'de daha hızlı olur)';
-  }, 15000));
-  ttsToastTimers.push(setTimeout(() => {
-    const t = document.getElementById('tts-loading-toast');
-    if (t) t.textContent = '🔊 Bu normalden uzun sürüyor. Bağlantını kontrol et; sorun devam ederse sayfayı yenileyip tekrar dene.';
-  }, 45000));
-}
-function ttsHideLoadingToast() {
-  ttsToastTimers.forEach(clearTimeout);
-  ttsToastTimers = [];
-  const toast = document.getElementById('tts-loading-toast');
-  if (toast) toast.remove();
+function ttsPickVoice(voices) {
+  // Tercih sırası: Enhanced/Premium İngilizce kadın (Ava), sonra Enhanced
+  // erkek (Daniel), sonra herhangi bir en-US, sonra herhangi bir İngilizce.
+  return voices.find(v => /Ava/i.test(v.name) && /Enhanced|Premium/i.test(v.name))
+    || voices.find(v => /Daniel/i.test(v.name) && /Enhanced|Premium/i.test(v.name))
+    || voices.find(v => v.lang === 'en-US' && /Enhanced|Premium/i.test(v.name))
+    || voices.find(v => v.lang === 'en-US')
+    || voices.find(v => v.lang && v.lang.startsWith('en'))
+    || voices[0] || null;
 }
 
-// Herhangi bir İngilizce metni (tek kelime veya cümle) seslendirir.
-// btnEl verilirse, yüklenme/oynatma sırasında görsel geri bildirim gösterir.
 async function ttsSpeak(text, btnEl) {
   if (!text || !text.trim()) return;
+  if (!('speechSynthesis' in window)) {
+    alert('Bu tarayıcı sesli okumayı desteklemiyor.');
+    return;
+  }
   const origLabel = btnEl ? btnEl.textContent : null;
-  const isFirstLoad = !ttsEngine; // motor daha hiç yüklenmediyse, bu ilk (yavaş) çağrı olacak
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = '⏳'; }
-  if (isFirstLoad) ttsShowLoadingToast();
   try {
-    const cacheKey = TTS_VOICE + '|' + text;
-    let url = ttsAudioCache.get(cacheKey);
-    if (!url) {
-      const tts = await ttsGetEngine();
-      const result = await tts.generate(text, { voice: TTS_VOICE });
-      let blob;
-      if (typeof result.toBlob === 'function') blob = result.toBlob();
-      else if (typeof result.toWav === 'function') {
-        const wav = result.toWav();
-        blob = (wav instanceof Blob) ? wav : new Blob([wav], { type: 'audio/wav' });
-      } else {
-        throw new Error('Beklenmeyen ses çıktısı biçimi (kokoro-js API değişmiş olabilir)');
-      }
-      url = URL.createObjectURL(blob);
-      ttsAudioCache.set(cacheKey, url); // bir daha aynı metin için üretmeye gerek kalmasın
-    }
-    const audioEl = new Audio(url);
-    await audioEl.play();
+    window.speechSynthesis.cancel(); // önceki okuma varsa kes
+    const voices = await ttsGetVoices();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = 0.88;
+    const voice = ttsPickVoice(voices);
+    if (voice) utter.voice = voice;
+    await new Promise((resolve, reject) => {
+      utter.onend = resolve;
+      utter.onerror = (e) => reject(new Error(e.error || 'Bilinmeyen ses hatası'));
+      window.speechSynthesis.speak(utter);
+    });
   } catch (e) {
     console.error('TTS hatası:', e);
     alert('Ses oynatılamadı.\n\nTeknik detay: ' + (e && e.message ? e.message : String(e)) + '\n\nBu satırı ekran görüntüsüyle paylaşırsan tam nedeni görebilirim.');
   } finally {
-    if (isFirstLoad) ttsHideLoadingToast();
     if (btnEl) { btnEl.disabled = false; btnEl.textContent = origLabel || '🔊'; }
   }
 }
 
-// Metni tırnak/özel karakter riski olmadan data-özniteliğine gömen küçük
-// hoparlör düğmesi üretir. Render sonrası ttsWireButtons() ile bağlanmalı.
 function ttsButtonHtml(text) {
   return `<button type="button" class="tts-btn" data-tts-text="${escAttr(text)}" title="Dinle">🔊</button>`;
 }
