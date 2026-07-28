@@ -42,6 +42,11 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .header-sub{font-size:12px;color:var(--text3);margin-top:2px;}
 .nav{display:flex;border:0.5px solid var(--border2);border-radius:var(--rsm);overflow:hidden;margin-bottom:18px;}
 .nav-btn{flex:1;padding:9px 0;font-size:13px;font-weight:500;border:none;background:none;color:var(--text2);cursor:pointer;transition:background .15s,color .15s;}
+/* Ana üst menü (7 sekme): dar ekranda satırlara bölünüp çirkin durmasın diye
+   eşit-genişlik yerine yatay kaydırmalı davransın. */
+.main-nav{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.main-nav::-webkit-scrollbar{display:none;}
+.main-nav-btn{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}
 .nav-btn.active{background:var(--text);color:var(--bg);}
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .dash-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;}
@@ -266,14 +271,14 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="header-sub">A1 · A2 · B1 · B2 · C1 · Spaced Repetition</div>
     </div>
   </div>
-  <div class="nav">
-    <button class="nav-btn active" id="nav-dash" onclick="showView('dash')">Özet</button>
-    <button class="nav-btn" id="nav-study" onclick="showView('filter')">Tekrar Et</button>
-    <button class="nav-btn" id="nav-news" onclick="showView('news')">Metin Analizi</button>
-    <button class="nav-btn" id="nav-wordadd" onclick="showView('wordadd')">Sözlüğüm</button>
-    <button class="nav-btn" id="nav-list" onclick="showView('list')">Kelime Listem</button>
-    <button class="nav-btn" id="nav-sentence" onclick="showView('sentence')">Cümle Kur</button>
-    <button class="nav-btn" id="nav-hangman" onclick="showView('hangman')">Asmaca</button>
+  <div class="nav main-nav">
+    <button class="nav-btn main-nav-btn active" id="nav-dash" onclick="showView('dash')">Özet</button>
+    <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')">Tekrar Et</button>
+    <button class="nav-btn main-nav-btn" id="nav-news" onclick="showView('news')">Metin Analizi</button>
+    <button class="nav-btn main-nav-btn" id="nav-wordadd" onclick="showView('wordadd')">Sözlüğüm</button>
+    <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')">Kelime Listem</button>
+    <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')">Cümle Kur</button>
+    <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')">Asmaca</button>
   </div>
 
   <!-- (Kelime ara: artık "Kelime Ekle" sekmesinde) -->
@@ -24871,7 +24876,7 @@ function renderWordList(level){
     const k=wkey(w);
     const open=(k===listOpenKey);
     let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span></span>
+      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${ttsButtonHtml(w.word)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -24880,6 +24885,7 @@ function renderWordList(level){
     }
     return html;
   }).join('');
+  ttsWireButtons(grid);
 }
 function toggleListWord(k){
   listOpenKey = (listOpenKey===k) ? null : k;
@@ -24931,7 +24937,7 @@ function renderListSearchResults(raw){
     const isOxford = OXFORD_WORD_SET.has(w.word.toLowerCase());
     const sourceTag = isOxford ? '' : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>';
     let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}</span>
+      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}${ttsButtonHtml(w.word)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if (open) {
@@ -24939,6 +24945,7 @@ function renderListSearchResults(raw){
     }
     return html;
   }).join('');
+  ttsWireButtons(resultsEl);
 }
 
 function toggleListSearchWord(k){
@@ -25007,7 +25014,7 @@ function renderTopicWordGrid(){
     const _w=BUILTIN_CONTENT[k];
     const _warn=(_w&&_w.definition&&_w.definition.trim())?'':'⚠️';
     let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word}${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}</span>
+      <span>${w.word}${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -25016,6 +25023,7 @@ function renderTopicWordGrid(){
     }
     return html;
   }).join('');
+  ttsWireButtons(grid);
 }
 
 function toggleTopicWord(k){
@@ -25030,14 +25038,17 @@ function renderListDefHTML(c,w){
     const en=typeof ex==='object'?ex.en:ex;
     const tr=typeof ex==='object'?ex.tr:null;
     const trHtml=tr?`<button class="tr-toggle" onclick="event.stopPropagation();toggleTr(this)">Türkçeyi gör ▾</button><div class="tr-text">${tr}</div>`:'';
-    return `<div class="c-example"><p>${en}</p>${trHtml}</div>`;
+    return `<div class="c-example"><p>${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
   }).join('');
   const catsHtml=(w.categories&&w.categories.length)?`<div class="c-section"><div class="c-section-label">Kategoriler</div><div class="c-cats">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div></div>`:'';
-  return `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}</div>
+  const html = `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
     ${catsHtml}
     <div class="c-section"><div class="c-section-label">Nüans</div>${nuanceHtml}</div>
     <div class="c-section"><div class="c-section-label">Örnekler</div>${exHtml}</div>`;
+  // Not: Türkçe anlam ve nüans kasıtlı olarak hoparlörsüz — Kokoro sadece
+  // İngilizce için eğitilmiş, Türkçe metni yanlış/bozuk telaffuz eder.
+  return html;
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────────────────────
@@ -25554,7 +25565,7 @@ const ttsAudioCache = new Map(); // metin -> blob URL (oturum boyunca, aynı met
 async function ttsGetEngine() {
   if (ttsEngine) return ttsEngine;
   if (ttsLoadPromise) return ttsLoadPromise;
-  ttsLoadPromise = (async () => {
+  const loadTask = (async () => {
     const { KokoroTTS } = await import('https://esm.sh/kokoro-js@1.2.1');
     const modelId = 'onnx-community/Kokoro-82M-v1.0-ONNX';
     // GEÇİCİ: WebGPU denemesi kaldırıldı — kütüphane device:'wasm' seçeneğini
@@ -25563,13 +25574,18 @@ async function ttsGetEngine() {
     // mi olduğunu netleştirecek.
     ttsEngine = await KokoroTTS.from_pretrained(modelId, { dtype: 'q8', device: 'wasm' });
     return ttsEngine;
-  })().catch(e => { ttsLoadPromise = null; throw e; });
+  })();
+  const timeoutTask = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('90 saniyede tamamlanmadı (indirme takılmış olabilir) — internet bağlantını kontrol edip sayfayı yenile.')), 90000);
+  });
+  ttsLoadPromise = Promise.race([loadTask, timeoutTask]).catch(e => { ttsLoadPromise = null; throw e; });
   return ttsLoadPromise;
 }
 
 // İlk kullanımda model yüklenirken (birkaç saniye sürebilir) ekranın altında
 // beliren, engelleyici olmayan bilgi şeridi — motor hazır olunca kendiliğinden
 // kalkar. Sadece gerçekten ilk yüklemede gösterilir, sonraki oynatmalarda çıkmaz.
+let ttsToastTimers = [];
 function ttsShowLoadingToast() {
   if (document.getElementById('tts-loading-toast')) return;
   const toast = document.createElement('div');
@@ -25577,8 +25593,20 @@ function ttsShowLoadingToast() {
   toast.textContent = '🔊 Ses ilk kez hazırlanıyor, lütfen bekleyin...';
   toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);padding:12px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.35);border:1px solid var(--border2);max-width:90vw;text-align:center;';
   document.body.appendChild(toast);
+  // Uzun süren yükleme hâlâ "donmuş mu" diye şüphe uyandırmasın diye mesajı
+  // kademeli olarak güncelliyoruz — sessiz kalan bir yükleme en kötü UX.
+  ttsToastTimers.push(setTimeout(() => {
+    const t = document.getElementById('tts-loading-toast');
+    if (t) t.textContent = '🔊 Hâlâ hazırlanıyor... (ses dosyası indiriliyor, WiFi\'de daha hızlı olur)';
+  }, 15000));
+  ttsToastTimers.push(setTimeout(() => {
+    const t = document.getElementById('tts-loading-toast');
+    if (t) t.textContent = '🔊 Bu normalden uzun sürüyor. Bağlantını kontrol et; sorun devam ederse sayfayı yenileyip tekrar dene.';
+  }, 45000));
 }
 function ttsHideLoadingToast() {
+  ttsToastTimers.forEach(clearTimeout);
+  ttsToastTimers = [];
   const toast = document.getElementById('tts-loading-toast');
   if (toast) toast.remove();
 }
