@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Oxford Flashcards</title>
 <style>
 :root {
@@ -36,7 +36,7 @@
 }}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;}
-.app{max-width:680px;margin:0 auto;padding:0 16px 72px;}
+.app{max-width:680px;margin:0 auto;padding:0 16px calc(72px + env(safe-area-inset-bottom));}
 .header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:0.5px solid var(--border2);margin-bottom:18px;}
 .header-title{font-size:17px;font-weight:500;}
 .header-sub{font-size:12px;color:var(--text3);margin-top:2px;}
@@ -142,7 +142,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .session-end{text-align:center;padding:48px 24px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);}
 .session-end h2{font-size:22px;font-weight:500;margin-bottom:8px;}
 .session-end p{font-size:15px;color:var(--text2);margin-bottom:24px;}
-.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border2);padding:10px 16px;display:flex;gap:8px;justify-content:center;z-index:10;}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border2);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;z-index:10;}
 .save-bar button{padding:9px 18px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;}
 .save-bar button:hover{background:var(--surface2);}
 .btn-save{background:var(--text)!important;color:var(--bg)!important;border-color:var(--text)!important;}
@@ -600,17 +600,21 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
   <!-- CÜMLE GENİŞLETME VIEW -->
   <div id="view-sentence" class="hidden">
-    <div class="sg-levels" id="sg-levels"></div>
-    <div class="sg-tense-row-label">Gramer yapısı</div>
-    <div class="sg-levels" id="sg-tense-filter"></div>
+    <div class="filter-panel">
+      <div class="sg-levels" id="sg-levels"></div>
+      <div class="sg-tense-row-label">Gramer yapısı</div>
+      <div class="sg-levels" id="sg-tense-filter"></div>
+    </div>
     <div class="sg-stats-bar" id="sg-stats-bar">Yükleniyor...</div>
     <div id="sg-content"></div>
   </div>
 
   <!-- ADAM ASMACA VIEW -->
   <div id="view-hangman" class="hidden">
-    <div class="sg-tense-row-label">CEFR seviye (boş bırakırsan tüm seviyeler)</div>
-    <div class="sg-levels" id="hg-levels"></div>
+    <div class="filter-panel">
+      <div class="sg-tense-row-label">CEFR seviye (boş bırakırsan tüm seviyeler)</div>
+      <div class="sg-levels" id="hg-levels"></div>
+    </div>
     <div class="sg-stats-bar" id="hg-stats-bar">Yükleniyor...</div>
     <div id="hg-content"></div>
   </div>
