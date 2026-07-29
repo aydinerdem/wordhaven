@@ -36,7 +36,7 @@
 }}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;}
-.app{max-width:680px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 16px calc(72px + env(safe-area-inset-bottom));}
+.app{max-width:680px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));}
 .header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:0.5px solid var(--border2);margin-bottom:18px;}
 .header-title{font-size:17px;font-weight:500;}
 .header-sub{font-size:12px;color:var(--text3);margin-top:2px;}
@@ -270,8 +270,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 <div class="app">
   <div class="header">
     <div>
-      <div class="header-title">Oxford Flashcards</div>
-      <div class="header-sub">A1 · A2 · B1 · B2 · C1 · Spaced Repetition</div>
+      <div class="header-title">WordHaven</div>
     </div>
   </div>
   <div class="main-nav-wrap">
@@ -283,6 +282,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')">Kelime Listem</button>
     <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')">Cümle Kur</button>
     <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')">Asmaca</button>
+    <button class="nav-btn main-nav-btn" id="nav-settings" onclick="showView('settings')">Ayarlar</button>
   </div>
   </div>
 
@@ -300,31 +300,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="streak-days" id="streak-days"></div>
     </div>
     <div id="cefr-sections"></div>
-
-    <!-- SES AYARLARI -->
-    <div style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:16px;margin-top:16px;">
-      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">🔊 Ses Ayarları</div>
-      <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
-      <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
-      <div style="display:flex;gap:8px;">
-        <button onclick="saveTtsUserKey()" style="flex:1;padding:9px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">Kaydet</button>
-        <button onclick="clearTtsUserKey()" style="padding:9px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">Kaldır</button>
-      </div>
-      <details style="margin-top:12px;">
-        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl ücretsiz API anahtarı alırım?</summary>
-        <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
-          <li><a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>'ya git, ücretsiz hesap oluştur (Sign up)</li>
-          <li>Platform seçimi çıkarsa <b>"ElevenCreative"</b>'i seç → Continue</li>
-          <li>İsim/dil gibi kişiselleştirme sorularını istediğin gibi geç, yaş onay kutusunu işaretle → Next</li>
-          <li>"Ne yapmak istersin?" ekranında hepsini seçebilirsin, önemli değil → Continue</li>
-          <li>Ana sayfada <b>"Create an API Key"</b>'e dokun</li>
-          <li>İsim ver (örn. "benim-sesim"), aşağı kaydırıp <b>"Text to Speech"</b> satırında <b>"Access"</b>'i seç — <u>diğer tüm satırları "No Access" bırak</u></li>
-          <li><b>"Create Key"</b>'e bas, çıkan anahtarı kopyala</li>
-          <li>Buraya (yukarıdaki kutuya) yapıştır, <b>Kaydet</b>'e bas</li>
-        </ol>
-        <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">Ücretsiz plan ayda ~10 dakika ses veriyor. Anahtar girmezsen veya bitince, otomatik olarak cihazının kendi (daha mekanik) sesine geçilir — uygulama her zaman çalışmaya devam eder.</p>
-      </details>
-    </div>
   </div>
 
   <!-- FILTER -->
@@ -437,7 +412,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <button class="start-btn" style="max-width:200px;margin:0 auto;" onclick="showView('dash')">Özet'e dön</button>
     </div>
   </div>
-</div>
 
   <!-- NEWS VIEW -->
   <div id="view-news" class="hidden">
@@ -619,10 +593,61 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div id="hg-content"></div>
   </div>
 
-<div class="save-bar">
-  <button onclick="doExport()">💾 Dışa aktar</button>
-  <button class="btn-save" onclick="triggerImport()">📂 İlerlemeyi yükle</button>
-</div>
+  <!-- AYARLAR -->
+  <div id="view-settings" class="hidden">
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;">💾 Veri</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="doExport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">💾 Dışa aktar</button>
+        <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">📂 İlerlemeyi yükle</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">İlerlemen (öğrendiğin kelimeler, streak, vs.) bu cihazda saklanıyor. Başka bir cihaza taşımak veya yedeklemek istersen "Dışa aktar"ı kullan.</p>
+    </div>
+
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">🔊 Ses Ayarları</div>
+      <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
+      <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveTtsUserKey()" style="flex:1;padding:9px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">Kaydet</button>
+        <button onclick="clearTtsUserKey()" style="padding:9px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">Kaldır</button>
+      </div>
+      <details style="margin-top:12px;">
+        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl ücretsiz API anahtarı alırım?</summary>
+        <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
+          <li><a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>'ya git, ücretsiz hesap oluştur (Sign up)</li>
+          <li>Platform seçimi çıkarsa <b>"ElevenCreative"</b>'i seç → Continue</li>
+          <li>İsim/dil gibi kişiselleştirme sorularını istediğin gibi geç, yaş onay kutusunu işaretle → Next</li>
+          <li>"Ne yapmak istersin?" ekranında hepsini seçebilirsin, önemli değil → Continue</li>
+          <li>Ana sayfada <b>"Create an API Key"</b>'e dokun</li>
+          <li>İsim ver (örn. "benim-sesim"), aşağı kaydırıp <b>"Text to Speech"</b> satırında <b>"Access"</b>'i seç — <u>diğer tüm satırları "No Access" bırak</u></li>
+          <li><b>"Create Key"</b>'e bas, çıkan anahtarı kopyala</li>
+          <li>Buraya (yukarıdaki kutuya) yapıştır, <b>Kaydet</b>'e bas</li>
+        </ol>
+        <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">Ücretsiz plan ayda ~10 dakika ses veriyor. Anahtar girmezsen veya bitince, otomatik olarak cihazının kendi (daha mekanik) sesine geçilir — uygulama her zaman çalışmaya devam eder.</p>
+      </details>
+    </div>
+
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">ℹ️ WordHaven Hakkında</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        WordHaven, Oxford 3000/5000 kelime listesi ve binlerce konu bazlı kelimeyi aralıklı tekrar (spaced repetition) yöntemiyle öğretmek için tasarlanmış kişisel bir İngilizce kelime öğrenme uygulamasıdır.
+      </p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        <b>Neler yapabilirsin:</b><br>
+        • <b>Özet</b> — genel ilerlemeni gör<br>
+        • <b>Tekrar Et</b> — seviye/frekansa göre filtreleyip flashcard çalış<br>
+        • <b>Metin Analizi</b> — haber metni yapıştır, bildiğin/bilmediğin kelimeleri gör<br>
+        • <b>Sözlüğüm</b> — Oxford dışı kelimeleri kendi havuzuna ekle<br>
+        • <b>Kelime Listem</b> — tüm kelime listesini gez, sesli dinle<br>
+        • <b>Cümle Kur</b> — gramer yapılarını cümle inşa ederek pekiştir<br>
+        • <b>Asmaca</b> — kelime bilgini oyunla test et
+      </p>
+      <p style="font-size:11.5px;color:var(--text3);line-height:1.6;">© 2026 Erdem Aydın. Tüm hakları saklıdır.</p>
+    </div>
+  </div>
+
+  </div>
 <input type="file" id="file-in" accept=".json" class="hidden" onchange="doImport(event)">
 
 <script>
@@ -24873,7 +24898,7 @@ function selectAll(group) {
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
 function showView(v) {
-  ['dash','filter','study','news','wordadd','list','sentence','hangman'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
   document.getElementById('nav-study').classList.toggle('active', v==='filter'||v==='study');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
@@ -24881,6 +24906,7 @@ function showView(v) {
   document.getElementById('nav-list').classList.toggle('active', v==='list');
   document.getElementById('nav-sentence').classList.toggle('active', v==='sentence');
   document.getElementById('nav-hangman').classList.toggle('active', v==='hangman');
+  document.getElementById('nav-settings').classList.toggle('active', v==='settings');
   if (v==='dash') updateDashboard();
   if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
