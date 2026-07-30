@@ -1374,9 +1374,23 @@ function stRenderList() {
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:11.5px;color:var(--text2);white-space:nowrap;">✅${p.totalKnown||0} · 🔁${p.totalLearning||0}</span>
         <span onclick="stToggleFavorite(${wordArg})" style="font-size:18px;cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};">★</span>
+        <span onclick="stRemoveWord(${wordArg})" title="Listeden çıkar" style="font-size:16px;cursor:pointer;color:var(--text3);">✕</span>
       </div>
     </div>`;
   }).join('');
+}
+
+// Bir kelimeyi Öğreniyorum/Biliyorum takibinden tamamen çıkarır (favori ve
+// temas geçmişine dokunmadan) — SRS ilerlemesi sıfırlanır, istersen "+ Yeni
+// Kelime Ekle" ile tekrar baştan ekleyebilirsin.
+function stRemoveWord(word, pos) {
+  const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
+  if (!w) return;
+  if (!confirm(`"${word}" kelimesini Öğreniyorum/Biliyorum listesinden çıkarmak istediğine emin misin?`)) return;
+  delete progress[wkey(w)];
+  saveState();
+  stRenderList();
+  updateDashboard();
 }
 
 function stOpenWord(word, pos) {
