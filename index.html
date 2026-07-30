@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Oxford Flashcards</title>
+<style>
+:root {
+  --bg:#fafaf8;--surface:#fff;--surface2:#f4f3ef;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9e9e9a;
+  --a1:#0f6e56;--a1bg:#e1f5ee;
+  --a2:#185fa5;--a2bg:#e6f1fb;
+  --b1:#6b3fa0;--b1bg:#f0eaff;
+  --b2:#a05000;--b2bg:#fff3e0;
+  --c1:#8b0000;--c1bg:#fff0f0;
+  --c2:#8b2d6b;--c2bg:#fdf0f8;
+  --danger:#a32d2d;--dangerbg:#fcebeb;
+  --warn:#a05000;--warnbg:#fff3e0;
+  --success:#0f6e56;--successbg:#e1f5ee;
+  --accent:#534ab7;--accentbg:#eeedfe;
+  --r:12px;--rsm:8px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a18;--surface:#242422;--surface2:#2e2e2b;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0efe9;--text2:#9e9e9a;--text3:#6b6b67;
+  --a1:#5dcaa5;--a1bg:#085041;
+  --a2:#85b7eb;--a2bg:#0c447c;
+  --b1:#c4a0f0;--b1bg:#3a2060;
+  --b2:#f0a060;--b2bg:#5a3000;
+  --c1:#f08080;--c1bg:#500000;
+  --c2:#e08fc0;--c2bg:#5a2048;
+  --danger:#f09595;--dangerbg:#501313;
+  --warn:#f0a060;--warnbg:#5a3000;
+  --success:#5dcaa5;--successbg:#085041;
+  --accent:#afa9ec;--accentbg:#26215c;
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;}
+.app{max-width:680px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));}
+.header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:0.5px solid var(--border2);margin-bottom:18px;}
+.header-title{font-size:17px;font-weight:500;}
+.header-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.nav{display:flex;border:0.5px solid var(--border2);border-radius:var(--rsm);overflow:hidden;margin-bottom:18px;}
+.nav-btn{flex:1;padding:9px 0;font-size:13px;font-weight:500;border:none;background:none;color:var(--text2);cursor:pointer;transition:background .15s,color .15s;}
+.nav-btn.active{background:var(--accent);color:#fff;}
+
+/* Ana üst menü (7 sekme): tek parça kurumsal bar yerine ayrı, yuvarlak,
+   aralıklı "hap" butonlar — daha canlı/modern. Dar ekranda yatay kaydırmalı. */
+.main-nav-wrap{margin-bottom:18px;position:relative;}
+.main-menu-toggle{display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;border-radius:var(--rsm);background:var(--surface);border:0.5px solid var(--border2);font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;}
+.main-menu-toggle span:first-child{font-size:16px;}
+.main-menu-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.main-menu-panel.hidden{display:none;}
+.main-nav-btn{padding:12px 10px;border-radius:var(--rsm);background:var(--surface);border:0.5px solid var(--border2);text-align:center;}
+.main-nav-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.dash-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;}
+.dash-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.dash-value{font-size:26px;font-weight:500;}
+.dash-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.streak-bar{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.streak-days{display:flex;gap:5px;}
+.s-day{width:26px;height:26px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text3);}
+.s-day.done{background:var(--a1bg);color:var(--a1);font-weight:500;}
+.s-day.today{background:var(--accent);color:#fff;}
+.cefr-block{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;}
+.cefr-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.bar-bg{height:5px;background:var(--surface2);border-radius:3px;margin-bottom:14px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s ease;}
+.acc-item{margin-bottom:5px;border:0.5px solid var(--border);border-radius:var(--rsm);overflow:hidden;}
+.acc-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;background:var(--surface2);}
+.acc-label{font-size:12px;font-weight:500;color:var(--text2);}
+.acc-body{display:none;padding:10px 12px;max-height:200px;overflow-y:auto;}
+.acc-body.open{display:block;}
+.copy-btn{font-size:11px;padding:2px 8px;border-radius:4px;border:0.5px solid var(--border2);background:none;color:var(--text3);cursor:pointer;}
+.filter-panel{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;}
+.f-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.f-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.chip{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--text2);transition:all .15s;}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.chip-all{padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--text3);transition:all .15s;}
+.chip-all:hover{background:var(--surface2);}
+.f-count{font-size:12px;color:var(--text3);margin-top:6px;}
+.start-btn{width:100%;padding:12px;font-size:15px;font-weight:500;background:var(--text);color:var(--bg);border:none;border-radius:var(--rsm);cursor:pointer;margin-top:12px;transition:opacity .15s;}
+.start-btn:hover{opacity:.88;}
+.start-btn:disabled{opacity:.35;cursor:not-allowed;}
+.study-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.back-btn{background:none;border:none;font-size:13px;color:var(--text2);cursor:pointer;padding:4px 0;}
+.prog-wrap{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:22px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
+.card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:22px;margin-bottom:14px;cursor:pointer;transition:border-color .15s;min-height:220px;}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.c-word{font-size:30px;font-weight:500;margin-bottom:4px;}
+.c-pos{font-size:13px;color:var(--text3);font-style:italic;}
+.badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+.badge{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
+.b-a1{background:var(--a1bg);color:var(--a1);}
+.b-a2{background:var(--a2bg);color:var(--a2);}
+.b-b1{background:var(--b1bg);color:var(--b1);}
+.b-b2{background:var(--b2bg);color:var(--b2);}
+.b-c1{background:var(--c1bg);color:var(--c1);}
+.b-c2{background:var(--c2bg);color:var(--c2);}
+
+/* ── Tutarlı seviye rengi: A1-C2 çipleri her yerde aynı renk mantığını kullanır ── */
+.chip.lvl-a1{border-color:var(--a1);color:var(--a1);}
+.chip.lvl-a2{border-color:var(--a2);color:var(--a2);}
+.chip.lvl-b1{border-color:var(--b1);color:var(--b1);}
+.chip.lvl-b2{border-color:var(--b2);color:var(--b2);}
+.chip.lvl-c1{border-color:var(--c1);color:var(--c1);}
+.chip.lvl-c2{border-color:var(--c2);color:var(--c2);}
+.chip.lvl-a1.on{background:var(--a1);color:#fff;border-color:var(--a1);}
+.chip.lvl-a2.on{background:var(--a2);color:#fff;border-color:var(--a2);}
+.chip.lvl-b1.on{background:var(--b1);color:#fff;border-color:var(--b1);}
+.chip.lvl-b2.on{background:var(--b2);color:#fff;border-color:var(--b2);}
+.chip.lvl-c1.on{background:var(--c1);color:#fff;border-color:var(--c1);}
+.chip.lvl-c2.on{background:var(--c2);color:#fff;border-color:var(--c2);}
+.b-s1{background:#faeeda;color:#854f0b;}
+.b-w1{background:#eaf3de;color:#3b6d11;}
+.b-s2,.b-s3,.b-w2,.b-w3{background:var(--surface2);color:var(--text2);}
+.divider{height:0.5px;background:var(--border);margin-bottom:14px;}
+.c-def{font-size:15px;color:var(--text2);line-height:1.6;}
+.card-back{display:none;}
+.card-back.show{display:block;}
+.c-section{margin-bottom:14px;}
+.c-section-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;}
+.c-turkish{font-size:16px;font-weight:500;background:var(--surface2);padding:10px 14px;border-radius:var(--rsm);}
+.c-cats{display:flex;gap:5px;flex-wrap:wrap;}
+.c-cat{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--accentbg);color:var(--accent);}
+.c-example{border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:10px;}
+.c-example p{font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;}
+.tr-toggle{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 0;margin-top:3px;display:block;}
+.tr-text{font-size:13px;color:var(--text2);margin-top:3px;font-style:normal;display:none;}
+.flip-hint{text-align:center;padding-top:14px;}
+.flip-hint p{font-size:12px;color:var(--text3);}
+.loading-card{text-align:center;padding:24px 0;}
+.spinner{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.action-row{display:flex;gap:10px;}
+.act-btn{flex:1;padding:13px;font-size:15px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid;background:none;}
+.btn-again{color:var(--danger);border-color:var(--danger);}
+.btn-again:hover{background:var(--dangerbg);}
+.btn-know{color:var(--success);border-color:var(--success);}
+.btn-know:hover{background:var(--successbg);}
+.session-end{text-align:center;padding:48px 24px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);}
+.session-end h2{font-size:22px;font-weight:500;margin-bottom:8px;}
+.session-end p{font-size:15px;color:var(--text2);margin-bottom:24px;}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border2);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;z-index:10;}
+.save-bar button{padding:9px 18px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;}
+.save-bar button:hover{background:var(--surface2);}
+.btn-save{background:var(--text)!important;color:var(--bg)!important;border-color:var(--text)!important;}
+.hidden{display:none!important;}
+
+  .news-oxford { cursor:pointer; border-radius:2px; color:var(--text); transition:background .1s; }
+  .news-a1  { border-bottom:2px solid var(--a1); }
+  .news-a1:hover  { background:var(--a1bg); }
+  .news-a2  { border-bottom:2px solid var(--a2); }
+  .news-a2:hover  { background:var(--a2bg); }
+  .news-b1  { border-bottom:2px solid var(--b1); }
+  .news-b1:hover  { background:var(--b1bg); }
+  .news-b2  { border-bottom:2px solid var(--b2); }
+  .news-b2:hover  { background:var(--b2bg); }
+  .news-c1  { border-bottom:2px solid var(--c1); }
+  .news-c1:hover  { background:var(--c1bg); }
+  .news-oxford.learned  { opacity:.5; }
+  .news-oxford.reviewing { opacity:.8; }
+  .news-oxford.hidden-lvl { border-bottom:none; cursor:default; }
+  .news-custom { cursor:pointer; border-bottom:2px dotted var(--warn); color:var(--text); }
+  .news-custom:hover { background:var(--warnbg); border-radius:2px; }
+  .news-topic { cursor:pointer; border-radius:2px; color:var(--text); border-bottom:2px solid var(--accent); }
+  .news-topic:hover { background:var(--accentbg); }
+  .modal-badge { font-size:11px; padding:3px 8px; border-radius:6px; font-weight:500; }
+/* ── CÜMLE GENİŞLETME (Sentence Expansion) — sg- prefix, izole ── */
+.sg-levels{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sg-level-chip{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border2);background:var(--surface);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;}
+.sg-level-chip.active{background:var(--a1);border-color:var(--a1);color:#fff;}
+.sg-tense-row-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 6px;}
+.sg-tense-chip{font-size:12.5px;padding:6px 12px;}
+.sg-stats-bar{font-size:12px;color:var(--accent);margin-bottom:14px;font-weight:600;}
+.sg-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.sg-progress{display:flex;gap:5px;margin-bottom:16px;}
+.sg-progress-dot{flex:1;height:4px;border-radius:2px;background:var(--border2);}
+.sg-progress-dot.done{background:var(--success);}
+.sg-progress-dot.current{background:var(--accent);}
+.sg-sentence-box{background:var(--surface2);border-radius:var(--rsm);padding:18px 14px;font-size:19px;font-weight:500;line-height:2.1;min-height:70px;display:flex;flex-wrap:wrap;align-items:center;gap:2px;}
+.sg-word{padding:2px 3px;}
+.sg-chunk-inserted{background:var(--a1bg);color:var(--a1);border-radius:6px;padding:2px 8px;font-weight:600;}
+.sg-gap{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 1px;flex-shrink:0;}
+.sg-gap-btn{width:26px;height:26px;border-radius:50%;background:var(--surface);border:1.5px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;line-height:1;transition:.12s;}
+.sg-gap.wrong .sg-gap-btn{border-color:var(--danger);color:var(--danger);}
+.sg-verb-pending{background:var(--dangerbg);color:var(--danger);border-radius:6px;padding:2px 8px;font-weight:700;text-decoration:underline wavy;}
+.sg-verb-resolved{background:var(--b2bg,#fff3e0);color:var(--b2,#a05000);border-radius:6px;padding:2px 8px;font-weight:700;}
+.sg-irr-badge{font-size:9px;font-weight:700;margin-left:2px;opacity:.75;text-transform:uppercase;}
+.sg-verb-options{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.sg-verb-opt{padding:12px 18px;border-radius:20px;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);font-size:16px;font-weight:600;cursor:pointer;}
+.sg-verb-opt.wrong-opt{border-color:var(--danger);color:var(--danger);background:var(--dangerbg);}
+.sg-grammar-card{background:var(--surface2);border-radius:var(--rsm);padding:14px;margin-top:14px;}
+.sg-grammar-title{font-weight:700;font-size:14px;color:var(--text);margin-bottom:3px;}
+.sg-grammar-formula{font-size:12.5px;color:var(--text2);margin-bottom:10px;font-style:italic;}
+.sg-role-list{display:flex;flex-direction:column;gap:6px;}
+.sg-role-row{display:flex;align-items:center;gap:6px;font-size:13.5px;}
+.sg-role-arrow{color:var(--text3);font-size:12px;}
+.sg-role-word{font-weight:600;}
+.sg-role-tag{padding:2px 8px;border-radius:10px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+.sg-role-a1{background:var(--a1bg);color:var(--a1);}
+.sg-role-a2{background:var(--a2bg,#e6f1fb);color:var(--a2,#185fa5);}
+.sg-role-b1{background:var(--b1bg,#f0eaff);color:var(--b1,#6b3fa0);}
+.sg-role-b2{background:var(--b2bg,#fff3e0);color:var(--b2,#a05000);}
+.sg-role-accent{background:var(--accentbg);color:var(--accent);}
+.sg-tray{margin-top:18px;text-align:center;}
+.sg-tray-label{font-size:12px;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;}
+.sg-chunk-pill{display:inline-block;background:var(--accentbg);color:var(--accent);border:1.5px solid var(--accent);border-radius:20px;padding:10px 20px;font-size:16px;font-weight:600;}
+.sg-feedback{margin-top:14px;text-align:center;font-size:14px;font-weight:600;min-height:20px;}
+.sg-feedback.wrong{color:var(--danger);}
+.sg-feedback.right{color:var(--success);}
+.sg-btn{width:100%;padding:14px;border-radius:var(--rsm);border:none;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;}
+.sg-btn-primary{background:var(--a1);color:#fff;}
+.sg-btn-secondary{background:var(--surface2);color:var(--text);}
+.sg-tr-input{width:100%;padding:14px;border-radius:var(--rsm);border:1.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:15px;margin-top:12px;}
+.sg-sentence-recap{background:var(--surface2);border-left:3px solid var(--a1);border-radius:var(--rsm);padding:10px 14px;font-size:15px;font-weight:600;color:var(--text);}
+.sg-tr-reference{background:var(--surface2);border-radius:var(--rsm);padding:14px;margin-top:12px;font-size:15px;}
+.sg-tr-reference b{color:var(--a1);}
+.sg-rate-row{display:flex;gap:8px;margin-top:12px;}
+.sg-rate-btn{flex:1;padding:12px;border-radius:var(--rsm);border:1.5px solid var(--border2);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;}
+.sg-rate-btn.known{color:var(--success);}
+.sg-rate-btn.partial{color:var(--accent);}
+.sg-rate-btn.unknown{color:var(--danger);}
+.sg-rate-btn.suggested{border-width:2.5px;box-shadow:0 0 0 2px var(--surface2);}
+.sg-word-rate-block{background:var(--surface2);border-radius:var(--rsm);padding:10px 12px;margin-bottom:8px;}
+.sg-word-rate-label{font-weight:700;font-size:14.5px;margin-bottom:6px;}
+.sg-rate-done{font-size:13px;color:var(--success);font-weight:600;}
+.sg-suggestion-note{font-size:12px;color:var(--text2);margin-bottom:8px;}
+.sg-empty{text-align:center;color:var(--text2);padding:40px 20px;font-size:14px;}
+/* ── ADAM ASMACA (Hangman) — hg- prefix, izole ── */
+.hg-info-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;}
+.hg-badge{padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:700;background:var(--surface2);color:var(--text2);}
+.hg-badge.cefr{background:var(--accentbg);color:var(--accent);}
+.hg-lives{display:flex;gap:6px;justify-content:center;margin-bottom:18px;}
+.hg-life-dot{width:16px;height:16px;border-radius:50%;background:var(--danger);}
+.hg-life-dot.lost{background:var(--surface2);}
+.hg-word-display{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:22px;}
+.hg-letter-box{min-width:24px;height:34px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;border-bottom:2.5px solid var(--border2);color:var(--text);text-transform:uppercase;}
+.hg-letter-box.sep{border-bottom:none;min-width:12px;}
+.hg-keyboard{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px;}
+.hg-key{padding:10px 0;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;}
+.hg-key.correct{background:var(--successbg);border-color:var(--success);color:var(--success);}
+.hg-key.wrong{background:var(--dangerbg);border-color:var(--danger);color:var(--danger);opacity:.5;}
+.hg-key.eliminated{background:var(--surface2);border-color:var(--border);color:var(--text3);opacity:.35;text-decoration:line-through;}
+.hg-key:disabled{cursor:default;}
+.hg-hint-row{text-align:center;margin-bottom:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.hg-hint-btn{padding:9px 18px;border-radius:20px;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;}
+.hg-hint-btn:disabled{opacity:.4;cursor:default;}
+.hg-give-up-btn{border-color:var(--border2);color:var(--text2);}
+/* ── TELAFFUZ (Kokoro TTS) — hoparlör düğmesi ── */
+.tts-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;font-size:13px;vertical-align:middle;margin-left:6px;flex-shrink:0;line-height:1;}
+.tts-btn:hover{background:var(--surface2);}
+.tts-btn:disabled{opacity:.45;cursor:wait;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <div class="header-title">WordHaven</div>
+    </div>
+  </div>
+  <div class="main-nav-wrap">
+  <button class="main-menu-toggle" id="main-menu-toggle" onclick="toggleMainMenu()">
+    <span>☰</span><span id="main-menu-current">Özet</span>
+  </button>
+  <div class="main-menu-panel hidden" id="main-menu-panel">
+    <button class="nav-btn main-nav-btn active" id="nav-dash" onclick="showView('dash')">Özet</button>
+    <button class="nav-btn main-nav-btn" id="nav-cardmode" onclick="showView('cardmode')">Kart Modu</button>
+    <button class="nav-btn main-nav-btn" id="nav-status" onclick="showView('status')">Kelime Durumu</button>
+    <button class="nav-btn main-nav-btn" id="nav-news" onclick="showView('news')">Metin Analizi</button>
+    <button class="nav-btn main-nav-btn" id="nav-wordadd" onclick="showView('wordadd')">Sözlüğüm</button>
+    <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')">Kelime Listem</button>
+    <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')">Cümle Kur</button>
+    <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')">Asmaca</button>
+    <button class="nav-btn main-nav-btn" id="nav-settings" onclick="showView('settings')">Ayarlar</button>
+    <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')">Tekrar Et</button>
+  </div>
+  </div>
+
+  <!-- (Kelime ara: artık "Kelime Ekle" sekmesinde) -->
+
+  <!-- DASHBOARD -->
+  <div id="view-dash">
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-label">Tam öğrenildi</div><div class="dash-value" id="d-mastered">0</div><div class="dash-sub">kelime</div></div>
+      <div class="dash-card"><div class="dash-label">Tekrarda</div><div class="dash-value" id="d-reviewing">0</div><div class="dash-sub">pekişiyor</div></div>
+      <div class="dash-card" style="border-left:3px solid var(--warn);"><div class="dash-label">Bugün</div><div class="dash-value" style="color:var(--warn);" id="d-due">0</div><div class="dash-sub">bekliyor</div></div>
+    </div>
+    <div class="streak-bar">
+      <div><div style="font-size:13px;font-weight:500;">Streak</div><div style="font-size:12px;color:var(--text2);margin-top:2px;" id="streak-label">0 gün</div></div>
+      <div class="streak-days" id="streak-days"></div>
+    </div>
+    <div id="cefr-sections"></div>
+  </div>
+
+  <!-- FILTER -->
+  <div id="view-filter" class="hidden">
+    <div class="filter-panel">
+      <div style="font-size:13px;font-weight:500;margin-bottom:14px;">Filtrele ve çalış</div>
+
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="f-label" style="margin:0;">CEFR Seviye</div>
+          <button class="chip-all" onclick="selectAll('cefr')">Tümünü seç</button>
+        </div>
+        <div class="f-row">
+          <button class="chip on lvl-a1" data-g="cefr" data-v="A1">A1</button>
+          <button class="chip on lvl-a2" data-g="cefr" data-v="A2">A2</button>
+          <button class="chip lvl-b1" data-g="cefr" data-v="B1">B1</button>
+          <button class="chip lvl-b2" data-g="cefr" data-v="B2">B2</button>
+          <button class="chip lvl-c1" data-g="cefr" data-v="C1">C1</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="f-label" style="margin:0;">Longman Speaking</div>
+          <button class="chip-all" onclick="selectAll('sp')">Tümünü seç</button>
+        </div>
+        <div class="f-row">
+          <button class="chip on" data-g="sp" data-v="S1">S1</button>
+          <button class="chip on" data-g="sp" data-v="S2">S2</button>
+          <button class="chip on" data-g="sp" data-v="S3">S3</button>
+          <button class="chip on" data-g="sp" data-v="">—</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="f-label" style="margin:0;">Longman Writing</div>
+          <button class="chip-all" onclick="selectAll('wr')">Tümünü seç</button>
+        </div>
+        <div class="f-row">
+          <button class="chip on" data-g="wr" data-v="W1">W1</button>
+          <button class="chip on" data-g="wr" data-v="W2">W2</button>
+          <button class="chip on" data-g="wr" data-v="W3">W3</button>
+          <button class="chip on" data-g="wr" data-v="">—</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="f-label" style="margin:0;">Frekans</div>
+          <button class="chip-all" onclick="selectAll('fr')">Tümünü seç</button>
+        </div>
+        <div class="f-row">
+          <button class="chip on" data-g="fr" data-v="High Frequency">High</button>
+          <button class="chip on" data-g="fr" data-v="Medium Frequency">Medium</button>
+          <button class="chip on" data-g="fr" data-v="Low Frequency">Low</button>
+          <button class="chip on" data-g="fr" data-v="">—</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <div class="f-label">Mod</div>
+        <div class="f-row">
+          <button class="chip on" data-g="mode" data-v="due">Bugün bekleyenler</button>
+          <button class="chip" data-g="mode" data-v="new">Yeni kelimeler</button>
+          <button class="chip" data-g="mode" data-v="all">Tümü</button>
+        </div>
+      </div>
+
+      <div class="f-count" id="f-count">— kelime</div>
+      <button class="start-btn" id="start-btn" onclick="startStudy()">Çalışmaya başla</button>
+    </div>
+  </div>
+
+  <!-- STUDY -->
+  <div id="view-study" class="hidden">
+    <div class="study-top">
+      <button class="back-btn" onclick="showView('filter')">← Geri</button>
+      <span style="font-size:13px;color:var(--text2);" id="study-prog">0 / 0</span>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+
+    <div id="card-wrap">
+      <div class="card" id="the-card" onclick="flipCard()">
+        <div class="card-top">
+          <div><div class="c-word" id="c-word"></div><div class="c-pos" id="c-pos"></div></div>
+          <div class="badges" id="c-badges"></div>
+        </div>
+        <div class="divider"></div>
+        <div id="c-def-wrap">
+          <div class="loading-card" id="c-loading"><div class="spinner"></div><p style="font-size:13px;color:var(--text3);">İçerik yükleniyor...</p></div>
+          <div class="c-def hidden" id="c-def"></div>
+        </div>
+        <div class="card-back" id="card-back">
+          <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish" id="c-turkish"></div></div>
+          <div class="c-section" id="c-cats-wrap"><div class="c-section-label">Kategoriler</div><div class="c-cats" id="c-cats"></div></div>
+          <div class="c-section"><div class="c-section-label">Nüans</div><div id="c-nuance"></div></div>
+          <div class="c-section"><div class="c-section-label">Örnekler</div><div id="c-examples"></div></div>
+        </div>
+        <div class="flip-hint" id="flip-hint"><p>Kartı çevirmek için tıkla</p></div>
+      </div>
+      <div class="action-row hidden" id="action-row">
+        <button class="act-btn btn-again" onclick="answer(false)">↩ Tekrar bak</button>
+        <button class="act-btn btn-know" onclick="answer(true)">✓ Biliyorum</button>
+      </div>
+    </div>
+    <div class="session-end hidden" id="session-end">
+      <h2>Tur tamamlandı! 🎉</h2>
+      <p id="session-summary"></p>
+      <button class="start-btn" style="max-width:200px;margin:0 auto;" onclick="showView('dash')">Özet'e dön</button>
+    </div>
+  </div>
+
+  <!-- NEWS VIEW -->
+  <div id="view-news" class="hidden">
+
+
+    <div style="font-size:14px;color:var(--text2);margin-bottom:12px;line-height:1.6;">
+      Haber metinlerini yapıştır. Oxford kelimeler seviyeye göre renkli vurgulanır. Tıklayınca anlam gelir.
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+      <span style="font-size:11px;color:var(--text3);">Göster:</span>
+      <button class="news-lvl-btn on" data-lvl="all" onclick="toggleNewsLevel('all')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:var(--text);cursor:pointer;color:var(--bg);">Tümü</button>
+      <button class="news-lvl-btn" data-lvl="A1" onclick="toggleNewsLevel('A1')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--a1);background:none;cursor:pointer;color:var(--a1);">A1</button>
+      <button class="news-lvl-btn" data-lvl="A2" onclick="toggleNewsLevel('A2')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--a2);background:none;cursor:pointer;color:var(--a2);">A2</button>
+      <button class="news-lvl-btn" data-lvl="B1" onclick="toggleNewsLevel('B1')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--b1);background:none;cursor:pointer;color:var(--b1);">B1</button>
+      <button class="news-lvl-btn" data-lvl="B2" onclick="toggleNewsLevel('B2')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--b2);background:none;cursor:pointer;color:var(--b2);">B2</button>
+      <button class="news-lvl-btn" data-lvl="C1" onclick="toggleNewsLevel('C1')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--c1);background:none;cursor:pointer;color:var(--c1);">C1</button>
+      <span style="font-size:11px;color:var(--text3);margin-left:4px;" id="news-word-count"></span>
+    </div>
+
+    <!-- Text inputs -->
+    <div id="news-panels" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:500;color:var(--a1);">Kolay</span>
+          <button onclick="clearPanel(0)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Temizle</button>
+        </div>
+        <textarea id="news-input-0" placeholder="Kolay seviye haber metnini buraya yapıştır..." style="width:100%;min-height:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:14px;color:var(--text);resize:vertical;outline:none;" oninput="analyzePanel(0)"></textarea>
+        <div id="news-output-0" style="margin-top:10px;font-size:15px;line-height:2;display:none;"></div>
+      </div>
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:500;color:var(--a2);">Orta</span>
+          <button onclick="clearPanel(1)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Temizle</button>
+        </div>
+        <textarea id="news-input-1" placeholder="Orta seviye haber metnini buraya yapıştır..." style="width:100%;min-height:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:14px;color:var(--text);resize:vertical;outline:none;" oninput="analyzePanel(1)"></textarea>
+        <div id="news-output-1" style="margin-top:10px;font-size:15px;line-height:2;display:none;"></div>
+      </div>
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:500;color:var(--b1);">Zor</span>
+          <button onclick="clearPanel(2)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Temizle</button>
+        </div>
+        <textarea id="news-input-2" placeholder="Zor seviye haber metnini buraya yapıştır..." style="width:100%;min-height:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:14px;color:var(--text);resize:vertical;outline:none;" oninput="analyzePanel(2)"></textarea>
+        <div id="news-output-2" style="margin-top:10px;font-size:15px;line-height:2;display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- KELİME EKLE VIEW -->
+  <div id="view-wordadd" class="hidden">
+    <div style="font-size:14px;color:var(--text2);margin-bottom:14px;line-height:1.6;">
+      Bir kelime ara (Oxford listesinde mi kontrol eder) veya alttan Oxford dışı bir kelimeyi kendi havuzuna ekle.
+    </div>
+
+    <!-- GLOBAL SEARCH -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input type="text" id="global-search-input" placeholder="Kelime ara… (örn: absolute)" style="flex:1;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);">
+      <button id="global-search-clear" class="hidden" onclick="closeSearchResult()" style="padding:10px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">✕</button>
+    </div>
+    <div id="search-result-panel" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:16px;margin-bottom:14px;"></div>
+
+    <!-- Word lookup panel (inline, no fixed positioning) -->
+    <div id="word-modal-overlay" class="hidden" onclick="closeWordModal()" style="display:none;"></div>
+    <div id="word-modal" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:22px;margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:28px;font-weight:500;" id="modal-word"></div>
+          <div style="font-size:13px;color:var(--text3);font-style:italic;" id="modal-pos"></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;">
+          <span id="modal-cefr-badge"></span>
+          <span id="modal-sp-badge"></span>
+          <span id="modal-wr-badge"></span>
+          <span id="modal-custom-badge" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--warnbg);color:var(--warn);">Özel</span>
+          <span id="modal-fav-btn" onclick="modalToggleFavorite()" title="Favori" style="font-size:20px;cursor:pointer;line-height:1;padding-top:2px;color:var(--text3);">☆</span>
+          <button onclick="closeWordModal()" style="background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;margin-left:4px;">✕</button>
+        </div>
+      </div>
+      <div id="modal-sr-status" class="hidden" style="background:var(--accentbg);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--accent);"></div>
+      <div style="height:0.5px;background:var(--border);margin-bottom:14px;"></div>
+      <div id="modal-loading" style="text-align:center;padding:20px 0;">
+        <div style="width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;"></div>
+        <p style="font-size:13px;color:var(--text3);">Yükleniyor...</p>
+      </div>
+      <div id="modal-content" class="hidden">
+        <div style="font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:14px;" id="modal-def"></div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Türkçe anlam</div>
+          <div style="font-size:16px;font-weight:500;background:var(--surface2);padding:10px 14px;border-radius:var(--rsm);" id="modal-turkish"></div>
+        </div>
+        <div id="modal-cats-wrap" class="hidden" style="margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Kategoriler</div>
+          <div id="modal-cats" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Nüans</div>
+          <div id="modal-nuance" style="font-size:14px;color:var(--text);line-height:1.65;"></div>
+        </div>
+        <div style="margin-bottom:18px;">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Örnekler</div>
+          <div id="modal-examples"></div>
+          <div id="modal-other-pos"></div>
+        </div>
+        <div id="modal-actions" style="display:flex;gap:10px;">
+          <button id="modal-btn-know" onclick="modalAnswer(true)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--success);color:var(--success);background:none;">✓ Biliyorum</button>
+          <button id="modal-btn-again" onclick="modalAnswer(false)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--danger);color:var(--danger);background:none;">↩ Tekrar bak</button>
+        </div>
+        <div id="modal-restart-wrap" class="hidden" style="margin-top:10px;">
+          <button onclick="modalRestart()" style="width:100%;padding:11px;font-size:13px;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Sıfırla ve tekrar başla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual word add -->
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px;">Manuel kelime ekle (Oxford dışı havuz)</div>
+      <div style="display:flex;gap:8px;">
+        <input id="manual-word-input" type="text" placeholder="Kelimeyi yaz..." style="flex:1;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')addManualWord()">
+        <button onclick="addManualWord()" style="padding:9px 16px;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);font-size:14px;cursor:pointer;">Ekle</button>
+      </div>
+    </div>
+
+    <!-- Custom words list -->
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px;">Özel kelime havuzu</div>
+      <div id="custom-words-list" style="font-size:13px;color:var(--text3);">Henüz kelime eklenmedi.</div>
+    </div>
+  </div>
+
+  <!-- WORD LIST VIEW -->
+  <div id="view-list" class="hidden">
+    <input type="text" id="list-search-input" placeholder="Bu listede kelime ara... (Oxford 3000/5000 + Konu Kelimeleri)" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);margin-bottom:10px;box-sizing:border-box;" oninput="handleListSearch()">
+    <div id="list-search-results" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:14px;margin-bottom:14px;"></div>
+    <div id="list-normal-panels">
+    <div class="nav" style="margin-bottom:14px;">
+      <button class="nav-btn active" id="list-mode-oxford" onclick="selectListMode('oxford')">Oxford 3000/5000</button>
+      <button class="nav-btn" id="list-mode-topic" onclick="selectListMode('topic')">Konu Kelimeleri</button>
+      <button class="nav-btn" id="list-mode-favorites" onclick="selectListMode('favorites')">⭐ Favorilerim</button>
+    </div>
+    <div id="list-oxford-panel">
+      <div class="filter-panel" style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Seviye seç</div>
+        <div class="f-row" id="list-cefr-row"></div>
+      </div>
+      <div id="word-list-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0;"></div>
+    </div>
+    <div id="list-topic-panel" class="hidden">
+      <div class="filter-panel" style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Konu grubu seç</div>
+        <div class="f-row" id="topic-group-row"></div>
+      </div>
+      <div class="filter-panel" id="topic-letter-panel" style="margin-bottom:14px;display:none;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;" id="topic-group-label"></div>
+        <div class="f-row" id="topic-letter-row"></div>
+      </div>
+      <div id="topic-word-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0;"></div>
+    </div>
+    <div id="list-favorites-panel" class="hidden">
+      <div id="favorites-word-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0;"></div>
+    </div>
+    </div>
+
+  </div>
+
+  <!-- CÜMLE GENİŞLETME VIEW -->
+  <div id="view-sentence" class="hidden">
+    <div class="filter-panel">
+      <div class="sg-levels" id="sg-levels"></div>
+      <div class="sg-tense-row-label">Gramer yapısı</div>
+      <div class="sg-levels" id="sg-tense-filter"></div>
+    </div>
+    <div class="sg-stats-bar" id="sg-stats-bar">Yükleniyor...</div>
+    <div id="sg-content"></div>
+  </div>
+
+  <!-- ADAM ASMACA VIEW -->
+  <div id="view-hangman" class="hidden">
+    <div class="filter-panel">
+      <div class="sg-tense-row-label">CEFR seviye (boş bırakırsan tüm seviyeler)</div>
+      <div class="sg-levels" id="hg-levels"></div>
+    </div>
+    <div class="sg-stats-bar" id="hg-stats-bar">Yükleniyor...</div>
+    <div id="hg-content"></div>
+  </div>
+
+  <!-- KART MODU (deneysel, Tekrar Et'e alternatif — aynı ilerleme verisini paylaşır) -->
+  <div id="view-cardmode" class="hidden">
+    <div class="filter-panel">
+      <div class="f-label" style="margin-bottom:8px;">Seviye</div>
+      <div class="f-row" id="cm-level-row"></div>
+      <div class="f-label" style="margin:14px 0 8px;">Oturum büyüklüğü</div>
+      <div class="f-row" id="cm-size-row" style="align-items:center;"></div>
+    </div>
+    <div id="cm-progress-card" style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;"></div>
+    <div id="cm-card-area"></div>
+  </div>
+
+  <!-- KELİME DURUMU -->
+  <div id="view-status" class="hidden">
+    <div class="nav" style="margin-bottom:14px;">
+      <button class="nav-btn" id="st-tab-learning" onclick="stSetTab('learning')">🔁 Öğreniyorum</button>
+      <button class="nav-btn" id="st-tab-known" onclick="stSetTab('known')">✅ Biliyorum</button>
+    </div>
+    <div class="filter-panel">
+      <div class="f-label" style="margin-bottom:8px;">Seviye</div>
+      <div class="f-row" id="st-level-row"></div>
+      <div class="f-label" style="margin:14px 0 8px;">Sırala</div>
+      <div class="f-row" id="st-sort-row"></div>
+    </div>
+    <div class="filter-panel" style="border-style:dashed;">
+      <div class="f-label" style="margin-bottom:8px;">+ Yeni kelime ekle</div>
+      <input type="text" id="st-add-input" placeholder="Kelimeyi yaz... (örn: absolute)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="st-add-learning" onclick="stSetAddStatus(false)" class="chip on" style="flex:1;">🔁 Öğreniyorum olarak ekle</button>
+        <button id="st-add-known" onclick="stSetAddStatus(true)" class="chip" style="flex:1;">✅ Biliyorum olarak ekle</button>
+      </div>
+      <button onclick="stAddWord()" style="width:100%;padding:10px;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);font-weight:600;font-size:13px;cursor:pointer;">Ekle</button>
+    </div>
+    <div id="st-count-label" style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:8px;"></div>
+    <div id="st-card-area"></div>
+    <div id="st-list"></div>
+  </div>
+
+  <!-- AYARLAR -->
+  <div id="view-settings" class="hidden">
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;">💾 Veri</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="doExport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">💾 Dışa aktar</button>
+        <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">📂 İlerlemeyi yükle</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">İlerlemen (öğrendiğin kelimeler, streak, vs.) bu cihazda saklanıyor. Başka bir cihaza taşımak veya yedeklemek istersen "Dışa aktar"ı kullan.</p>
+    </div>
+
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">🔊 Ses Ayarları</div>
+      <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
+      <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveTtsUserKey()" style="flex:1;padding:9px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">Kaydet</button>
+        <button onclick="clearTtsUserKey()" style="padding:9px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">Kaldır</button>
+      </div>
+      <details style="margin-top:12px;">
+        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl ücretsiz API anahtarı alırım?</summary>
+        <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
+          <li><a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>'ya git, ücretsiz hesap oluştur (Sign up)</li>
+          <li>Platform seçimi çıkarsa <b>"ElevenCreative"</b>'i seç → Continue</li>
+          <li>İsim/dil gibi kişiselleştirme sorularını istediğin gibi geç, yaş onay kutusunu işaretle → Next</li>
+          <li>"Ne yapmak istersin?" ekranında hepsini seçebilirsin, önemli değil → Continue</li>
+          <li>Ana sayfada <b>"Create an API Key"</b>'e dokun</li>
+          <li>İsim ver (örn. "benim-sesim"), aşağı kaydırıp <b>"Text to Speech"</b> satırında <b>"Access"</b>'i seç — <u>diğer tüm satırları "No Access" bırak</u></li>
+          <li><b>"Create Key"</b>'e bas, çıkan anahtarı kopyala</li>
+          <li>Buraya (yukarıdaki kutuya) yapıştır, <b>Kaydet</b>'e bas</li>
+        </ol>
+        <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">Ücretsiz plan ayda ~10 dakika ses veriyor. Anahtar girmezsen veya bitince, otomatik olarak cihazının kendi (daha mekanik) sesine geçilir — uygulama her zaman çalışmaya devam eder.</p>
+      </details>
+    </div>
+
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">ℹ️ WordHaven Hakkında</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        WordHaven, Oxford 3000/5000 kelime listesi ve binlerce konu bazlı kelimeyi aralıklı tekrar (spaced repetition) yöntemiyle öğretmek için tasarlanmış kişisel bir İngilizce kelime öğrenme uygulamasıdır.
+      </p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        <b>Neler yapabilirsin:</b><br>
+        • <b>Özet</b> — genel ilerlemeni gör<br>
+        • <b>Tekrar Et</b> — seviye/frekansa göre filtreleyip flashcard çalış<br>
+        • <b>Metin Analizi</b> — haber metni yapıştır, bildiğin/bilmediğin kelimeleri gör<br>
+        • <b>Sözlüğüm</b> — Oxford dışı kelimeleri kendi havuzuna ekle<br>
+        • <b>Kelime Listem</b> — tüm kelime listesini gez, sesli dinle<br>
+        • <b>Cümle Kur</b> — gramer yapılarını cümle inşa ederek pekiştir<br>
+        • <b>Asmaca</b> — kelime bilgini oyunla test et
+      </p>
+      <p style="font-size:11.5px;color:var(--text3);line-height:1.6;">© 2026 Erdem Aydın. Tüm hakları saklıdır.</p>
+    </div>
+  </div>
+
+  </div>
+<input type="file" id="file-in" accept=".json" class="hidden" onchange="doImport(event)">
+
+<script>
+(function(){
+  var overlay = document.createElement('div');
+  overlay.id = 'wh-loading-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--bg,#fafaf8);color:var(--text,#1a1a18);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;font-family:-apple-system,BlinkMacSystemFont,sans-serif;gap:12px;padding:24px;text-align:center;';
+  overlay.innerHTML =
+    '<div style="width:36px;height:36px;border:3px solid rgba(83,74,183,0.15);border-top-color:#534ab7;border-radius:50%;animation:wh-spin 0.8s linear infinite;"></div>' +
+    '<div id="wh-loading-text" style="font-size:14px;opacity:0.75;">Kelime verileri yükleniyor…</div>' +
+    '<style>@keyframes wh-spin{to{transform:rotate(360deg)}}</style>';
+  document.body.appendChild(overlay);
+
+  function setStatus(msg){
+    var t = document.getElementById('wh-loading-text');
+    if (t) t.textContent = msg;
+  }
+
+  function showError(msg){
+    setStatus(msg);
+    var el = document.getElementById('wh-loading-overlay');
+    if (!el) return;
+    var retry = document.createElement('button');
+    retry.textContent = 'Tekrar Dene';
+    retry.style.cssText = 'margin-top:4px;padding:10px 22px;border-radius:8px;border:none;background:#534ab7;color:#fff;font-size:14px;font-weight:600;';
+    retry.onclick = function(){ location.reload(); };
+    el.appendChild(retry);
+  }
+
+  Promise.all([
+    fetch('word-data.json').then(function(r){ if(!r.ok) throw new Error('word-data.json (' + r.status + ')'); return r.json(); }),
+    fetch('topic-words.json').then(function(r){ if(!r.ok) throw new Error('topic-words.json (' + r.status + ')'); return r.json(); }),
+    fetch('builtin-content.json').then(function(r){ if(!r.ok) throw new Error('builtin-content.json (' + r.status + ')'); return r.json(); })
+  ]).then(function(results){
+    window.WORD_DATA = results[0];
+    window.TOPIC_WORDS = results[1];
+    window.BUILTIN_CONTENT = results[2];
+    setStatus('Uygulama başlatılıyor…');
+    var s = document.createElement('script');
+    s.src = 'app.js';
+    s.onload = function(){
+      var el = document.getElementById('wh-loading-overlay');
+      if (el) el.remove();
+    };
+    s.onerror = function(){
+      showError('app.js yüklenemedi.');
+    };
+    document.body.appendChild(s);
+  }).catch(function(err){
+    console.error('WordHaven veri yükleme hatası:', err);
+    showError('Veri yüklenemedi (' + err.message + '). İnternet bağlantınızı kontrol edip tekrar deneyin.');
+  });
+})();
+
+</script>
+</body>
+</html>
