@@ -126,7 +126,7 @@ function renderWordList(level){
     const k=wkey(w);
     const open=(k===listOpenKey);
     let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${ttsButtonHtml(w.word)}${favStarHtml(w)}</span>
+      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -187,7 +187,7 @@ function renderListSearchResults(raw){
     const isOxford = OXFORD_WORD_SET.has(w.word.toLowerCase());
     const sourceTag = isOxford ? '' : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>';
     let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}${ttsButtonHtml(w.word)}${favStarHtml(w)}</span>
+      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if (open) {
@@ -232,7 +232,7 @@ function renderFavoritesList(){
     const k=wkey(w);
     const open=(k===favoritesOpenKey);
     let html=`<div class="list-word-item" onclick="toggleFavoritesWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word)}${favStarHtml(w)}</span>
+      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -298,7 +298,7 @@ function renderTopicWordGrid(){
     const _w=BUILTIN_CONTENT[k];
     const _warn=(_w&&_w.definition&&_w.definition.trim())?'':'⚠️';
     let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word}${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word)}${favStarHtml(w)}</span>
+      <span>${w.word}${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -325,7 +325,9 @@ function renderListDefHTML(c,w){
     return `<div class="c-example"><p>${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
   }).join('');
   const catsHtml=(w.categories&&w.categories.length)?`<div class="c-section"><div class="c-section-label">Kategoriler</div><div class="c-cats">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div></div>`:'';
-  const html = `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
+  const contactHtml = `<div class="c-section"><div class="c-section-label">Temas takibi</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${contactBadgesHtml(w.word)}</div></div>`;
+  const html = `${contactHtml}
+    <div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
     ${catsHtml}
     <div class="c-section"><div class="c-section-label">Nüans</div>${nuanceHtml}</div>
@@ -496,7 +498,7 @@ function performGlobalSearch() {
     const content = customCache[raw] || BUILTIN_CONTENT[raw + '|—'];
     html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-        <span style="font-size:20px;font-weight:500;">${customMatch.word}</span>${ttsButtonHtml(customMatch.word)}
+        <span style="font-size:20px;font-weight:500;">${customMatch.word}</span>${ttsButtonHtml(customMatch.word, customMatch.word)}
         <span style="font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:10px;font-weight:600;">Özel havuzunda zaten var</span>
       </div>
       <button data-word="${escAttr(raw)}" onclick="handleWordClick(this)" style="padding:8px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Detayları / ilerlemeyi gör</button>
@@ -507,7 +509,7 @@ function performGlobalSearch() {
       const c = BUILTIN_CONTENT[wkey(w)];
       html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-          <span style="font-size:20px;font-weight:500;">${w.word}</span>${ttsButtonHtml(w.word)}
+          <span style="font-size:20px;font-weight:500;">${w.word}</span>${ttsButtonHtml(w.word, w.word)}
           <span style="font-size:12px;color:var(--text3);font-style:italic;">${w.pos}</span>
           ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}
         </div>
@@ -587,7 +589,7 @@ async function showCard() {
   document.getElementById('card-back').classList.remove('show');
   document.getElementById('flip-hint').style.display='block';
   document.getElementById('action-row').classList.add('hidden');
-  document.getElementById('c-word').innerHTML = escHtml(w.word) + ttsButtonHtml(w.word);
+  document.getElementById('c-word').innerHTML = escHtml(w.word) + ttsButtonHtml(w.word, w.word);
   ttsWireButtons(document.getElementById('c-word'));
   document.getElementById('c-pos').textContent=w.pos;
   const cefrColor = CEFR_COLORS[w.cefr] || '--text2';
@@ -725,6 +727,25 @@ updateFilterCount();
 let customWords = {};   // key: word.toLowerCase() → {word, addedAt}
 let customProgress = {}; // key: word.toLowerCase() → SM-2 data
 let favorites = {}; // key: wkey(w) → true
+let contactTrack = {}; // key: kelime (küçük harf) → {read:N, heard:N, used:N} (N = tekrar sayısı)
+const CONTACT_THRESHOLD = 5; // bu sayıya ulaşınca rozet/nokta tam renge ulaşır
+
+// Temas takibi — kelimeyle hangi kanaldan kaç kez karşılaştığını (mevcut
+// davranışlara "iğneleme" yaparak) sessizce sayar: 'read' (Metin Analizi'nde
+// geçti), 'heard' (TTS ile dinlendi), 'used' (Cümle Kur'da o kelime üzerine
+// bir egzersiz değerlendirildi). Kelime bazında tutulur, POS'tan bağımsızdır.
+// Tek bir temas "öğrenildi" saymaz — renk, eşiğe ulaşana kadar kademeli koyulaşır.
+function markContact(word, dim) {
+  if (!word) return;
+  const k = word.toLowerCase();
+  if (!contactTrack[k]) contactTrack[k] = {};
+  contactTrack[k][dim] = (contactTrack[k][dim] || 0) + 1;
+  saveState();
+}
+// count → 0..1 arası oran, eşiği aşan sayılar 1'de kırpılır.
+function contactRatio(count) {
+  return Math.min(count || 0, CONTACT_THRESHOLD) / CONTACT_THRESHOLD;
+}
 
 // Kelime Listem / Konu Kelimeleri / Arama satırlarında kullanılan paylaşılan
 // favori yıldızı — modal ve Kelime Durumu ile aynı `favorites` deposunu okur.
@@ -778,7 +799,7 @@ const STORAGE_KEY = 'oxford_flashcards_state_v1';
 
 function saveState() {
   try {
-    const data = { progress, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, savedAt: new Date().toISOString() };
+    const data = { progress, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, savedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) { /* localStorage dolu veya erişilemez olabilir — sessizce geç */ }
 }
@@ -796,6 +817,7 @@ function loadState() {
     if (d.customCache) customCache = d.customCache;
     if (d.srsStore) srsStore = d.srsStore;
     if (d.favorites) favorites = d.favorites;
+    if (d.contactTrack) contactTrack = d.contactTrack;
     return true;
   } catch (e) { return false; }
 }
@@ -884,10 +906,13 @@ function analyzePanel(idx) {
       var show = activeLevels.has(cefr);
       if (!show) cls += ' hidden-lvl';
       else oxfordCount++;
+      markContact(clean, 'read');
       html += '<span class="' + cls + '" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
     } else if (isCustom) {
+      markContact(clean, 'read');
       html += '<span class="news-custom" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
     } else if (TOPIC_WORD_MAP[clean] && TOPIC_WORD_MAP[clean].length) {
+      markContact(clean, 'read');
       html += '<span class="news-topic" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" title="Oxford 3000/5000 dışı, konu listesinde">' + escHtml(token) + '</span>';
     } else {
       html += '<span data-word="' + escAttr(clean) + '" onclick="handlePromptClick(this)" title="Oxford listesinde yok" style="cursor:pointer;">' + escHtml(token) + '</span>';
@@ -1034,7 +1059,7 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
     ${backToListBtn}
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
       <button onclick="event.stopPropagation();cmToggleExtra()" class="chip" style="margin-bottom:16px;">+ Ek Anlamlar</button>
-      <div>${ttsButtonHtml(w.word)}</div>
+      <div>${ttsButtonHtml(w.word, w.word)}</div>
       <div style="font-size:26px;font-weight:700;margin:10px 0 2px;">${escHtml(w.word)}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
         <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
@@ -1215,6 +1240,46 @@ function renderModalFavoriteBtn() {
   const isFav = !!favorites[wkey(modalCurrentWord)];
   el.textContent = isFav ? '★' : '☆';
   el.style.color = isFav ? '#e0a63c' : 'var(--text3)';
+}
+
+// Liste satırlarında kullanılan küçük 3-nokta temas göstergesi (Okuma/Dinleme/Kullanım).
+// Her nokta, o kanaldaki tekrar sayısına göre açıktan koyuya renk alır.
+function contactDotsHtml(w) {
+  const c = contactTrack[w.word.toLowerCase()] || {};
+  return `<span style="display:inline-flex;gap:3px;margin-left:8px;vertical-align:middle;">${CONTACT_DIMS.map(([dim,label]) => {
+    const count = c[dim] || 0;
+    const ratio = contactRatio(count);
+    const style = ratio > 0
+      ? `background:color-mix(in srgb, var(--accent) ${Math.round(ratio*100)}%, var(--surface2));`
+      : 'border:1px solid var(--border2);';
+    return `<span title="${label}: ${count}/${CONTACT_THRESHOLD}" style="width:7px;height:7px;border-radius:50%;${style}"></span>`;
+  }).join('')}</span>`;
+}
+
+// Temas takibi rozetleri (paylaşılan bileşen) — renk yoğunluğu tekrar sayısına
+// göre kademeli koyulaşır (0/5 = anahat gri, 5/5 = tam aksan rengi). Modal,
+// Kart Modu/Kelime Durumu kartı ve Kelime Listem'in genişleyen panelleri
+// hepsi bu tek fonksiyonu kullanır — böylece görünüm her yerde birebir aynı.
+const CONTACT_DIMS = [ ['read','📖 Okuma'], ['heard','🎧 Dinleme'], ['used','🔁 Kullanım'] ];
+function contactBadgesHtml(word) {
+  const c = contactTrack[word.toLowerCase()] || {};
+  return CONTACT_DIMS.map(([dim,label]) => {
+    const count = c[dim] || 0;
+    const ratio = contactRatio(count);
+    let style;
+    if (ratio <= 0) style = 'border:1.5px solid var(--border2);color:var(--text2);font-weight:500;';
+    else {
+      const bg = `color-mix(in srgb, var(--accent) ${Math.round(ratio*100)}%, var(--surface2))`;
+      const fg = ratio >= 0.6 ? '#fff' : 'var(--accent)';
+      style = `background:${bg};color:${fg};font-weight:600;`;
+    }
+    return `<span title="${count}/${CONTACT_THRESHOLD}" style="font-size:12.5px;padding:5px 12px;border-radius:20px;${style}">${label} ${count}/${CONTACT_THRESHOLD}</span>`;
+  }).join('');
+}
+function renderModalContactRow() {
+  const el = document.getElementById('modal-contact-row');
+  if (!el || !modalCurrentWord) return;
+  el.innerHTML = contactBadgesHtml(modalCurrentWord.word);
 }
 
 function stRenderList() {
@@ -1415,15 +1480,20 @@ async function ttsSpeak(text, btnEl) {
   }
 }
 
-function ttsButtonHtml(text) {
-  return `<button type="button" class="tts-btn" data-tts-text="${escAttr(text)}" title="Dinle">🔊</button>`;
+function ttsButtonHtml(text, contactWord) {
+  const attr = contactWord ? ` data-contact-word="${escAttr(contactWord)}"` : '';
+  return `<button type="button" class="tts-btn" data-tts-text="${escAttr(text)}"${attr} title="Dinle">🔊</button>`;
 }
 
 // Bir konteyner içindeki tüm .tts-btn düğmelerini tıklama olayına bağlar.
 // İnnerHTML her yeniden yazıldığında (her render'da) yeniden çağrılmalı.
 function ttsWireButtons(container) {
   (container || document).querySelectorAll('.tts-btn[data-tts-text]').forEach(btn => {
-    btn.onclick = (e) => { e.stopPropagation(); ttsSpeak(btn.dataset.ttsText, btn); };
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      ttsSpeak(btn.dataset.ttsText, btn);
+      if (btn.dataset.contactWord) { markContact(btn.dataset.contactWord, 'heard'); renderModalContactRow(); }
+    };
   });
 }
 
@@ -1571,13 +1641,14 @@ async function openWordModal(wordLower) {
   modalCurrentWord = wordObj;
   renderModalOtherPos(wordLower, wordObj.pos);
   renderModalFavoriteBtn();
+  renderModalContactRow();
 
   // Show modal inline
   const modal = document.getElementById('word-modal');
   modal.classList.remove('hidden');
   modal.style.display = 'block';
   modal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  document.getElementById('modal-word').innerHTML = escHtml(wordObj.word) + ttsButtonHtml(wordObj.word);
+  document.getElementById('modal-word').innerHTML = escHtml(wordObj.word) + ttsButtonHtml(wordObj.word, wordObj.word);
   ttsWireButtons(document.getElementById('modal-word'));
   document.getElementById('modal-pos').textContent = wordObj.pos;
   document.getElementById('modal-loading').style.display = 'block';
@@ -2212,6 +2283,7 @@ function sgHandleTrCheck() {
     { key: `word:${sgCurrentExercise.targetWord}`, label: sgCurrentExercise.targetWord }
   ];
   sgCurrentExercise.chunks.forEach(chunk => { if (chunk.vocabWord) items.push({ key: `word:${chunk.vocabWord}`, label: chunk.vocabWord }); });
+  items.forEach(item => { if (item.key.startsWith('word:')) markContact(item.key.slice(5), 'used'); });
   if (sgCurrentExercise.verbConjugation && sgCurrentExercise.verbConjugation.irregular) {
     const vc = sgCurrentExercise.verbConjugation;
     items.push({ key: `verb:${vc.baseForm}`, label: `${vc.correctForm} (düzensiz fiil)` });
@@ -2580,7 +2652,7 @@ function hgRenderGame() {
 
     bodyHtml = `
       ${resultLine}
-      <div class="sg-tr-reference"><b>${hgCurrentWord.word}</b>${ttsButtonHtml(hgCurrentWord.word)} — ${tr}<br><span style="font-size:13px;color:var(--text2);">${def}</span></div>
+      <div class="sg-tr-reference"><b>${hgCurrentWord.word}</b>${ttsButtonHtml(hgCurrentWord.word, hgCurrentWord.word)} — ${tr}<br><span style="font-size:13px;color:var(--text2);">${def}</span></div>
       ${exampleHtml}
       <div style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Bu kelimeyi değerlendir (istersen atla):</div>
       <div class="sg-rate-row" id="hg-rate-row">
