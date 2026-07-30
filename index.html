@@ -623,7 +623,8 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
     <div class="filter-panel" style="border-style:dashed;">
       <div class="f-label" style="margin-bottom:8px;">+ Yeni kelime ekle</div>
-      <input type="text" id="st-add-input" placeholder="Kelimeyi yaz... (örn: absolute)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:10px;">
+      <input type="text" id="st-add-input" placeholder="Kelimeyi yaz... (örn: absolute)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:6px;" oninput="stRenderAddSuggestions()">
+      <div id="st-add-suggestions" class="hidden" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button id="st-add-learning" onclick="stSetAddStatus(false)" class="chip on" style="flex:1;">🔁 Öğreniyorum olarak ekle</button>
         <button id="st-add-known" onclick="stSetAddStatus(true)" class="chip" style="flex:1;">✅ Biliyorum olarak ekle</button>

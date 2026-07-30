@@ -1055,10 +1055,17 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
   const wordArg = `'${w.word.replace(/'/g,"\\'")}','${w.pos}'`;
   const answerCall = isQueueCard ? `${answerFn}(` : `${answerFn}(${wordArg},`;
   const backToListBtn = isQueueCard ? '' : `<div style="text-align:center;margin-bottom:14px;"><button onclick="${backFn}()" class="chip">← listeye dön</button></div>`;
+  // NOT: #cm-extra/#cm-tr-hidden/#cm-tr-shown ID'leri targetId'e göre
+  // benzersizleştiriliyor — aksi halde Kart Modu ve Kelime Durumu aynı anda
+  // DOM'da bulunduğu için (biri gizli de olsa) getElementById ilk bulduğu
+  // (görünmeyen) örneği güncelliyor, butonlar görünürde çalışmıyormuş gibi duruyordu.
+  const extraId = targetId + '-cm-extra';
+  const trHiddenId = targetId + '-cm-tr-hidden';
+  const trShownId = targetId + '-cm-tr-shown';
   area.innerHTML = `
     ${backToListBtn}
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
-      <button onclick="event.stopPropagation();cmToggleExtra()" class="chip" style="margin-bottom:16px;">+ Ek Anlamlar</button>
+      <button onclick="event.stopPropagation();cmToggleExtra('${targetId}')" class="chip" style="margin-bottom:16px;">+ Ek Anlamlar</button>
       <div>${ttsButtonHtml(w.word, w.word)}</div>
       <div style="font-size:26px;font-weight:700;margin:10px 0 2px;">${escHtml(w.word)}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
@@ -1066,11 +1073,11 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
         <span style="font-size:13px;color:var(--text3);font-style:italic;">${w.pos}</span>
       </div>
       ${catsHtml}
-      <div id="cm-tr-hidden" style="margin-bottom:22px;">
-        <button onclick="event.stopPropagation();cmRevealTurkish()" class="chip" style="padding:8px 20px;">Türkçesini gör</button>
+      <div id="${trHiddenId}" style="margin-bottom:22px;">
+        <button onclick="event.stopPropagation();cmRevealTurkish('${targetId}')" class="chip" style="padding:8px 20px;">Türkçesini gör</button>
       </div>
-      <div id="cm-tr-shown" class="hidden" style="font-size:20px;color:var(--accent);font-weight:600;margin-bottom:22px;">${turkish || '—'}</div>
-      <div id="cm-extra" class="hidden" style="text-align:left;border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:16px;">
+      <div id="${trShownId}" class="hidden" style="font-size:20px;color:var(--accent);font-weight:600;margin-bottom:22px;">${turkish || '—'}</div>
+      <div id="${extraId}" class="hidden" style="text-align:left;border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:16px;">
         ${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}
       </div>
       <div style="display:flex;gap:10px;">
@@ -1084,17 +1091,19 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
   ttsWireButtons(area);
 }
 
-function cmRevealTurkish() {
-  document.getElementById('cm-tr-hidden').classList.add('hidden');
-  document.getElementById('cm-tr-shown').classList.remove('hidden');
+function cmRevealTurkish(targetId) {
+  targetId = targetId || 'cm-card-area';
+  document.getElementById(targetId + '-cm-tr-hidden').classList.add('hidden');
+  document.getElementById(targetId + '-cm-tr-shown').classList.remove('hidden');
 }
 
 function cmBackToQueue() {
   cmShowCard();
 }
 
-function cmToggleExtra() {
-  document.getElementById('cm-extra').classList.toggle('hidden');
+function cmToggleExtra(targetId) {
+  targetId = targetId || 'cm-card-area';
+  document.getElementById(targetId + '-cm-extra').classList.toggle('hidden');
 }
 
 function cmAnswer(correct) {
@@ -1196,6 +1205,32 @@ function stSetAddStatus(known) {
   document.getElementById('st-add-known').classList.toggle('on', known);
 }
 
+// "+ Yeni kelime ekle" kutusuna yazarken canlı öneri listesi — kısmi bir
+// kelime (örn. "absol") için Oxford listesindeki eşleşen kelimeleri gösterir,
+// dokununca kutuya tam kelimeyi yazar.
+function stRenderAddSuggestions() {
+  const input = document.getElementById('st-add-input');
+  const box = document.getElementById('st-add-suggestions');
+  const q = input.value.trim().toLowerCase();
+  if (q.length < 2) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const seen = new Set();
+  const matches = WORD_DATA.filter(w => {
+    const wl = w.word.toLowerCase();
+    if (!wl.startsWith(q) || seen.has(wl)) return false;
+    seen.add(wl);
+    return true;
+  }).slice(0, 8);
+  if (!matches.length) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  box.classList.remove('hidden');
+  box.innerHTML = matches.map(w =>
+    `<span class="chip" onclick="stPickAddSuggestion('${w.word.replace(/'/g,"\\'")}')" style="cursor:pointer;">${w.word}</span>`
+  ).join('');
+}
+function stPickAddSuggestion(word) {
+  document.getElementById('st-add-input').value = word;
+  document.getElementById('st-add-suggestions').classList.add('hidden');
+}
+
 function stAddWord() {
   const input = document.getElementById('st-add-input');
   const word = input.value.trim().toLowerCase();
@@ -1213,7 +1248,31 @@ function stAddWord() {
   });
   saveState();
   input.value = '';
+  document.getElementById('st-add-suggestions').classList.add('hidden');
   stRenderList();
+
+  // Aynı kökü paylaşan, henüz eklenmemiş diğer türemiş formları (örn. allege →
+  // allegation, allegedly) bul ve eklemek isteyip istemediğini sor — otomatik
+  // zorla eklemiyoruz, sadece öneriyoruz.
+  const stem = word.length >= 5 ? word.slice(0, 5) : word;
+  const related = WORD_DATA.filter(w => {
+    const wl = w.word.toLowerCase();
+    return wl !== word && wl.startsWith(stem) && !progress[wkey(w)];
+  });
+  if (related.length) {
+    const list = related.map(w => `${w.word} (${w.pos})`).join(', ');
+    const status = stAddStatusKnown ? 'Biliyorum' : 'Öğreniyorum';
+    if (confirm(`"${word}" eklendi. Aynı kökten gelen başka kelimeler de var: ${list}.\n\nBunları da "${status}" olarak eklemek ister misin?`)) {
+      related.forEach(w => {
+        const k = wkey(w);
+        progress[k] = stAddStatusKnown
+          ? { interval:21, easeFactor:2.5, repetitions:4, mastery:'mastered', learned:true, totalKnown:0, totalLearning:0, nextReview:getNextDate(21), lastSeen:todayStr() }
+          : { interval:0, easeFactor:2.5, repetitions:0, mastery:'reviewing', learned:false, totalKnown:0, totalLearning:0, nextReview:todayStr(), lastSeen:todayStr() };
+      });
+      saveState();
+      stRenderList();
+    }
+  }
 }
 
 function stToggleFavorite(word, pos) {
