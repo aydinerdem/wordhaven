@@ -1047,6 +1047,18 @@ function loadState() {
   } catch (e) { return false; }
 }
 
+const WELCOME_SEEN_KEY = 'wh_welcome_seen_v1';
+function showWelcomeOverlay() {
+  document.getElementById('welcome-overlay').classList.remove('hidden');
+}
+function closeWelcomeOverlay() {
+  document.getElementById('welcome-overlay').classList.add('hidden');
+  try { localStorage.setItem(WELCOME_SEEN_KEY, '1'); } catch (e) {}
+}
+if (!localStorage.getItem(WELCOME_SEEN_KEY)) {
+  showWelcomeOverlay();
+}
+
 loadState();
 updateDashboard();
 updateFilterCount();
@@ -2331,9 +2343,50 @@ function sgRenderTenseFilter() {
   });
 }
 
+let sgSourceFilters = new Set(); // 'learning' | 'favorites' | 'struggle' — boşsa filtre uygulanmaz
+const SG_SOURCE_OPTS = [ ['learning','🔁 Öğreniyorum'], ['favorites','⭐ Favoriler'], ['struggle','😓 Zorlandıklarım'] ];
+function sgRenderSourceFilter() {
+  const el = document.getElementById('sg-source-filter');
+  el.innerHTML = SG_SOURCE_OPTS.map(([key,label]) =>
+    `<div class="chip${sgSourceFilters.has(key)?' on':''}" data-key="${key}">${label}</div>`
+  ).join('');
+  el.querySelectorAll('.chip').forEach(chip => {
+    chip.onclick = () => {
+      const key = chip.dataset.key;
+      if (sgSourceFilters.has(key)) sgSourceFilters.delete(key); else sgSourceFilters.add(key);
+      sgRenderSourceFilter();
+      sgPickExercise();
+    };
+  });
+}
+// Bir egzersiz kelimesinin (targetWord/vocabWord — POS taşımaz) seçili
+// kaynak filtrelerinden en az birine uyup uymadığını kontrol eder.
+function sgWordMatchesSource(wordStr) {
+  const wl = wordStr.toLowerCase();
+  const entries = WORD_DATA.filter(w => w.word.toLowerCase() === wl);
+  if (!entries.length) return false;
+  return entries.some(w => {
+    const k = wkey(w);
+    const p = progress[k];
+    if (sgSourceFilters.has('learning') && p && p.mastery !== 'mastered') return true;
+    if (sgSourceFilters.has('favorites') && favorites[k]) return true;
+    if (sgSourceFilters.has('struggle')) {
+      const n = lookupCount[wl] || 0;
+      if (n >= LOOKUP_STRUGGLE_THRESHOLD && !(p && p.mastery === 'mastered')) return true;
+    }
+    return false;
+  });
+}
+function sgExerciseWords(ex) {
+  const words = [ex.targetWord];
+  ex.chunks.forEach(c => { if (c.vocabWord) words.push(c.vocabWord); });
+  return words;
+}
+
 function sgGetPool() {
-  if (sgSelectedTenseFilter) return SG_EXERCISES.filter(e => e.tense === sgSelectedTenseFilter);
-  return SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr));
+  let pool = sgSelectedTenseFilter ? SG_EXERCISES.filter(e => e.tense === sgSelectedTenseFilter) : SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr));
+  if (sgSourceFilters.size) pool = pool.filter(e => sgExerciseWords(e).some(w => sgWordMatchesSource(w)));
+  return pool;
 }
 
 function sgExerciseTrackableKeys(ex) {
@@ -2358,8 +2411,11 @@ function sgComputeExercisePriority(ex) {
 function sgPickExercise() {
   const pool = sgGetPool();
   if (pool.length === 0) {
+    const msg = sgSourceFilters.size
+      ? 'Bu seçime uyan (kaynak filtresi + seviye) bir egzersiz henüz yok.'
+      : 'Bu seviye(ler) için henüz egzersiz yok.';
     document.getElementById('sg-content').innerHTML =
-      `<div class="sg-card"><div class="sg-empty">Bu seviye(ler) için henüz egzersiz yok.</div></div>`;
+      `<div class="sg-card"><div class="sg-empty">${msg}</div></div>`;
     return;
   }
   let candidates = pool.length > 1 ? pool.filter(e => e.id !== sgLastExerciseId) : pool;
@@ -2656,6 +2712,7 @@ function sgLoadStats() {
 
 sgRenderLevels();
 sgRenderTenseFilter();
+sgRenderSourceFilter();
 sgPickExercise();
 sgLoadStats();
 

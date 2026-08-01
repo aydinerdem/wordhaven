@@ -586,6 +586,8 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="sg-levels" id="sg-levels"></div>
       <div class="sg-tense-row-label">Gramer yapısı</div>
       <div class="sg-levels" id="sg-tense-filter"></div>
+      <div class="sg-tense-row-label">Kaynak (opsiyonel — birini/birkaçını seç, listenden çalış)</div>
+      <div class="sg-levels" id="sg-source-filter"></div>
     </div>
     <div class="sg-stats-bar" id="sg-stats-bar">Yükleniyor...</div>
     <div id="sg-content"></div>
@@ -649,6 +651,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">📂 İlerlemeyi yükle</button>
       </div>
       <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">İlerlemen (öğrendiğin kelimeler, streak, vs.) bu cihazda saklanıyor. Başka bir cihaza taşımak veya yedeklemek istersen "Dışa aktar"ı kullan.</p>
+      <button onclick="showWelcomeOverlay()" style="width:100%;margin-top:10px;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">👋 Uygulama turunu tekrar göster</button>
     </div>
 
     <div class="filter-panel">
@@ -696,6 +699,26 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
   </div>
 <input type="file" id="file-in" accept=".json" class="hidden" onchange="doImport(event)">
+
+<div id="welcome-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border-radius:var(--r);padding:24px 20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;">
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px;">WordHaven'a hoş geldin 👋</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:18px;">Uygulama 10 bölümden oluşuyor, hepsine ☰ menüden ulaşırsın. Kısaca ne işe yaradıklarına bakalım:</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div><b>📊 Özet</b> — <span style="color:var(--text2);">Genel ilerlemeni, seviyelere göre dağılımını görürsün.</span></div>
+      <div><b>🃏 Kart Modu</b> — <span style="color:var(--text2);">Duolingo tarzı hızlı "Biliyorum / Öğreniyorum" akışı.</span></div>
+      <div><b>📋 Kelime Durumu</b> — <span style="color:var(--text2);">Öğrendiğin ve öğrenmekte olduğun kelimelerin tam listesi, elle ekle/çıkar.</span></div>
+      <div><b>📰 Metin Analizi</b> — <span style="color:var(--text2);">Bir metin yapıştır, içindeki Oxford kelimeleri seviyeye göre renklenir.</span></div>
+      <div><b>🔎 Sözlüğüm</b> — <span style="color:var(--text2);">Günlük kelime arama ekranın — Oxford'da varsa direkt gösterir, yoksa dış sözlüklere yönlendirir.</span></div>
+      <div><b>📚 Kelime Listem</b> — <span style="color:var(--text2);">Oxford 3000/5000, Konu Kelimeleri, Favorilerin ve Zorlandıkların — hepsi burada, göz atmak için.</span></div>
+      <div><b>✏️ Cümle Kur</b> — <span style="color:var(--text2);">Gramer yapılarıyla cümle inşa egzersizi — istersen sadece öğrendiğin kelimelerle çalışabilirsin.</span></div>
+      <div><b>🎯 Asmaca</b> — <span style="color:var(--text2);">Kelime oyunuyla eğlenceli tekrar.</span></div>
+      <div><b>⚙️ Ayarlar</b> — <span style="color:var(--text2);">Veri dışa/içe aktar, ElevenLabs anahtarı, bu turu tekrar izle.</span></div>
+      <div><b>🔁 Tekrar Et</b> — <span style="color:var(--text2);">Orijinal, seviye/frekans filtreli flashcard tekrarı.</span></div>
+    </div>
+    <button onclick="closeWelcomeOverlay()" style="width:100%;padding:14px;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);font-weight:600;font-size:15px;cursor:pointer;">Başla</button>
+  </div>
+</div>
 
 <script>
 (function(){
