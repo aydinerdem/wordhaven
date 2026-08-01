@@ -98,7 +98,7 @@ function showView(v) {
   if (v==='dash') updateDashboard();
   if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
-  if (v==='list') { if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else renderWordList(listLevel); }
+  if (v==='list') { if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else renderWordList(listLevel); }
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
 }
@@ -139,6 +139,7 @@ function renderWordList(level){
 }
 function toggleListWord(k){
   listOpenKey = (listOpenKey===k) ? null : k;
+  if (listOpenKey) markLookup(k.split('|')[0]);
   renderWordList(listLevel);
 }
 
@@ -209,12 +210,51 @@ function selectListMode(mode){
   document.getElementById('list-mode-oxford').classList.toggle('active', mode==='oxford');
   document.getElementById('list-mode-topic').classList.toggle('active', mode==='topic');
   document.getElementById('list-mode-favorites').classList.toggle('active', mode==='favorites');
+  document.getElementById('list-mode-struggle').classList.toggle('active', mode==='struggle');
   document.getElementById('list-oxford-panel').classList.toggle('hidden', mode!=='oxford');
   document.getElementById('list-topic-panel').classList.toggle('hidden', mode!=='topic');
   document.getElementById('list-favorites-panel').classList.toggle('hidden', mode!=='favorites');
+  document.getElementById('list-struggle-panel').classList.toggle('hidden', mode!=='struggle');
   if(mode==='oxford'){ renderWordList(listLevel); }
   else if(mode==='topic'){ renderTopicGroupRow(); renderTopicLetterPanel(); renderTopicWordGrid(); }
-  else { renderFavoritesList(); }
+  else if(mode==='favorites'){ renderFavoritesList(); }
+  else { renderStruggleList(); }
+}
+
+// ── ZORLANDIKLARIM (arama sayısı eşiği geçmiş ama hâlâ "Biliyorum" olmamış
+// kelimeler — kendiliğinden oluşan bir "sorunlu kelimeler" havuzu) ────────
+let struggleOpenKey = null;
+function renderStruggleList(){
+  const grid=document.getElementById('struggle-word-grid');
+  const words = WORD_DATA.filter(w => {
+    const n = lookupCount[w.word.toLowerCase()] || 0;
+    const mastered = progress[wkey(w)]?.mastery === 'mastered';
+    return n >= LOOKUP_STRUGGLE_THRESHOLD && !mastered;
+  }).sort((a,b) => (lookupCount[b.word.toLowerCase()]||0) - (lookupCount[a.word.toLowerCase()]||0));
+  if(!words.length){
+    grid.innerHTML = `<p style="grid-column:1/-1;font-size:13px;color:var(--text3);text-align:center;padding:24px 0;">Henüz zorlandığın bir kelime yok — bir kelimeyi ${LOOKUP_STRUGGLE_THRESHOLD}+ kez arayıp hâlâ "Biliyorum"a geçirmediysen burada listelenir.</p>`;
+    return;
+  }
+  grid.innerHTML=words.map(w=>{
+    const k=wkey(w);
+    const open=(k===struggleOpenKey);
+    const n = lookupCount[w.word.toLowerCase()] || 0;
+    let html=`<div class="list-word-item" onclick="toggleStruggleWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
+      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);">🔍${n}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
+    </div>`;
+    if(open){
+      const c=BUILTIN_CONTENT[k];
+      html += `<div style="grid-column:1/-1;border-bottom:0.5px solid var(--border);background:var(--surface);padding:14px;">${c?renderListDefHTML(c,w):'<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}</div>`;
+    }
+    return html;
+  }).join('');
+  ttsWireButtons(grid);
+}
+function toggleStruggleWord(k){
+  struggleOpenKey = (struggleOpenKey===k) ? null : k;
+  if (struggleOpenKey) markLookup(k.split('|')[0]);
+  renderStruggleList();
 }
 
 // ── FAVORİLERİM (seviye/grup filtresinden bağımsız, henüz çalışma havuzuna
@@ -245,6 +285,7 @@ function renderFavoritesList(){
 }
 function toggleFavoritesWord(k){
   favoritesOpenKey = (favoritesOpenKey===k) ? null : k;
+  if (favoritesOpenKey) markLookup(k.split('|')[0]);
   renderFavoritesList();
 }
 
@@ -312,6 +353,7 @@ function renderTopicWordGrid(){
 
 function toggleTopicWord(k){
   topicOpenKey = (topicOpenKey===k) ? null : k;
+  if (topicOpenKey) markLookup(k.split('|')[0]);
   renderTopicWordGrid();
 }
 
@@ -326,10 +368,16 @@ function renderListDefHTML(c,w){
   }).join('');
   const catsHtml=(w.categories&&w.categories.length)?`<div class="c-section"><div class="c-section-label">Kategoriler</div><div class="c-cats">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div></div>`:'';
   const contactHtml = `<div class="c-section"><div class="c-section-label">Temas takibi</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${contactBadgesHtml(w.word)}</div></div>`;
+  const lookups = lookupCount[w.word.toLowerCase()] || 0;
+  const isMastered = progress[wkey(w)]?.mastery === 'mastered';
+  const lookupHtml = (lookups >= 2 && !isMastered)
+    ? `<div style="font-size:12px;color:var(--warn);background:var(--warnbg);display:inline-block;padding:4px 10px;border-radius:20px;margin-bottom:10px;">🔍 ${lookups} kez arandı — hâlâ "Biliyorum" değil</div>`
+    : '';
   const copyPayload = escAttr(JSON.stringify({ w:{word:w.word,pos:w.pos,cefr:w.cefr}, c }));
   const copyBtnHtml = `<button class="copy-btn" onclick="event.stopPropagation();copyWordContent(${copyPayload},this)">📋 İçeriği kopyala</button>`;
   const statusHtml = (w.word && WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos)) ? progressQuickControlHtml(w) : '';
   const html = `${contactHtml}
+    ${lookupHtml}
     <div style="text-align:right;margin-bottom:10px;">${copyBtnHtml}</div>
     <div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
@@ -608,6 +656,7 @@ function performGlobalSearch() {
   }
   if (matches.length) {
     matches.forEach(w => {
+      markLookup(w.word);
       const c = BUILTIN_CONTENT[wkey(w)];
       html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
@@ -880,13 +929,27 @@ function refreshCurrentWordViews() {
   if (listView && !listView.classList.contains('hidden')) {
     if (listMode === 'topic') renderTopicWordGrid();
     else if (listMode === 'favorites') renderFavoritesList();
+    else if (listMode === 'struggle') renderStruggleList();
     else renderWordList(listLevel);
   }
   const statusView = document.getElementById('view-status');
   if (statusView && !statusView.classList.contains('hidden')) stRenderList();
 }
 let contactTrack = {}; // key: kelime (küçük harf) → {read:N, heard:N, used:N} (N = tekrar sayısı)
+let lookupCount = {}; // key: kelime (küçük harf) → kaç kez "arandı" (Sözlüğüm/Kelime Listem'de içeriğine bakıldı)
 const CONTACT_THRESHOLD = 5; // bu sayıya ulaşınca rozet/nokta tam renge ulaşır
+const LOOKUP_STRUGGLE_THRESHOLD = 3; // bu sayıya ulaşıp hâlâ "Biliyorum" değilse "Zorlandıklarım"a girer
+
+// "Arama" — temas takibinden kasıtlı olarak AYRI bir sinyal: temas (okuma/
+// dinleme/kullanım) ne kadar çoksa o kadar iyi, ama arama ne kadar çoksa
+// (kelime hâlâ "Biliyorum" olmadan) o kadar endişe verici — kelime bir
+// türlü oturmuyor demektir. Bu yüzden ayrı bir sayaç ve ayrı bir renk dili.
+function markLookup(word) {
+  if (!word) return;
+  const k = word.toLowerCase();
+  lookupCount[k] = (lookupCount[k] || 0) + 1;
+  saveState();
+}
 
 // Temas takibi — kelimeyle hangi kanaldan kaç kez karşılaştığını (mevcut
 // davranışlara "iğneleme" yaparak) sessizce sayar: 'read' (Metin Analizi'nde
@@ -918,6 +981,7 @@ function toggleFavFromRow(word, pos) {
   if (listMode === 'oxford') renderWordList(listLevel);
   else if (listMode === 'topic') renderTopicWordGrid();
   else if (listMode === 'favorites') renderFavoritesList();
+  else if (listMode === 'struggle') renderStruggleList();
   const searchResultsEl = document.getElementById('list-search-results');
   if (searchResultsEl && !searchResultsEl.classList.contains('hidden')) {
     const raw = document.getElementById('list-search-input').value.trim().toLowerCase();
@@ -959,7 +1023,7 @@ const STORAGE_KEY = 'oxford_flashcards_state_v1';
 
 function saveState() {
   try {
-    const data = { progress, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, savedAt: new Date().toISOString() };
+    const data = { progress, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, savedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) { /* localStorage dolu veya erişilemez olabilir — sessizce geç */ }
 }
@@ -978,6 +1042,7 @@ function loadState() {
     if (d.srsStore) srsStore = d.srsStore;
     if (d.favorites) favorites = d.favorites;
     if (d.contactTrack) contactTrack = d.contactTrack;
+    if (d.lookupCount) lookupCount = d.lookupCount;
     return true;
   } catch (e) { return false; }
 }
@@ -1865,6 +1930,7 @@ function getWordProgress(wordLower) {
 }
 
 async function openWordModal(wordLower) {
+  markLookup(wordLower);
   // Determine if Oxford, topic-list, or custom
   const oxWords = OXFORD_WORD_MAP[wordLower] || [];
   const topicWords = TOPIC_WORD_MAP[wordLower] || [];
