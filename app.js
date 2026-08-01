@@ -326,12 +326,17 @@ function renderListDefHTML(c,w){
   }).join('');
   const catsHtml=(w.categories&&w.categories.length)?`<div class="c-section"><div class="c-section-label">Kategoriler</div><div class="c-cats">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div></div>`:'';
   const contactHtml = `<div class="c-section"><div class="c-section-label">Temas takibi</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${contactBadgesHtml(w.word)}</div></div>`;
+  const copyPayload = escAttr(JSON.stringify({ w:{word:w.word,pos:w.pos,cefr:w.cefr}, c }));
+  const copyBtnHtml = `<button class="copy-btn" onclick="event.stopPropagation();copyWordContent(${copyPayload},this)">📋 İçeriği kopyala</button>`;
+  const statusHtml = (w.word && WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos)) ? progressQuickControlHtml(w) : '';
   const html = `${contactHtml}
+    <div style="text-align:right;margin-bottom:10px;">${copyBtnHtml}</div>
     <div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
     ${catsHtml}
     <div class="c-section"><div class="c-section-label">Nüans</div>${nuanceHtml}</div>
-    <div class="c-section"><div class="c-section-label">Örnekler</div>${exHtml}</div>`;
+    <div class="c-section"><div class="c-section-label">Örnekler</div>${exHtml}</div>
+    ${statusHtml}`;
   // Not: Türkçe anlam ve nüans kasıtlı olarak hoparlörsüz — Kokoro sadece
   // İngilizce için eğitilmiş, Türkçe metni yanlış/bozuk telaffuz eder.
   return html;
@@ -365,8 +370,7 @@ function toggleAcc(id) {
   if(ic) ic.textContent=open?'▾':'▸';
   accordionState[id]=open;
 }
-function copyList(words, btn) {
-  const text = words.join(', ');
+function copyTextToClipboard(text, btn) {
   const showResult = (ok) => {
     const t = btn.textContent;
     btn.textContent = ok ? '✓ Kopyalandı' : '✕ Kopyalanamadı';
@@ -390,6 +394,72 @@ function copyList(words, btn) {
   } else {
     legacyCopy();
   }
+}
+function copyList(words, btn) {
+  copyTextToClipboard(words.join(', '), btn);
+}
+// ClipboardItem destekleniyorsa hem HTML (biçimlendirilmiş — Notes, Mail,
+// Word gibi zengin metin destekleyen yerlere yapıştırınca kalın başlık/madde
+// işareti korunur) hem düz metin olarak yazar; desteklenmiyorsa otomatik
+// olarak düz metne düşer.
+function copyRichText(plainText, htmlText, btn) {
+  const plainFallback = () => copyTextToClipboard(plainText, btn);
+  if (navigator.clipboard && window.ClipboardItem && navigator.clipboard.write) {
+    try {
+      const item = new ClipboardItem({
+        'text/plain': new Blob([plainText], { type: 'text/plain' }),
+        'text/html': new Blob([htmlText], { type: 'text/html' })
+      });
+      navigator.clipboard.write([item]).then(() => {
+        const t = btn.textContent; btn.textContent = '✓ Kopyalandı'; setTimeout(() => btn.textContent = t, 1500);
+      }).catch(plainFallback);
+    } catch (e) {
+      plainFallback();
+    }
+  } else {
+    plainFallback();
+  }
+}
+// Bir kelimenin tüm içeriğini (tanım/Türkçe/nüans/örnekler) panoya kopyalar —
+// Kelime Listem, Kart Modu, Kelime Durumu ve Sözlüğüm'de aynı paylaşılan
+// bileşen (renderListDefHTML) üzerinden çıkar.
+function copyWordContent(payload, btn) {
+  const { w, c } = payload;
+  const title = `${w.word} (${w.pos}${w.cefr ? ' · ' + w.cefr : ''})`;
+  const examples = (c.examples || []).map(ex => ({
+    en: typeof ex === 'object' ? ex.en : ex,
+    tr: typeof ex === 'object' ? ex.tr : null
+  }));
+
+  const plainLines = [title, ''];
+  if (c.definition) plainLines.push('Tanım', c.definition, '');
+  if (c.turkish) plainLines.push('Türkçe', c.turkish, '');
+  if (c.nuance) plainLines.push('Nüans', c.nuance.replace(/\n\n+/g, '\n'), '');
+  if (examples.length) {
+    plainLines.push('Örnekler');
+    examples.forEach(ex => {
+      plainLines.push('• ' + ex.en);
+      if (ex.tr) plainLines.push('  ' + ex.tr);
+    });
+  }
+  const plainText = plainLines.join('\n').trim();
+
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let html = `<div style="font-family:-apple-system,sans-serif;">
+    <div style="font-size:19px;font-weight:700;margin-bottom:10px;">${esc(w.word)} <span style="font-weight:400;font-style:italic;color:#666;font-size:14px;">(${esc(w.pos)}${w.cefr?' · '+esc(w.cefr):''})</span></div>`;
+  if (c.definition) html += `<p style="margin:0 0 10px;"><b>Tanım:</b> ${esc(c.definition)}</p>`;
+  if (c.turkish) html += `<p style="margin:0 0 10px;"><b>Türkçe:</b> ${esc(c.turkish)}</p>`;
+  if (c.nuance) html += `<p style="margin:0 0 10px;"><b>Nüans:</b> ${esc(c.nuance).replace(/\n\n+/g,'<br><br>')}</p>`;
+  if (examples.length) {
+    html += `<p style="margin:0 0 4px;"><b>Örnekler:</b></p><ul style="margin:0 0 10px;padding-left:20px;">`;
+    examples.forEach(ex => {
+      html += `<li style="margin-bottom:6px;"><i>${esc(ex.en)}</i>${ex.tr?`<br><span style="color:#555;">${esc(ex.tr)}</span>`:''}</li>`;
+    });
+    html += `</ul>`;
+  }
+  html += `</div>`;
+
+  copyRichText(plainText, html, btn);
 }
 
 function renderCefrSection(cefrWords, level) {
@@ -512,6 +582,7 @@ function performGlobalSearch() {
           <span style="font-size:20px;font-weight:500;">${w.word}</span>${ttsButtonHtml(w.word, w.word)}
           <span style="font-size:12px;color:var(--text3);font-style:italic;">${w.pos}</span>
           ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}
+          ${favStarHtml(w)}${contactDotsHtml(w)}
         </div>
         ${c?renderListDefHTML(c,w):'<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}
       </div>`;
@@ -727,6 +798,51 @@ updateFilterCount();
 let customWords = {};   // key: word.toLowerCase() → {word, addedAt}
 let customProgress = {}; // key: word.toLowerCase() → SM-2 data
 let favorites = {}; // key: wkey(w) → true
+
+// Herhangi bir kelime kartından (Sözlüğüm, Kelime Listem, Kart Modu, Kelime
+// Durumu) doğrudan Öğreniyorum/Biliyorum'a ekleyip çıkarabilme — paylaşılan
+// renderListDefHTML içinde gösterilir, tek yerden her ekranı besler.
+function progressQuickControlHtml(w) {
+  const k = wkey(w);
+  const p = progress[k];
+  const status = p ? (p.mastery === 'mastered' ? 'known' : 'learning') : null;
+  const wa = `'${w.word.replace(/'/g,"\\'")}','${w.pos}'`;
+  return `<div style="display:flex;gap:6px;margin-top:4px;">
+    <button onclick="event.stopPropagation();quickSetStatus(${wa},false)" class="chip${status==='learning'?' on':''}" style="flex:1;">🔁 Öğreniyorum</button>
+    <button onclick="event.stopPropagation();quickSetStatus(${wa},true)" class="chip${status==='known'?' on':''}" style="flex:1;">✅ Biliyorum</button>
+    ${status ? `<button onclick="event.stopPropagation();quickRemoveStatus(${wa})" title="Listeden çıkar" class="chip" style="flex:0 0 auto;">✕</button>` : ''}
+  </div>`;
+}
+function quickSetStatus(word, pos, known) {
+  const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
+  if (!w) return;
+  progress[wkey(w)] = known
+    ? { interval:21, easeFactor:2.5, repetitions:4, mastery:'mastered', learned:true, totalKnown:0, totalLearning:0, nextReview:getNextDate(21), lastSeen:todayStr() }
+    : { interval:0, easeFactor:2.5, repetitions:0, mastery:'reviewing', learned:false, totalKnown:0, totalLearning:0, nextReview:todayStr(), lastSeen:todayStr() };
+  saveState();
+  updateDashboard();
+  refreshCurrentWordViews();
+}
+function quickRemoveStatus(word, pos) {
+  const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
+  if (!w) return;
+  delete progress[wkey(w)];
+  saveState();
+  updateDashboard();
+  refreshCurrentWordViews();
+}
+// Durum değiştikten sonra, o an ekranda açık olan liste görünümünü tazeler
+// (görünür değilse dokunmaz).
+function refreshCurrentWordViews() {
+  const listView = document.getElementById('view-list');
+  if (listView && !listView.classList.contains('hidden')) {
+    if (listMode === 'topic') renderTopicWordGrid();
+    else if (listMode === 'favorites') renderFavoritesList();
+    else renderWordList(listLevel);
+  }
+  const statusView = document.getElementById('view-status');
+  if (statusView && !statusView.classList.contains('hidden')) stRenderList();
+}
 let contactTrack = {}; // key: kelime (küçük harf) → {read:N, heard:N, used:N} (N = tekrar sayısı)
 const CONTACT_THRESHOLD = 5; // bu sayıya ulaşınca rozet/nokta tam renge ulaşır
 
@@ -765,6 +881,8 @@ function toggleFavFromRow(word, pos) {
     const raw = document.getElementById('list-search-input').value.trim().toLowerCase();
     renderListSearchResults(raw);
   }
+  const globalPanel = document.getElementById('search-result-panel');
+  if (globalPanel && !globalPanel.classList.contains('hidden')) performGlobalSearch();
   renderModalFavoriteBtn();
 }
 let customCache = {};    // key: word.toLowerCase() → {definition,turkish,nuance,examples}
@@ -1513,14 +1631,18 @@ function ttsPickVoice(voices) {
 }
 
 function ttsSpeakWebSpeech(text) {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     if (!('speechSynthesis' in window)) { reject(new Error('speechSynthesis yok')); return; }
     window.speechSynthesis.cancel();
-    const voices = await ttsGetVoices();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
     utter.rate = 0.88;
-    const voice = ttsPickVoice(voices);
+    // NOT: Önceden burada ses listesi (getVoices) asenkron olarak bekleniyordu.
+    // iOS Safari'de bu bekleme (özellikle ilk kullanımda) kullanıcı jesti
+    // penceresini kapatıyor ve speak() sessizce hiçbir şey çalmadan başarısız
+    // oluyordu. Artık senkron olarak elde bulunan ses listesiyle (boş olsa
+    // bile tarayıcı varsayılan sesi kullanır) hemen konuşmayı başlatıyoruz.
+    const voice = ttsPickVoice(window.speechSynthesis.getVoices());
     if (voice) utter.voice = voice;
     utter.onend = resolve;
     utter.onerror = (e) => reject(new Error(e.error || 'Bilinmeyen ses hatası'));
@@ -1532,17 +1654,24 @@ async function ttsSpeak(text, btnEl) {
   if (!text || !text.trim()) return;
   const origLabel = btnEl ? btnEl.textContent : null;
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = '⏳'; }
+  const hasKey = !!ttsGetActiveKey();
   try {
-    try {
-      await ttsSpeakElevenLabs(text);
-    } catch (e1) {
-      console.warn('ElevenLabs başarısız, Web Speech\'e düşülüyor:', e1.message);
-      // GEÇİCİ TEŞHİS: bir kullanıcı anahtarı kayıtlıysa (yani ElevenLabs
-      // çalışması BEKLENİYORSA) ama başarısız oluyorsa, sebebi görünür yap —
-      // aksi halde neden mekanik sesin çaldığı hiç anlaşılmaz.
-      if (localStorage.getItem(TTS_USER_KEY_STORAGE)) {
-        alert('ElevenLabs çalışmadı, mekanik sese düşüldü.\n\nGerçek neden: ' + e1.message + '\n\nBu satırı ekran görüntüsüyle paylaş, birlikte bakalım.');
+    if (hasKey) {
+      try {
+        await ttsSpeakElevenLabs(text);
+      } catch (e1) {
+        console.warn('ElevenLabs başarısız, Web Speech\'e düşülüyor:', e1.message);
+        // GEÇİCİ TEŞHİS: bir kullanıcı anahtarı kayıtlıysa (yani ElevenLabs
+        // çalışması BEKLENİYORSA) ama başarısız oluyorsa, sebebi görünür yap —
+        // aksi halde neden mekanik sesin çaldığı hiç anlaşılmaz.
+        if (localStorage.getItem(TTS_USER_KEY_STORAGE)) {
+          alert('ElevenLabs çalışmadı, mekanik sese düşüldü.\n\nGerçek neden: ' + e1.message + '\n\nBu satırı ekran görüntüsüyle paylaş, birlikte bakalım.');
+        }
+        await ttsSpeakWebSpeech(text);
       }
+    } else {
+      // Anahtar hiç yoksa ElevenLabs'ı denemeye bile gerek yok — doğrudan
+      // cihaz sesine geç, gereksiz gecikmeyi (ve jest penceresi riskini) önle.
       await ttsSpeakWebSpeech(text);
     }
   } catch (e) {
