@@ -555,6 +555,38 @@ function dictButtonsHtml(word) {
     ${DICT_SITES.map(s=>`<a href="${s.url(w)}" target="_blank" rel="noopener" style="flex:1;min-width:90px;text-align:center;padding:9px 6px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--accent);color:var(--accent);background:var(--accentbg);text-decoration:none;">${s.name}</a>`).join('')}
   </div>`;
 }
+// Basit Levenshtein (düzenleme) mesafesi — yazım hatasına toleranslı öneri
+// için kullanılır. Küçük veri setinde (Oxford) performans sorunsuz.
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = Array.from({length:n+1}, (_,i)=>i);
+  for (let i=1;i<=m;i++){
+    const cur = [i];
+    for (let j=1;j<=n;j++){
+      cur[j] = a[i-1]===b[j-1] ? prev[j-1] : 1+Math.min(prev[j-1],prev[j],cur[j-1]);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+// Tam eşleşme bulunamadığında "bunu mu demek istediniz?" önerileri —
+// önce aynı harflerle başlayanlar (eksik yazım), yoksa yazım hatasına
+// toleranslı en yakın kelimeler (edit distance).
+function findWordSuggestions(raw) {
+  if (!raw || raw.length < 3) return [];
+  const prefix = raw.slice(0, Math.min(4, raw.length));
+  const byPrefix = WORD_DATA.filter(w => w.word.toLowerCase().startsWith(prefix) && w.word.toLowerCase() !== raw);
+  if (byPrefix.length) return byPrefix.slice(0, 6);
+  const scored = WORD_DATA
+    .filter(w => Math.abs(w.word.length - raw.length) <= 3)
+    .map(w => ({ w, d: levenshtein(raw, w.word.toLowerCase()) }))
+    .filter(x => x.d > 0 && x.d <= 3)
+    .sort((a,b) => a.d - b.d);
+  return scored.slice(0, 6).map(x => x.w);
+}
+
 function performGlobalSearch() {
   const raw = document.getElementById('global-search-input').value.trim().toLowerCase();
   const panel = document.getElementById('search-result-panel');
@@ -605,7 +637,17 @@ function performGlobalSearch() {
     });
   }
   if (!matches.length && !topicMatches.length && !customMatch) {
+    const suggestions = findWordSuggestions(raw);
+    const suggHtml = suggestions.length
+      ? `<div style="margin-bottom:12px;">
+          <p style="font-size:12px;color:var(--text3);margin:0 0 6px;">Bunu mu demek istediniz?</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">${suggestions.map(w =>
+            `<span class="chip" onclick="document.getElementById('global-search-input').value='${w.word.replace(/'/g,"\\'")}';performGlobalSearch();" style="cursor:pointer;">${w.word}</span>`
+          ).join('')}</div>
+        </div>`
+      : '';
     html += `<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">"<strong>${raw}</strong>" Oxford listesinde bulunamadı.</p>
+      ${suggHtml}
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--rsm);">
         <span style="font-size:13px;flex:1;">Telaffuz + Yeni Kelime olarak eklemek ister misin?</span>
         ${ttsButtonHtml(raw)}
