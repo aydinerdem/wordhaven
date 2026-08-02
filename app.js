@@ -1244,14 +1244,35 @@ function cmRenderSizeRow() {
   const presets = [5, 10, 20, 30];
   row.innerHTML = presets.map(n =>
     `<button class="chip${cmSessionSize===n?' on':''}" onclick="cmSetSize(${n})">${n}</button>`
-  ).join('') + `<input type="number" min="1" max="500" placeholder="Manuel" value="${presets.includes(cmSessionSize)?'':cmSessionSize}" oninput="cmSetSize(this.value)" style="width:70px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border2);border-radius:20px;background:var(--surface2);color:var(--text);">`;
+  ).join('') + `<input id="cm-manual-size" type="number" min="1" max="500" placeholder="Manuel" value="${presets.includes(cmSessionSize)?'':cmSessionSize}" oninput="cmSetSizeManual(this.value)" style="width:70px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border2);border-radius:20px;background:var(--surface2);color:var(--text);">`;
 }
 
+// Preset butonları (5/10/20/30) her zaman tam satırı yeniden çizebilir —
+// tıklama sırasında odak kaybı riski yok.
 function cmSetSize(n) {
   n = parseInt(n, 10);
   if (!n || n < 1) return;
   cmSessionSize = n;
   cmRenderSizeRow();
+  cmStart();
+}
+
+// Manuel input alanı yazarken tam satırı (dolayısıyla input DOM node'unu)
+// yeniden oluşturmaz — aksi halde her tuş vuruşunda alan odağını/imleç
+// pozisyonunu kaybediyor ve iki basamaklı bir sayı (örn. "45") yazmak
+// mümkün olmuyordu (her rakamdan sonra alana tekrar dokunmak gerekiyordu).
+// Bu yüzden burada sadece preset chip'lerin "on" durumunu güncelliyoruz,
+// input elemanına dokunmuyoruz.
+function cmSetSizeManual(raw) {
+  const n = parseInt(raw, 10);
+  if (!n || n < 1) return; // kullanıcı alanı temizlerken/tek basamak yazarken sessizce bekle
+  cmSessionSize = n;
+  const row = document.getElementById('cm-size-row');
+  if (row) {
+    row.querySelectorAll('.chip').forEach(btn => {
+      btn.classList.toggle('on', parseInt(btn.textContent, 10) === n);
+    });
+  }
   cmStart();
 }
 
@@ -1283,11 +1304,18 @@ function cmRenderProgress() {
   const total = cmQueue.length;
   const answered = cmDone.known + cmDone.learning;
   const pct = total ? (answered / total * 100) : 0;
+  // Seçilen oturum büyüklüğü (cmSessionSize) sadece bir ÜST SINIR — filtreye
+  // (seviye+frekans) uyan kelime sayısı bundan azsa oturum daha kısa olur.
+  // Bu durumda "30 seçili ama 20 Kelime yazıyor" gibi açıklamasız bir fark
+  // görünmesin diye nedenini kısaca belirtiyoruz.
+  const capNote = total < cmSessionSize
+    ? ` <span style="font-weight:400;color:var(--text2);">(bu filtrede ${total} kelime var)</span>`
+    : '';
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <span class="badge" style="background:var(--accentbg);color:var(--accent);">${cmDone.known} Biliyorum</span>
       <span class="badge" style="background:#fff3e0;color:#a05000;">${cmDone.learning} Öğreniyorum</span>
-      <span style="font-size:13px;color:var(--text2);font-weight:600;">${total} Kelime</span>
+      <span style="font-size:13px;color:var(--text2);font-weight:600;">${total} Kelime${capNote}</span>
     </div>
     <div style="height:6px;border-radius:3px;background:var(--border2);overflow:hidden;margin-bottom:12px;">
       <div style="height:100%;width:${pct}%;background:var(--accent);transition:width .2s;"></div>
