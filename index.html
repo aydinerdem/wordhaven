@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>WordHaven</title>
 <meta name="apple-mobile-web-app-title" content="WordHaven">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#fafaf8;--surface:#fff;--surface2:#f4f3ef;
@@ -39,6 +42,7 @@
 }}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;}
+.wordfont{font-family:'Source Serif 4',Georgia,serif;font-weight:600;}
 .app{max-width:680px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));}
 .header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:0.5px solid var(--border2);margin-bottom:18px;}
 .header-title{font-size:17px;font-weight:500;}
@@ -477,7 +481,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div id="word-modal" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:22px;margin-bottom:16px;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
         <div>
-          <div style="font-size:28px;font-weight:500;" id="modal-word"></div>
+          <div class="wordfont" style="font-size:28px;" id="modal-word"></div>
           <div style="font-size:13px;color:var(--text3);font-style:italic;" id="modal-pos"></div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;">
@@ -490,7 +494,10 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         </div>
       </div>
       <div id="modal-sr-status" class="hidden" style="background:var(--accentbg);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--accent);"></div>
-      <div id="modal-contact-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+      <div class="c-section" style="margin-bottom:14px;">
+        <div onclick="document.getElementById('modal-contact-row').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;">📊 İstatistikler <span style="color:var(--text3);">▸</span></div>
+        <div id="modal-contact-row" class="hidden" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+      </div>
       <div style="height:0.5px;background:var(--border);margin-bottom:14px;"></div>
       <div id="modal-loading" style="text-align:center;padding:20px 0;">
         <div style="width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;"></div>
@@ -750,11 +757,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   Promise.all([
     fetch('word-data.json').then(function(r){ if(!r.ok) throw new Error('word-data.json (' + r.status + ')'); return r.json(); }),
     fetch('topic-words.json').then(function(r){ if(!r.ok) throw new Error('topic-words.json (' + r.status + ')'); return r.json(); }),
-    fetch('builtin-content.json').then(function(r){ if(!r.ok) throw new Error('builtin-content.json (' + r.status + ')'); return r.json(); })
+    fetch('builtin-content.json').then(function(r){ if(!r.ok) throw new Error('builtin-content.json (' + r.status + ')'); return r.json(); }),
+    fetch('sentence-exercises.json').then(function(r){ if(!r.ok) throw new Error('sentence-exercises.json (' + r.status + ')'); return r.json(); })
   ]).then(function(results){
     window.WORD_DATA = results[0];
     window.TOPIC_WORDS = results[1];
     window.BUILTIN_CONTENT = results[2];
+    window.SENTENCE_EXERCISES = results[3];
     setStatus('Uygulama başlatılıyor…');
     var s = document.createElement('script');
     s.src = 'app.js';

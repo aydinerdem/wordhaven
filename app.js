@@ -126,7 +126,7 @@ function renderWordList(level){
     const k=wkey(w);
     const open=(k===listOpenKey);
     let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -188,7 +188,7 @@ function renderListSearchResults(raw){
     const isOxford = OXFORD_WORD_SET.has(w.word.toLowerCase());
     const sourceTag = isOxford ? '' : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>';
     let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if (open) {
@@ -240,7 +240,7 @@ function renderStruggleList(){
     const open=(k===struggleOpenKey);
     const n = lookupCount[w.word.toLowerCase()] || 0;
     let html=`<div class="list-word-item" onclick="toggleStruggleWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);">🔍${n}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);">🔍${n}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -272,7 +272,7 @@ function renderFavoritesList(){
     const k=wkey(w);
     const open=(k===favoritesOpenKey);
     let html=`<div class="list-word-item" onclick="toggleFavoritesWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -339,7 +339,7 @@ function renderTopicWordGrid(){
     const _w=BUILTIN_CONTENT[k];
     const _warn=(_w&&_w.definition&&_w.definition.trim())?'':'⚠️';
     let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span>${w.word}${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span>${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -367,23 +367,27 @@ function renderListDefHTML(c,w){
     return `<div class="c-example"><p>${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
   }).join('');
   const catsHtml=(w.categories&&w.categories.length)?`<div class="c-section"><div class="c-section-label">Kategoriler</div><div class="c-cats">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div></div>`:'';
-  const contactHtml = `<div class="c-section"><div class="c-section-label">Temas takibi</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${contactBadgesHtml(w.word)}</div></div>`;
+  const contactHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${contactBadgesHtml(w.word)}</div>`;
   const lookups = lookupCount[w.word.toLowerCase()] || 0;
   const isMastered = progress[wkey(w)]?.mastery === 'mastered';
   const lookupHtml = (lookups >= 2 && !isMastered)
     ? `<div style="font-size:12px;color:var(--warn);background:var(--warnbg);display:inline-block;padding:4px 10px;border-radius:20px;margin-bottom:10px;">🔍 ${lookups} kez arandı — hâlâ "Biliyorum" değil</div>`
     : '';
+  const statsId = 'stats-' + w.word.toLowerCase().replace(/[^a-z0-9]/g,'') + '-' + w.pos;
+  const statsToggleHtml = `<div class="c-section">
+    <div onclick="event.stopPropagation();document.getElementById('${statsId}').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;">📊 İstatistikler <span style="color:var(--text3);">▸</span></div>
+    <div id="${statsId}" class="hidden" style="margin-top:8px;">${contactHtml}${lookupHtml}</div>
+  </div>`;
   const copyPayload = escAttr(JSON.stringify({ w:{word:w.word,pos:w.pos,cefr:w.cefr}, c }));
   const copyBtnHtml = `<button class="copy-btn" onclick="event.stopPropagation();copyWordContent(${copyPayload},this)">📋 İçeriği kopyala</button>`;
   const statusHtml = (w.word && WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos)) ? progressQuickControlHtml(w) : '';
-  const html = `${contactHtml}
-    ${lookupHtml}
-    <div style="text-align:right;margin-bottom:10px;">${copyBtnHtml}</div>
-    <div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
+  const html = `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
     ${catsHtml}
     <div class="c-section"><div class="c-section-label">Nüans</div>${nuanceHtml}</div>
     <div class="c-section"><div class="c-section-label">Örnekler</div>${exHtml}</div>
+    ${statsToggleHtml}
+    <div style="text-align:right;margin:10px 0;">${copyBtnHtml}</div>
     ${statusHtml}`;
   // Not: Türkçe anlam ve nüans kasıtlı olarak hoparlörsüz — Kokoro sadece
   // İngilizce için eğitilmiş, Türkçe metni yanlış/bozuk telaffuz eder.
@@ -648,7 +652,7 @@ function performGlobalSearch() {
     const content = customCache[raw] || BUILTIN_CONTENT[raw + '|—'];
     html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-        <span style="font-size:20px;font-weight:500;">${customMatch.word}</span>${ttsButtonHtml(customMatch.word, customMatch.word)}
+        <span class="wordfont" style="font-size:22px;">${customMatch.word}</span>${ttsButtonHtml(customMatch.word, customMatch.word)}
         <span style="font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:10px;font-weight:600;">Özel havuzunda zaten var</span>
       </div>
       <button data-word="${escAttr(raw)}" onclick="handleWordClick(this)" style="padding:8px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Detayları / ilerlemeyi gör</button>
@@ -660,7 +664,7 @@ function performGlobalSearch() {
       const c = BUILTIN_CONTENT[wkey(w)];
       html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-          <span style="font-size:20px;font-weight:500;">${w.word}</span>${ttsButtonHtml(w.word, w.word)}
+          <span class="wordfont" style="font-size:22px;">${w.word}</span>${ttsButtonHtml(w.word, w.word)}
           <span style="font-size:12px;color:var(--text3);font-style:italic;">${w.pos}</span>
           ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}
           ${favStarHtml(w)}${contactDotsHtml(w)}
@@ -675,7 +679,7 @@ function performGlobalSearch() {
       const catsHtml = (w.categories&&w.categories.length)?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div>`:'';
       html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-          <span style="font-size:20px;font-weight:500;">${w.word}</span>
+          <span class="wordfont" style="font-size:22px;">${w.word}</span>
           <span style="font-size:12px;color:var(--text3);font-style:italic;">${w.pos}</span>
           ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}
           <span style="font-size:10px;color:var(--text3);">Oxford 3000/5000 dışı</span>
@@ -1304,7 +1308,7 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
       <button onclick="event.stopPropagation();cmToggleExtra('${targetId}')" class="chip" style="margin-bottom:16px;">+ Ek Anlamlar</button>
       <div>${ttsButtonHtml(w.word, w.word)}</div>
-      <div style="font-size:26px;font-weight:700;margin:10px 0 2px;">${escHtml(w.word)}</div>
+      <div class="wordfont" style="font-size:26px;margin:10px 0 2px;">${escHtml(w.word)}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
         <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
         <span style="font-size:13px;color:var(--text3);font-style:italic;">${w.pos}</span>
@@ -2171,115 +2175,7 @@ updateFilterCount();
 // API tabanlı canlı cümle üretimi + önbellek (bkz. sohbet geçmişi) ayrı bir
 // aşamada eklenecek; o aşamada bu sabit set, sgGetPool()'un döndürdüğü havuzun
 // yerini API'den + önbellekten gelen havuz alacak, geri kalan mekanik aynı kalır.
-const SG_EXERCISES = [
-  {
-    id: "sg1", cefr: "A1", tense: "Present Simple",
-    root: ["She", "works"],
-    targetWord: "works",
-    chunks: [
-      { text: "in a bank", pos: 2, role: "Yer zarfı", vocabWord: "bank" },
-      { text: "every day", pos: 4, role: "Zaman zarfı", vocabWord: "day" }
-    ],
-    tenseInfo: { name: "Present Simple (Geniş Zaman)", formula: "Özne + Fiil (3.tekil şahısta -s/-es) + zarflar" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "Fiil (-s/-es)" }],
-    turkish: "Her gün bir bankada çalışır."
-  },
-  {
-    id: "sg2", cefr: "A1", tense: "Past Simple",
-    root: ["I", "eat", "breakfast"],
-    targetWord: "breakfast",
-    chunks: [
-      { text: "yesterday", pos: 3, role: "Zaman zarfı", vocabWord: "yesterday" },
-      { text: "at home", pos: 4, role: "Yer zarfı", vocabWord: "home" }
-    ],
-    verbConjugation: {
-      wordIndex: 1, baseForm: "eat", correctForm: "ate",
-      distractors: ["eated", "eaten"], irregular: true,
-      triggerAfterChunk: 0
-    },
-    tenseInfo: { name: "Past Simple (Di'li Geçmiş Zaman)", formula: "Özne + Fiil (V2 / düzensizse ezber form) + Nesne + zarflar" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "Fiil (V2)" }, { idx: 2, role: "Nesne" }],
-    turkish: "Dün evde kahvaltı ettim."
-  },
-  {
-    id: "sg3", cefr: "A2", tense: "Present Continuous",
-    root: ["They", "are walking"],
-    targetWord: "walking",
-    chunks: [
-      {
-        text: "to the park", pos: 2, role: "Yön zarfı", vocabWord: "park",
-        prepositionBlank: { template: "___ the park", correct: "to", distractors: ["at", "in"] }
-      },
-      { text: "right now", pos: 5, role: "Zaman zarfı", vocabWord: "now" }
-    ],
-    tenseInfo: { name: "Present Continuous (Şimdiki Zaman)", formula: "Özne + am/is/are + Fiil-ing + zarflar" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "am/is/are + V-ing" }],
-    turkish: "Şu anda parka doğru yürüyorlar."
-  },
-  {
-    id: "sg4", cefr: "A2", tense: "Future Simple",
-    root: ["We", "will visit"],
-    targetWord: "visit",
-    chunks: [
-      { text: "our grandmother", pos: 2, role: "Nesne", vocabWord: "grandmother" },
-      { text: "next weekend", pos: 4, role: "Zaman zarfı", vocabWord: "weekend" }
-    ],
-    tenseInfo: { name: "Future Simple (Gelecek Zaman)", formula: "Özne + will + Fiil + Nesne + zarflar" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "will + Fiil" }],
-    turkish: "Gelecek hafta sonu büyükannemizi ziyaret edeceğiz."
-  },
-  {
-    id: "sg5", cefr: "B1", tense: "Present Perfect",
-    root: ["She", "has finished"],
-    targetWord: "finished",
-    chunks: [
-      { text: "her homework", pos: 2, role: "Nesne", vocabWord: "homework" },
-      { text: "already", pos: 4, role: "Zaman zarfı", vocabWord: "already" }
-    ],
-    tenseInfo: { name: "Present Perfect (Yakın Geçmiş Zaman)", formula: "Özne + have/has + V3 + Nesne + zarflar" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "have/has + V3" }],
-    turkish: "Ödevini zaten bitirdi."
-  },
-  {
-    id: "sg6", cefr: "B1", tense: "Past Continuous",
-    root: ["I", "was reading"],
-    targetWord: "reading",
-    chunks: [
-      { text: "a book", pos: 2, role: "Nesne", vocabWord: "book" },
-      { text: "when you called", pos: 4, role: "Zaman cümleciği", vocabWord: "called" }
-    ],
-    tenseInfo: { name: "Past Continuous (Sürekli Geçmiş Zaman)", formula: "Özne + was/were + Fiil-ing + Nesne + zaman cümleciği" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "was/were + V-ing" }],
-    turkish: "Sen aradığında bir kitap okuyordum."
-  },
-  {
-    id: "sg7", cefr: "B2", tense: "Present Perfect Continuous",
-    root: ["He", "has been working"],
-    targetWord: "working",
-    chunks: [
-      {
-        text: "on this project", pos: 2, role: "Konu zarfı", vocabWord: "project",
-        prepositionBlank: { template: "___ this project", correct: "on", distractors: ["at", "for"] }
-      },
-      { text: "for three hours", pos: 5, role: "Süre zarfı", vocabWord: "hours" }
-    ],
-    tenseInfo: { name: "Present Perfect Continuous", formula: "Özne + have/has been + Fiil-ing + zarflar" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "have/has been + V-ing" }],
-    turkish: "Üç saattir bu proje üzerinde çalışıyor."
-  },
-  {
-    id: "sg8", cefr: "B2", tense: "Past Perfect",
-    root: ["They", "had left"],
-    targetWord: "left",
-    chunks: [
-      { text: "the office", pos: 2, role: "Nesne", vocabWord: "office" },
-      { text: "before I arrived", pos: 4, role: "Zaman cümleciği", vocabWord: "arrived" }
-    ],
-    tenseInfo: { name: "Past Perfect (Geçmişte Bitmiş Zaman)", formula: "Özne + had + V3 + Nesne + zaman cümleciği" },
-    rootRoles: [{ idx: 0, role: "Özne" }, { idx: 1, role: "had + V3" }],
-    turkish: "Ben varmadan önce ofisten ayrılmışlardı."
-  }
-];
+const SG_EXERCISES = SENTENCE_EXERCISES; // externalized -> sentence-exercises.json'dan window.SENTENCE_EXERCISES olarak yükleniyor;
 
 const SG_TENSE_CEFR_MAP = {
   "Present Simple": ["A1"],
