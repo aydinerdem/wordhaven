@@ -84,6 +84,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .f-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
 .f-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
 .chip{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--text2);transition:all .15s;}
+.chip.disabled,.chip:disabled{opacity:0.3;cursor:not-allowed;text-decoration:line-through;}
 .chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 .chip-all{padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--text3);transition:all .15s;}
 .chip-all:hover{background:var(--surface2);}
@@ -591,6 +592,8 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <div id="view-sentence" class="hidden">
     <div class="filter-panel">
       <div class="sg-levels" id="sg-levels"></div>
+      <div class="sg-tense-row-label">Frekans</div>
+      <div class="sg-levels" id="sg-freq-filter"></div>
       <div class="sg-tense-row-label">Gramer yapısı</div>
       <div class="sg-levels" id="sg-tense-filter"></div>
       <div class="sg-tense-row-label">Kaynak (opsiyonel — birini/birkaçını seç, listenden çalış)</div>
@@ -605,6 +608,8 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div class="filter-panel">
       <div class="sg-tense-row-label">CEFR seviye (boş bırakırsan tüm seviyeler)</div>
       <div class="sg-levels" id="hg-levels"></div>
+      <div class="sg-tense-row-label">Frekans (boş bırakırsan tüm frekanslar)</div>
+      <div class="sg-levels" id="hg-freq-filter"></div>
     </div>
     <div class="sg-stats-bar" id="hg-stats-bar">Yükleniyor...</div>
     <div id="hg-content"></div>
@@ -615,10 +620,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div class="filter-panel">
       <div class="f-label" style="margin-bottom:8px;">Seviye</div>
       <div class="f-row" id="cm-level-row"></div>
+      <div class="f-label" style="margin-bottom:8px;">Frekans</div>
+      <div class="f-row" id="cm-freq-row"></div>
       <div class="f-label" style="margin:14px 0 8px;">Oturum büyüklüğü</div>
       <div class="f-row" id="cm-size-row" style="align-items:center;"></div>
     </div>
     <div id="cm-progress-card" style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;"></div>
+
     <div id="cm-card-area"></div>
   </div>
 

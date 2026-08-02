@@ -2,6 +2,16 @@ const CEFR_LEVELS = ['A1','A2','B1','B2','C1'];
 const CEFR_COLORS = { A1:'--a1', A2:'--a2', B1:'--b1', B2:'--b2', C1:'--c1' };
 
 let progress = {};
+// Frekans filtresi ortak mantığı: filtre daraltılmamışsa (tüm seçenekler
+// seçili / boş = "tümü") etiketsiz (freq: "") kelimeler de gösterilir.
+// Kullanıcı belirli bir frekansa daraltınca (örn. sadece "Low") etiketsiz
+// kelimeler artık eşleşmez — "a" gibi etiketsiz temel kelimelerin "Low
+// Frequency" filtresinde şaşırtıcı şekilde çıkmasını önler.
+function freqMatches(wordFreq, selectedSet, allCount) {
+  const noNarrowing = selectedSet.size === 0 || selectedSet.size === allCount;
+  if (noNarrowing) return true;
+  return selectedSet.has(wordFreq);
+}
 let contentCache = {};
 let streak = { days: [], lastDate: null };
 let filters = {
@@ -1173,6 +1183,7 @@ function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 // iki-butonlu (Biliyorum/Öğreniyorum) bir akışla, ayrı bir tasarımda sunar.
 // Amaç: iki modu da bozmadan yan yana test edebilmek.
 let cmSelectedLevels = new Set(['A1','A2','B1','B2','C1']);
+let cmSelectedFreq = new Set(['High Frequency','Medium Frequency','Low Frequency']);
 let cmSessionSize = 30;
 let cmQueue = [];
 let cmIdx = 0;
@@ -1181,6 +1192,7 @@ let cmDone = { known: 0, learning: 0 };
 
 function cmInit() {
   cmRenderLevels();
+  cmRenderFreqFilter();
   cmRenderSizeRow();
   cmStart();
 }
@@ -1188,15 +1200,42 @@ function cmInit() {
 function cmRenderLevels() {
   const row = document.getElementById('cm-level-row');
   const levels = ['A1','A2','B1','B2','C1'];
-  row.innerHTML = levels.map(lv =>
-    `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}" onclick="cmToggleLevel('${lv}')">${lv}</button>`
-  ).join('');
+  row.innerHTML = levels.map(lv => {
+    const count = WORD_DATA.filter(w => w.cefr === lv && freqMatches(w.freq, cmSelectedFreq, 3)).length;
+    const disabled = count === 0;
+    return `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleLevel('${lv}')"`}>${lv}</button>`;
+  }).join('');
 }
 
 function cmToggleLevel(lv) {
   if (cmSelectedLevels.has(lv) && cmSelectedLevels.size > 1) cmSelectedLevels.delete(lv);
   else cmSelectedLevels.add(lv);
   cmRenderLevels();
+  cmRenderFreqFilter();
+  cmStart();
+}
+
+const CM_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
+function cmRenderFreqFilter() {
+  const row = document.getElementById('cm-freq-row');
+  if (!row) return;
+  // Mevcut seviye seçimiyle hiç eşleşmeyen frekans seçenekleri otomatik pasif olur;
+  // seçiliyken pasif hale gelirse (seviye değişince) seçimden de otomatik çıkarılır.
+  CM_FREQ_OPTS.forEach(([key]) => {
+    const count = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && w.freq === key).length;
+    if (count === 0 && cmSelectedFreq.has(key) && cmSelectedFreq.size > 1) cmSelectedFreq.delete(key);
+  });
+  row.innerHTML = CM_FREQ_OPTS.map(([key,label]) => {
+    const count = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && w.freq === key).length;
+    const disabled = count === 0;
+    return `<button class="chip${cmSelectedFreq.has(key)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleFreq('${key}')"`}>${label}</button>`;
+  }).join('');
+}
+
+function cmToggleFreq(key) {
+  if (cmSelectedFreq.has(key) && cmSelectedFreq.size > 1) cmSelectedFreq.delete(key);
+  else cmSelectedFreq.add(key);
+  cmRenderFreqFilter();
   cmStart();
 }
 
@@ -1218,7 +1257,7 @@ function cmSetSize(n) {
 
 function cmBuildQueue() {
   const today = todayStr();
-  const pool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr));
+  const pool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && freqMatches(w.freq, cmSelectedFreq, 3));
   const due = pool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
   const nw = pool.filter(w => !progress[wkey(w)]).slice(0, Math.max(0, cmSessionSize - due.length));
   const combined = [...due, ...nw].slice(0, cmSessionSize);
@@ -1261,7 +1300,16 @@ async function cmShowCard() {
     // Oturum bitti — bu seviye(ler)de gerçekten başka çalışılacak kelime kalıp
     // kalmadığını kontrol et (tekrar zamanı gelenler + hiç görülmemiş yeniler).
     const today = todayStr();
-    const morePool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr));
+    const morePool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && freqMatches(w.freq, cmSelectedFreq, 3));
+    if (morePool.length === 0) {
+      // Filtre kombinasyonunun (seviye+frekans) kendisi hiç kelimeye denk
+      // gelmiyor — bu "tebrikler, bitirdin" değil, "bu kombinasyon boş" durumu.
+      area.innerHTML = `<div style="text-align:center;padding:40px 16px;">
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Bu seviye + frekans kombinasyonu için kelime yok</div>
+        <div style="font-size:13px;color:var(--text2);">Farklı bir seviye veya frekans seç.</div>
+      </div>`;
+      return;
+    }
     const moreDue = morePool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
     const moreNew = morePool.filter(w => !progress[wkey(w)]);
     const hasMore = (moreDue.length + moreNew.length) > 0;
@@ -2193,6 +2241,7 @@ const SG_TENSE_CEFR_MAP = {
 };
 
 let sgSelectedLevels = new Set(["A1"]);
+let sgSelectedFreq = new Set(["High Frequency", "Medium Frequency", "Low Frequency"]);
 let sgSelectedTenseFilter = null; // null = "Otomatik" (seviyeye göre)
 let sgCurrentExercise = null;
 let sgTokens = [];
@@ -2206,15 +2255,44 @@ let sgLastExerciseId = null;
 function sgRenderLevels() {
   const el = document.getElementById('sg-levels');
   const all = ["A1", "A2", "B1", "B2", "C1", "C2"];
-  el.innerHTML = all.map(l =>
-    `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}" data-level="${l}">${l}</div>`
-  ).join('');
-  el.querySelectorAll('.chip').forEach(chip => {
+  el.innerHTML = all.map(l => {
+    const count = SG_EXERCISES.filter(e => e.cefr === l && freqMatches(e.freq, sgSelectedFreq, 3)).length;
+    const disabled = count === 0;
+    return `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}</div>`;
+  }).join('');
+  el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
     chip.onclick = () => {
       const lvl = chip.dataset.level;
       if (sgSelectedLevels.has(lvl) && sgSelectedLevels.size > 1) sgSelectedLevels.delete(lvl);
       else sgSelectedLevels.add(lvl);
       sgRenderLevels();
+      sgRenderFreqFilter();
+      sgPickExercise();
+    };
+  });
+}
+
+const SG_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
+function sgRenderFreqFilter() {
+  const el = document.getElementById('sg-freq-filter');
+  if (!el) return;
+  // Mevcut seviye seçimiyle hiç eşleşmeyen frekanslar pasif olur; seçiliyken
+  // pasif hale gelirse (seviye değişince) seçimden de otomatik çıkarılır.
+  SG_FREQ_OPTS.forEach(([key]) => {
+    const count = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr) && e.freq === key).length;
+    if (count === 0 && sgSelectedFreq.has(key) && sgSelectedFreq.size > 1) sgSelectedFreq.delete(key);
+  });
+  el.innerHTML = SG_FREQ_OPTS.map(([key,label]) => {
+    const count = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr) && e.freq === key).length;
+    const disabled = count === 0;
+    return `<div class="chip${sgSelectedFreq.has(key)?' on':''}${disabled?' disabled':''}" data-freq="${key}">${label}</div>`;
+  }).join('');
+  el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
+    chip.onclick = () => {
+      const key = chip.dataset.freq;
+      if (sgSelectedFreq.has(key) && sgSelectedFreq.size > 1) sgSelectedFreq.delete(key);
+      else sgSelectedFreq.add(key);
+      sgRenderFreqFilter();
       sgPickExercise();
     };
   });
@@ -2281,6 +2359,7 @@ function sgExerciseWords(ex) {
 
 function sgGetPool() {
   let pool = sgSelectedTenseFilter ? SG_EXERCISES.filter(e => e.tense === sgSelectedTenseFilter) : SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr));
+  pool = pool.filter(e => freqMatches(e.freq, sgSelectedFreq, 3));
   if (sgSourceFilters.size) pool = pool.filter(e => sgExerciseWords(e).some(w => sgWordMatchesSource(w)));
   return pool;
 }
@@ -2607,6 +2686,7 @@ function sgLoadStats() {
 }
 
 sgRenderLevels();
+sgRenderFreqFilter();
 sgRenderTenseFilter();
 sgRenderSourceFilter();
 sgPickExercise();
@@ -2624,6 +2704,7 @@ const HG_POOL = ALL_CATEGORY_WORDS.filter(w =>
 const HG_MAX_LIVES = 6;
 
 let hgSelectedLevels = new Set(); // boş = tüm seviyeler
+let hgSelectedFreq = new Set(); // boş = tüm frekanslar
 let hgCurrentWord = null;
 let hgGuessedLetters = new Set();
 let hgLives = HG_MAX_LIVES;
@@ -2639,22 +2720,56 @@ let hgManualCorrect = 0; // kullanıcının klavyeden KENDİ seçtiği doğru ha
 function hgRenderLevels() {
   const el = document.getElementById('hg-levels');
   const all = ["A1", "A2", "B1", "B2", "C1", "C2"];
-  el.innerHTML = all.map(l =>
-    `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}" data-level="${l}">${l}</div>`
-  ).join('');
-  el.querySelectorAll('.chip').forEach(chip => {
+  // Mevcut frekans seçimiyle hiç eşleşmeyen seviyeler pasif olur; seçiliyken
+  // pasif hale gelirse (frekans değişince) seçimden otomatik çıkarılır.
+  all.forEach(l => {
+    const count = HG_POOL.filter(w => w.cefr === l && freqMatches(w.freq, hgSelectedFreq, 3)).length;
+    if (count === 0 && hgSelectedLevels.has(l)) hgSelectedLevels.delete(l);
+  });
+  el.innerHTML = all.map(l => {
+    const count = HG_POOL.filter(w => w.cefr === l && freqMatches(w.freq, hgSelectedFreq, 3)).length;
+    const disabled = count === 0;
+    return `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}</div>`;
+  }).join('');
+  el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
     chip.onclick = () => {
       const lvl = chip.dataset.level;
       if (hgSelectedLevels.has(lvl)) hgSelectedLevels.delete(lvl); else hgSelectedLevels.add(lvl);
       hgRenderLevels();
+      hgRenderFreqFilter();
       hgPickWord();
     };
   });
 }
 
 function hgGetPool() {
-  if (hgSelectedLevels.size === 0) return HG_POOL;
-  return HG_POOL.filter(w => hgSelectedLevels.has(w.cefr));
+  let pool = hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr));
+  pool = pool.filter(w => freqMatches(w.freq, hgSelectedFreq, 3));
+  return pool;
+}
+
+const HG_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
+function hgRenderFreqFilter() {
+  const el = document.getElementById('hg-freq-filter');
+  if (!el) return;
+  const levelPool = hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr));
+  HG_FREQ_OPTS.forEach(([key]) => {
+    const count = levelPool.filter(w => w.freq === key).length;
+    if (count === 0 && hgSelectedFreq.has(key)) hgSelectedFreq.delete(key);
+  });
+  el.innerHTML = HG_FREQ_OPTS.map(([key,label]) => {
+    const count = levelPool.filter(w => w.freq === key).length;
+    const disabled = count === 0;
+    return `<div class="chip${hgSelectedFreq.has(key)?' on':''}${disabled?' disabled':''}" data-freq="${key}">${label}</div>`;
+  }).join('');
+  el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
+    chip.onclick = () => {
+      const key = chip.dataset.freq;
+      if (hgSelectedFreq.has(key)) hgSelectedFreq.delete(key); else hgSelectedFreq.add(key);
+      hgRenderFreqFilter();
+      hgPickWord();
+    };
+  });
 }
 
 function hgComputeWordPriority(w) {
@@ -2972,6 +3087,7 @@ function hgLoadStats() {
 }
 
 hgRenderLevels();
+hgRenderFreqFilter();
 hgPickWord();
 hgLoadStats();
 renderListCefrRow();
