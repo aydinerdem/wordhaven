@@ -56,9 +56,19 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .main-nav-wrap{margin-bottom:18px;position:relative;}
 .main-menu-toggle{display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;border-radius:var(--rsm);background:var(--surface);border:0.5px solid var(--border2);font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;}
 .main-menu-toggle span:first-child{font-size:16px;}
-.main-menu-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.main-menu-panel{display:flex;flex-direction:column;gap:0;margin-top:8px;}
 .main-menu-panel.hidden{display:none;}
-.main-nav-btn{padding:12px 10px;border-radius:var(--rsm);background:var(--surface);border:0.5px solid var(--border2);text-align:center;}
+.menu-group-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:18px 6px 7px;}
+.menu-group-label:first-child{margin-top:2px;}
+.menu-group{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+.main-nav-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;border-bottom:0.5px solid var(--border);background:transparent;text-align:left;font-size:14.5px;font-weight:500;color:var(--text);width:100%;}
+.menu-group .main-nav-btn:last-child{border-bottom:none;}
+.main-nav-btn .nav-icon{display:flex;flex-shrink:0;width:20px;height:20px;color:var(--text2);}
+.main-nav-btn .nav-icon svg{width:100%;height:100%;}
+.main-nav-btn .nav-chevron{margin-left:auto;color:var(--text3);font-size:13px;opacity:.6;}
+.main-nav-btn.active{background:var(--accent);color:#fff;}
+.main-nav-btn.active .nav-icon{color:#fff;}
+.main-nav-btn.active .nav-chevron{color:#fff;opacity:.8;}
 .main-nav-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);}
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .dash-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;}
@@ -187,6 +197,12 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .sg-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:16px;}
 .sg-progress{display:flex;gap:5px;margin-bottom:16px;}
 .sg-progress-dot{flex:1;height:4px;border-radius:2px;background:var(--border2);}
+.sg-level-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.sg-word-badge{background:var(--surface2);color:var(--text2);}
+.sg-skip-row{margin-bottom:10px;}
+.sg-skip-btn{background:none;border:none;color:var(--text2);font-size:12.5px;font-weight:500;padding:2px 0;cursor:pointer;}
+.sg-skip-btn:hover{color:var(--accent);}
+.sg-grammar-usage{font-size:13px;color:var(--text2);margin:8px 0 12px;line-height:1.5;}
 .sg-progress-dot.done{background:var(--success);}
 .sg-progress-dot.current{background:var(--accent);}
 .sg-sentence-box{background:var(--surface2);border-radius:var(--rsm);padding:18px 14px;font-size:19px;font-weight:500;line-height:2.1;min-height:70px;display:flex;flex-wrap:wrap;align-items:center;gap:2px;}
@@ -276,16 +292,31 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <span>☰</span><span id="main-menu-current">Özet</span>
   </button>
   <div class="main-menu-panel hidden" id="main-menu-panel">
-    <button class="nav-btn main-nav-btn active" id="nav-dash" onclick="showView('dash')">Özet</button>
-    <button class="nav-btn main-nav-btn" id="nav-cardmode" onclick="showView('cardmode')">Kart Modu</button>
-    <button class="nav-btn main-nav-btn" id="nav-status" onclick="showView('status')">Kelime Durumu</button>
-    <button class="nav-btn main-nav-btn" id="nav-news" onclick="showView('news')">Metin Analizi</button>
-    <button class="nav-btn main-nav-btn" id="nav-wordadd" onclick="showView('wordadd')">Sözlüğüm</button>
-    <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')">Kelime Listem</button>
-    <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')">Cümle Kur</button>
-    <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')">Asmaca</button>
-    <button class="nav-btn main-nav-btn" id="nav-settings" onclick="showView('settings')">Ayarlar</button>
-    <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')">Tekrar Et</button>
+    <div class="menu-group-label">Genel</div>
+    <div class="menu-group">
+      <button class="nav-btn main-nav-btn active" id="nav-dash" onclick="showView('dash')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/></svg></span>Özet<span class="nav-chevron">›</span></button>
+    </div>
+
+    <div class="menu-group-label">Analiz</div>
+    <div class="menu-group">
+      <button class="nav-btn main-nav-btn" id="nav-status" onclick="showView('status')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V10"/><path d="M10 16.5V4"/><path d="M16 16.5v-6.5"/></svg></span>Kelime Durumu<span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-news" onclick="showView('news')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.3 16.7 7 7 16.7H3.3V13z"/></svg></span>Metin Analizi<span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-wordadd" onclick="showView('wordadd')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg></span>Sözlüğüm<span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="11" height="13" rx="1.3"/><path d="M7.2 7.3h5.6M7.2 10.2h5.6M7.2 13.1h3.6"/></svg></span>Kelime Listem<span class="nav-chevron">›</span></button>
+    </div>
+
+    <div class="menu-group-label">Pratik &amp; Oyunlar</div>
+    <div class="menu-group">
+      <button class="nav-btn main-nav-btn" id="nav-cardmode" onclick="showView('cardmode')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.3" width="14" height="10.2" rx="1.4"/><path d="M6.2 6.3V4.8A1.4 1.4 0 0 1 7.6 3.4h4.8a1.4 1.4 0 0 1 1.4 1.4v1.5"/></svg></span>Kart Modu<span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 9.6c0-3.4 3-6.1 6.7-6.1s6.7 2.7 6.7 6.1-3 6.1-6.7 6.1c-.8 0-1.6-.1-2.3-.4L4 16.7l1-3A5.9 5.9 0 0 1 3.3 9.6z"/></svg></span>Cümle Kur<span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span>Asmaca<span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10.2a6 6 0 1 1-2-4.6"/><path d="M16 3v4.2h-4.2"/></svg></span>Tekrar Et<span class="nav-chevron">›</span></button>
+    </div>
+
+    <div class="menu-group-label">Sistem</div>
+    <div class="menu-group">
+      <button class="nav-btn main-nav-btn" id="nav-settings" onclick="showView('settings')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 3.5v2.1M10 14.4v2.1M4.3 4.3l1.5 1.5M14.2 14.2l1.5 1.5M3.5 10h2.1M14.4 10h2.1M4.3 15.7l1.5-1.5M14.2 5.8l1.5-1.5"/></svg></span>Ayarlar<span class="nav-chevron">›</span></button>
+    </div>
   </div>
   </div>
 

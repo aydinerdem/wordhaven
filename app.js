@@ -90,6 +90,17 @@ const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', 
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
+// Menü açıkken sayfa içindeki bir filtreye (CEFR/frekans chip'i vb.) dokununca
+// menü açık kalıyordu, çünkü sadece showView() (nav öğesi seçimi) paneli
+// kapatıyordu. Artık panel açıkken panelin/toggle'ın DIŞINA her tıklama da
+// paneli kapatıyor — sayfa içeriğiyle etkileşim otomatik olarak menüyü kapatır.
+document.addEventListener('click', function (e) {
+  const panel = document.getElementById('main-menu-panel');
+  const toggle = document.getElementById('main-menu-toggle');
+  if (!panel || panel.classList.contains('hidden')) return;
+  if (panel.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+  panel.classList.add('hidden');
+});
 function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
@@ -2283,9 +2294,18 @@ let sgLastExerciseId = null;
 function sgRenderLevels() {
   const el = document.getElementById('sg-levels');
   const all = ["A1", "A2", "B1", "B2", "C1", "C2"];
+  const countFor = l => SG_EXERCISES.filter(e => e.cefr === l && freqMatches(e.freq, sgSelectedFreq, 3) && (!sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)).length;
+  const validLevels = all.filter(l => countFor(l) > 0);
+  // Önceden "size > 1" şartı, seçili TEK seviye geçersiz hale gelince onu
+  // çıkarmıyordu - sonuç: "seçili ama tıklanamaz, hiç egzersiz yok" diye
+  // kilitli kalan bir chip (bkz. rastgele tıklama sonrası ekran görüntüsü).
+  // Artık geçersiz olanlar koşulsuz çıkarılıyor; hepsi geçersiz kalırsa
+  // (seçim tamamen boşalırsa) geçerli olan TÜM seviyeler otomatik seçiliyor,
+  // böylece hiçbir zaman boş/kilitli bir durumda kalınmıyor.
+  [...sgSelectedLevels].forEach(l => { if (!validLevels.includes(l)) sgSelectedLevels.delete(l); });
+  if (sgSelectedLevels.size === 0) validLevels.forEach(l => sgSelectedLevels.add(l));
   el.innerHTML = all.map(l => {
-    const count = SG_EXERCISES.filter(e => e.cefr === l && freqMatches(e.freq, sgSelectedFreq, 3)).length;
-    const disabled = count === 0;
+    const disabled = countFor(l) === 0;
     return `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}</div>`;
   }).join('');
   el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
@@ -2304,14 +2324,18 @@ const SG_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'],
 function sgRenderFreqFilter() {
   const el = document.getElementById('sg-freq-filter');
   if (!el) return;
-  // Mevcut seviye seçimiyle hiç eşleşmeyen frekanslar pasif olur; seçiliyken
-  // pasif hale gelirse (seviye değişince) seçimden de otomatik çıkarılır.
+  // Mevcut seviye + yapı (tense) seçimiyle hiç eşleşmeyen frekanslar pasif
+  // olur; seçiliyken pasif hale gelirse (seviye/yapı değişince) seçimden de
+  // otomatik çıkarılır.
   SG_FREQ_OPTS.forEach(([key]) => {
-    const count = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr) && e.freq === key).length;
-    if (count === 0 && sgSelectedFreq.has(key) && sgSelectedFreq.size > 1) sgSelectedFreq.delete(key);
+    const count = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr) && e.freq === key && (!sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)).length;
+    // Burada "en az 1 kalsın" şartı yok - freqMatches() zaten boş seçimi
+    // "daraltma yok, tümünü göster" olarak yorumluyor, o yüzden koşulsuz
+    // çıkarmak güvenli (CEFR'deki gibi kilitlenme riski yok).
+    if (count === 0 && sgSelectedFreq.has(key)) sgSelectedFreq.delete(key);
   });
   el.innerHTML = SG_FREQ_OPTS.map(([key,label]) => {
-    const count = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr) && e.freq === key).length;
+    const count = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr) && e.freq === key && (!sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)).length;
     const disabled = count === 0;
     return `<div class="chip${sgSelectedFreq.has(key)?' on':''}${disabled?' disabled':''}" data-freq="${key}">${label}</div>`;
   }).join('');
@@ -2340,6 +2364,8 @@ function sgRenderTenseFilter() {
       const t = chip.dataset.tense;
       sgSelectedTenseFilter = t === "__auto__" ? null : t;
       sgRenderTenseFilter();
+      sgRenderLevels();
+      sgRenderFreqFilter();
       sgPickExercise();
     };
   });
@@ -2386,7 +2412,17 @@ function sgExerciseWords(ex) {
 }
 
 function sgGetPool() {
-  let pool = sgSelectedTenseFilter ? SG_EXERCISES.filter(e => e.tense === sgSelectedTenseFilter) : SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr));
+  // Önceden tense filtresi (belirli bir GRAMER YAPISI seçince) CEFR
+  // filtresini TAMAMEN devre dışı bırakıyordu ("? :" - ya biri ya öteki).
+  // CEFR pilleri ekranda seçili görünmeye devam ediyor ama hiç uygulanmıyordu
+  // - "A2 seçtim ama C1 çıktı" şaşkınlığının asıl sebebi buydu. Artık ikisi
+  // birlikte (VE) uygulanıyor; bu da bazı kombinasyonları (örn. A2 + Past
+  // Perfect Continuous, matematiksel olarak imkansız çünkü o yapı zaten
+  // her zaman C1'e denk gelir) boş bırakabilir - bu yüzden sgRenderLevels
+  // artık tense filtresini de hesaba katarak uyumsuz CEFR pillerini
+  // otomatik soluklaştırıyor (aşağıya bkz).
+  let pool = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr));
+  if (sgSelectedTenseFilter) pool = pool.filter(e => e.tense === sgSelectedTenseFilter);
   pool = pool.filter(e => freqMatches(e.freq, sgSelectedFreq, 3));
   if (sgSourceFilters.size) pool = pool.filter(e => sgExerciseWords(e).some(w => sgWordMatchesSource(w)));
   return pool;
@@ -2406,6 +2442,16 @@ function sgComputeExercisePriority(ex) {
     const st = getSrsEntry(k);
     if (!st) { score += 2; return; }
     if (st.learned) return;
+    // "structure:<tense>" anahtarı YÜZLERCE farklı cümle arasında paylaşılıyor
+    // (örn. tüm Past Simple egzersizleri aynı anahtarı kullanıyor). Bu anahtara
+    // da "due" bonusu uygulanırsa, bir yapı bir kez "due" olduğunda o yapıyı
+    // paylaşan TÜM cümleler aynı anda öne fırlıyor ve seçim tek bir zamanda
+    // kilitleniyor (bildirilen "A2'de hep Past Simple çıkıyor" sorunu). Kelime/
+    // fiil anahtarları her egzersizde benzersiz olduğundan sorun yaratmıyor —
+    // sadece paylaşılan yapı anahtarının "due" bonusunu devre dışı bırakıyoruz.
+    // srsStore'a ne yazıldığını/Tekrar Et'in ne okuduğunu değiştirmiyor, sadece
+    // Cümle Kur'un bir sonraki egzersizi seçerken bu anahtarı nasıl tarttığını.
+    if (k.startsWith('structure:')) return;
     if (st.nextReview && st.nextReview <= today) score += 3;
   });
   return score;
@@ -2421,7 +2467,20 @@ function sgPickExercise() {
       `<div class="sg-card"><div class="sg-empty">${msg}</div></div>`;
     return;
   }
-  let candidates = pool.length > 1 ? pool.filter(e => e.id !== sgLastExerciseId) : pool;
+  // İKİ AŞAMALI SEÇİM: önce havuzdaki YAPILARDAN (tense) birini eşit
+  // olasılıkla seçiyoruz, sonra sadece O YAPI içinde SRS önceliğine göre
+  // cümleyi seçiyoruz. Eskiden tüm havuz tek seferde puanlanıp en yükseği
+  // seçiliyordu — puan "kaç farklı kelime anahtarı var"a bağlı olduğundan,
+  // daha çok chunk/kelime içeren cümleler sistematik olarak kayırılıyor,
+  // bu da belli bir yapının (örn. Past Simple) her zaman aynı seçilmesine
+  // yol açıyordu (bkz. "hangi frekansı seçersem hep aynı yapı çıkıyor"
+  // bildirimi). Yapı seçimini önce ve kelime-zenginliğinden bağımsız
+  // yapmak bu önyargıyı ortadan kaldırıyor.
+  const tenses = [...new Set(pool.map(e => e.tense))];
+  const chosenTense = tenses[Math.floor(Math.random() * tenses.length)];
+  let candidates = pool.filter(e => e.tense === chosenTense);
+  if (candidates.length > 1) candidates = candidates.filter(e => e.id !== sgLastExerciseId);
+
   const scored = candidates.map(e => ({ e, score: sgComputeExercisePriority(e) }));
   const maxScore = Math.max(...scored.map(s => s.score));
   const topCandidates = maxScore > 0 ? scored.filter(s => s.score === maxScore).map(s => s.e) : candidates;
@@ -2453,6 +2512,22 @@ function sgRoleColorClass(role) {
   return SG_ROLE_COLORS[hash % SG_ROLE_COLORS.length];
 }
 
+const SG_TENSE_USAGE = {
+  'Present Simple': 'Genel doğrular, alışkanlıklar ve rutinler için kullanılır. "Her gün/genellikle/asla" gibi zarflarla sık görülür.',
+  'Past Simple': 'Geçmişte, belirli bir zamanda başlayıp tamamlanmış eylemler için kullanılır. "Dün/geçen yıl" gibi zarflarla sık görülür.',
+  'Present Continuous': 'Şu an gerçekleşmekte olan ya da yakın gelecekte planlanmış eylemler için kullanılır. "Şu anda/şimdi" ile sık görülür.',
+  'Future Simple': 'Anlık kararlar, tahminler veya gelecekteki eylemler için kullanılır ("will").',
+  'Present Perfect': 'Geçmişte başlayıp etkisi hâlâ süren ya da net zamanı önemli olmayan eylemler için kullanılır ("have/has + V3").',
+  'Past Continuous': 'Geçmişte belirli bir anda devam etmekte olan bir eylemi anlatmak için kullanılır, genelde başka bir eylem tarafından kesilir.',
+  'Present Perfect Continuous': 'Geçmişte başlayıp hâlâ devam eden, süreklilik ve süre vurgusu olan eylemler için kullanılır.',
+  'Past Perfect': 'Geçmişteki bir andan ÖNCE tamamlanmış eylemler için kullanılır — "geçmişin geçmişi" ("had + V3").',
+  'Future Continuous': 'Gelecekte belirli bir anda devam ediyor olacak eylemler için kullanılır.',
+  'Future Perfect': 'Gelecekteki belirli bir zamana KADAR tamamlanmış olacak eylemler için kullanılır.',
+  'Past Perfect Continuous': 'Geçmişteki bir andan önce başlayıp o ana kadar süregelen, süre vurgulu eylemler için kullanılır.',
+  'Comparative': 'İki şeyi karşılaştırırken kullanılır ("daha ... -den/dan").',
+  'Future Perfect Continuous': 'Gelecekteki belirli bir ana kadar süregelmiş olacak eylemler için kullanılır.',
+};
+
 function sgBuildGrammarCard() {
   const entries = [];
   (sgCurrentExercise.rootRoles || []).forEach(r => {
@@ -2471,10 +2546,13 @@ function sgBuildGrammarCard() {
       <span class="sg-role-word">${e.text}</span>
     </div>`;
   }).join('');
+  const usage = SG_TENSE_USAGE[sgCurrentExercise.tense];
+  const usageHtml = usage ? `<div class="sg-grammar-usage">${usage}</div>` : '';
   return `
     <div class="sg-grammar-card">
       <div class="sg-grammar-title">${sgCurrentExercise.tenseInfo.name}</div>
       <div class="sg-grammar-formula">${sgCurrentExercise.tenseInfo.formula}</div>
+      ${usageHtml}
       <div class="sg-role-list">${rowsHtml}</div>
     </div>`;
 }
@@ -2496,6 +2574,19 @@ function sgRenderExercise() {
     progressHtml += `<div class="sg-progress-dot ${cls}"></div>`;
   }
   progressHtml += '</div>';
+
+  // "cefr" alanı kelimenin değil CÜMLENİN zorluğunu gösterir (round-robin
+  // ileri zaman bir A2/Medium kelimeyi C1'e taşıyabilir - bkz. build.py notu).
+  // Bu ayrım kullanıcı için görünmezse "neden bu kolay kelime C1'de?" kafa
+  // karışıklığı yaratıyor, o yüzden yapı ve kelime zorluğunu ayrı gösteriyoruz.
+  const sgLvl = (sgCurrentExercise.cefr || '').toLowerCase();
+  const sgFreqLabel = { 'High Frequency': 'Sık kullanılan', 'Medium Frequency': 'Orta sıklıkta', 'Low Frequency': 'Az sık kullanılan' }[sgCurrentExercise.freq] || null;
+  let sgInfoBar = `<div class="sg-level-bar">
+    <span class="badge b-${sgLvl}">Yapı: ${sgCurrentExercise.cefr} (${sgCurrentExercise.tense})</span>`;
+  if (sgFreqLabel) {
+    sgInfoBar += `<span class="badge sg-word-badge">Kelime: ${sgFreqLabel}</span>`;
+  }
+  sgInfoBar += `</div>`;
 
   let sentenceHtml = '<div class="sg-sentence-box">';
   if (showGaps) sentenceHtml += `<span class="sg-gap" data-pos="0"><span class="sg-gap-btn">+</span></span>`;
@@ -2557,7 +2648,7 @@ function sgRenderExercise() {
       <div id="sg-tr-result"></div>`;
   }
 
-  c.innerHTML = `<div class="sg-card">${progressHtml}${sentenceHtml}${bodyHtml}</div>`;
+  c.innerHTML = `<div class="sg-card">${sgInfoBar}<div class="sg-skip-row"><button class="sg-skip-btn" onclick="sgPickExercise()">🔀 Farklı bir örnek göster</button></div>${progressHtml}${sentenceHtml}${bodyHtml}</div>`;
   ttsWireButtons(c);
 
   if (needsVerbStage) {
