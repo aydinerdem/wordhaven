@@ -117,9 +117,10 @@ function dashToggleLevel(lv) {
 
 // ── Birincil eylem ─────────────────────────────────────────────────────────
 function dashStartStudy() {
-  // Tekrar bekleyen varsa SRS kuyruğuna, yoksa yeni kelimelere.
-  if (dashDueCount() > 0) showView('filter');
-  else showView('cardmode');
+  // Tekrar Et (view 'filter') eski modül — geliştirme yapılmıyor, menüde
+  // korunuyor ama ana akış oraya yönlendirilmiyor. Çalışma her durumda
+  // Kart Modu'ndan başlar; tekrar bekleyenler zaten oradaki havuza dahil.
+  showView('cardmode');
 }
 
 // ── Ana çizim ──────────────────────────────────────────────────────────────
@@ -153,8 +154,8 @@ function updateDashboard() {
   // ── Normal durum ──
   const complete = done >= goal;
   const btnLabel = due > 0
-    ? `${due} kelime tekrar zamanı →`
-    : (complete ? 'Çalışmaya devam et →' : `Bugünkü çalışmana devam et →`);
+    ? `${due} kelime tekrar zamanı · Kart Modu →`
+    : (complete ? 'Çalışmaya devam et →' : 'Kart Modu ile çalış →');
 
   el.innerHTML = `
     <div class="dash-hero">
@@ -195,6 +196,8 @@ function dashEditGoal() {
   const n = parseInt(v, 10);
   if (!n || n < 1 || n > 200) { alert('1 ile 200 arasında bir sayı gir.'); return; }
   dashSetGoal(n);
+  cmSizeTouched = false;
+  cmSessionSize = n;
   updateDashboard();
   const inp = document.getElementById('daily-goal-input');
   if (inp) inp.value = n;
@@ -210,6 +213,8 @@ function saveDailyGoal() {
   const n = parseInt(inp.value, 10);
   if (!n || n < 1 || n > 200) { alert('1 ile 200 arasında bir sayı gir.'); return; }
   dashSetGoal(n);
+  cmSizeTouched = false;   // yeni hedef Kart Modu'na da yansısın
+  cmSessionSize = n;
   updateDashboard();
   const s = document.getElementById('daily-goal-status');
   if (s) { s.textContent = `✓ Kaydedildi: günde ${n} kelime`; setTimeout(() => s.textContent = '', 2500); }
@@ -2415,13 +2420,18 @@ function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 // Amaç: iki modu da bozmadan yan yana test edebilmek.
 let cmSelectedLevels = new Set(['A1','A2','B1','B2','C1']);
 let cmSelectedFreq = new Set(['High Frequency','Medium Frequency','Low Frequency']);
-let cmSessionSize = 30;
+// Oturum büyüklüğü varsayılanı Ayarlar'daki günlük hedeften gelir.
+// Kullanıcı oturum içinde başka bir değer seçerse (cmSizeTouched) o değere
+// saygı duyulur; Kart Modu'na tekrar girildiğinde yine hedefe döner.
+let cmSessionSize = dashGoal();
+let cmSizeTouched = false;
 let cmQueue = [];
 let cmIdx = 0;
 let cmHistory = []; // undo için: {key, prevEntry, wasNew}
 let cmDone = { known: 0, learning: 0 };
 
 function cmInit() {
+  if (!cmSizeTouched) cmSessionSize = dashGoal();
   cmRenderLevels();
   cmRenderFreqFilter();
   cmRenderSizeRow();
@@ -2434,7 +2444,7 @@ function cmRenderLevels() {
   row.innerHTML = levels.map(lv => {
     const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w)).length;
     const disabled = count === 0;
-    return `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleLevel('${lv}')"`}>${lv}</button>`;
+    return `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleLevel('${lv}')"`}>${lv} <span style="color:var(--text3);">(${count})</span></button>`;
   }).join('');
 }
 
@@ -2480,7 +2490,7 @@ function cmRenderSizeRow() {
   const presets = [5, 10, 20, 30];
   row.innerHTML = presets.map(n =>
     `<button class="chip${cmSessionSize===n?' on':''}" onclick="cmSetSize(${n})">${n}</button>`
-  ).join('') + `<input id="cm-manual-size" type="number" min="1" max="500" placeholder="Manuel" value="${presets.includes(cmSessionSize)?'':cmSessionSize}" oninput="cmSetSizeManual(this.value)" style="width:70px;padding:6px 8px;font-size:13px;border:0.5px solid var(--border2);border-radius:20px;background:var(--surface2);color:var(--text);">`;
+  ).join('') + `<input id="cm-manual-size" type="number" min="1" max="500" placeholder="Özel" value="${presets.includes(cmSessionSize)?'':cmSessionSize}" oninput="cmSetSizeManual(this.value)" style="width:76px;padding:6px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:20px;background:var(--surface2);color:var(--text);box-sizing:border-box;text-align:center;">`;
 }
 
 // Preset butonları (5/10/20/30) her zaman tam satırı yeniden çizebilir —
@@ -2489,6 +2499,7 @@ function cmSetSize(n) {
   n = parseInt(n, 10);
   if (!n || n < 1) return;
   cmSessionSize = n;
+  cmSizeTouched = true;
   cmRenderSizeRow();
   cmStart();
 }
@@ -2502,6 +2513,7 @@ function cmSetSize(n) {
 function cmSetSizeManual(raw) {
   const n = parseInt(raw, 10);
   if (!n || n < 1) return; // kullanıcı alanı temizlerken/tek basamak yazarken sessizce bekle
+  cmSizeTouched = true;
   cmSessionSize = n;
   const row = document.getElementById('cm-size-row');
   if (row) {
@@ -2729,9 +2741,11 @@ function stSetTab(tab) {
 function stRenderLevels() {
   const row = document.getElementById('st-level-row');
   const levels = ['A1','A2','B1','B2','C1'];
-  row.innerHTML = levels.map(lv =>
-    `<button class="chip lvl-${lv.toLowerCase()}${stSelectedLevels.has(lv)?' on':''}" onclick="stToggleLevel('${lv}')">${lv}</button>`
-  ).join('');
+  row.innerHTML = levels.map(lv => {
+    // Sayaç: o seviyede ortak filtreden geçen ve ilerleme kaydı olan kelimeler
+    const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w) && progress[wkey(w)]).length;
+    return `<button class="chip lvl-${lv.toLowerCase()}${stSelectedLevels.has(lv)?' on':''}" onclick="stToggleLevel('${lv}')">${lv} <span style="color:var(--text3);">(${count})</span></button>`;
+  }).join('');
 }
 
 function stToggleLevel(lv) {
@@ -3553,8 +3567,9 @@ function sgRenderLevels() {
   [...sgSelectedLevels].forEach(l => { if (!validLevels.includes(l)) sgSelectedLevels.delete(l); });
   if (sgSelectedLevels.size === 0) validLevels.forEach(l => sgSelectedLevels.add(l));
   el.innerHTML = all.map(l => {
-    const disabled = countFor(l) === 0;
-    return `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}</div>`;
+    const count = countFor(l);
+    const disabled = count === 0;
+    return `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l} <span style="color:var(--text3);">(${count})</span></div>`;
   }).join('');
   el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
     chip.onclick = () => {
@@ -4108,7 +4123,7 @@ function hgRenderLevels() {
   el.innerHTML = all.map(l => {
     const count = HG_POOL.filter(w => w.cefr === l && gbPasses(w)).length;
     const disabled = count === 0;
-    return `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}</div>`;
+    return `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l} <span style="color:var(--text3);">(${count})</span></div>`;
   }).join('');
   el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
     chip.onclick = () => {
