@@ -132,6 +132,11 @@ function updateDashboard() {
   const done = dashTodayCount();
   const due = dashDueCount();
   const mastered = Object.values(progress).filter(p => p.mastery === 'mastered').length;
+  // Son cevabı "Biliyorum" olan ama henüz tam öğrenilmemişler ile son cevabı
+  // "Öğreniyorum" olanları ayrı göster — ikisi de mastery 'reviewing' olduğu
+  // için eskiden tek kutuda toplanıyordu.
+  const knownNow = Object.values(progress).filter(p => p.mastery !== 'mastered' && p.lastAnswer !== 'learning').length;
+  const learningNow = Object.values(progress).filter(p => p.lastAnswer === 'learning').length;
   const anyProgress = Object.keys(progress).length > 0;
 
   // ── Hiç başlanmamış: istatistik yerine davet ──
@@ -178,7 +183,8 @@ function updateDashboard() {
 
     <div class="dash-summary-row">
       <div><span class="dash-sum-n" style="color:var(--success);">${mastered}</span><span class="dash-sum-l">tam öğrenildi</span></div>
-      <div><span class="dash-sum-n">${Object.keys(progress).length}</span><span class="dash-sum-l">çalışıldı</span></div>
+      <div><span class="dash-sum-n" style="color:var(--accent);">${knownNow}</span><span class="dash-sum-l">biliyorum dedin</span></div>
+      <div><span class="dash-sum-n" style="color:#a05000;">${learningNow}</span><span class="dash-sum-l">öğreniyorum</span></div>
       <div><span class="dash-sum-n" style="color:var(--warn);">${due}</span><span class="dash-sum-l">tekrar bekliyor</span></div>
     </div>
 
@@ -1208,7 +1214,10 @@ function getNextReview(prog, correct) {
   if (!correct) {
     return { interval:0, easeFactor:Math.max(1.3,easeFactor-0.2), repetitions:0,
              mastery:'reviewing', learned:false, nextReview:todayStr(),
-             totalKnown, totalLearning: totalLearning+1 };
+             totalKnown, totalLearning: totalLearning+1,
+             // Son verilen cevap: "Biliyorum" ile "Öğreniyorum" ilk turda aynı
+             // mastery'ye ('reviewing') düşüyordu ve Özet'te ayırt edilemiyordu.
+             lastAnswer:'learning' };
   }
   if (repetitions===0) interval=1;
   else if (repetitions===1) interval=4;
@@ -1220,7 +1229,8 @@ function getNextReview(prog, correct) {
   if (repetitions>=4 && interval>=21) mastery='mastered';
   const newTotalKnown = mastery==='mastered' ? 0 : totalKnown+1;
   const newTotalLearning = mastery==='mastered' ? 0 : totalLearning;
-  return { interval, easeFactor, repetitions, mastery, learned: mastery==='mastered', totalKnown:newTotalKnown, totalLearning:newTotalLearning };
+  return { interval, easeFactor, repetitions, mastery, learned: mastery==='mastered',
+           totalKnown:newTotalKnown, totalLearning:newTotalLearning, lastAnswer:'known' };
 }
 function getNextDate(n) {
   const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10);
@@ -1768,11 +1778,17 @@ function renderCefrSection(cefrWords, level) {
   const pct           = cefrWords.length ? (mastCount/cefrWords.length*100).toFixed(0) : 0;
   const color         = CEFR_COLORS[level];
 
+  // "Tekrarda" grubunu son cevaba göre ikiye ayır: kullanıcı neye "Biliyorum",
+  // neye "Öğreniyorum" dediğini görebilsin.
+  const struggling = reviewing.filter(w => progress[wkey(w)]?.lastAnswer === 'learning');
+  const knownEarly = reviewing.filter(w => progress[wkey(w)]?.lastAnswer !== 'learning');
+
   const cats = [
     dueNow.length ? {id:level+'-due', label:'⏰ Bugün tekrar', words:dueNow, open:true, style:'due'} : null,
     {id:level+'-mastered', label:'✅ Tam öğrenildi', words:mastered, open:true, style:'mastered'},
     {id:level+'-consolidating', label:'📈 Pekişiyor', words:consolidating, open:false, style:'consolidating'},
-    {id:level+'-reviewing', label:'🔄 Tekrarda', words:reviewing, open:false, style:'reviewing'},
+    {id:level+'-struggling', label:'🔁 Öğreniyorum', words:struggling, open:true, style:'reviewing'},
+    {id:level+'-knownearly', label:'👍 Biliyorum dediklerin', words:knownEarly, open:false, style:'reviewing'},
     {id:level+'-upcoming', label:'🆕 Sıradaki yeniler', words:upcoming, open:false, style:'upcoming'},
   ].filter(Boolean);
 
@@ -2428,6 +2444,12 @@ let cmSizeTouched = false;
 let cmQueue = [];
 let cmIdx = 0;
 let cmHistory = []; // undo için: {key, prevEntry, wasNew}
+// Oturum içi gezinme: cmIdx = cevaplanacak sıradaki kart, cmViewIdx = ekranda
+// GÖRÜNEN kart. İkisi normalde eşittir; kullanıcı ‹ ile geri gidince cmViewIdx
+// küçülür ve cevaplanmış kartlara cevap değiştirmeden bakabilir.
+let cmViewIdx = 0;
+let cmAnswers = [];   // index → true (Biliyorum) / false (Öğreniyorum)
+let cmReviewing = false;  // oturum bittikten sonra kartlara geri dönüldü mü
 let cmDone = { known: 0, learning: 0 };
 
 function cmInit() {
@@ -2541,6 +2563,9 @@ function cmBuildQueue() {
 function cmStart() {
   cmQueue = cmBuildQueue();
   cmIdx = 0;
+  cmViewIdx = 0;
+  cmAnswers = [];
+  cmReviewing = false;
   cmHistory = [];
   cmDone = { known: 0, learning: 0 };
   cmRenderProgress();
@@ -2572,7 +2597,11 @@ function cmRenderProgress() {
 
 async function cmShowCard() {
   const area = document.getElementById('cm-card-area');
-  if (cmIdx >= cmQueue.length) {
+  if (cmViewIdx < 0) cmViewIdx = 0;
+  if (cmViewIdx >= cmQueue.length) cmViewIdx = Math.max(0, cmQueue.length - 1);
+  // Oturum, 10 kartın HEPSİ cevaplandığında biter — kartlar arasında serbestçe
+  // gezinildiği için sıraya değil, cevap sayısına bakılır.
+  if (cmQueue.length && cmAnsweredCount() >= cmQueue.length && !cmReviewing) {
     // Oturum bitti — bu seviye(ler)de gerçekten başka çalışılacak kelime kalıp
     // kalmadığını kontrol et (tekrar zamanı gelenler + hiç görülmemiş yeniler).
     const today = todayStr();
@@ -2589,14 +2618,42 @@ async function cmShowCard() {
     const moreDue = morePool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
     const moreNew = morePool.filter(w => !progress[wkey(w)]);
     const hasMore = (moreDue.length + moreNew.length) > 0;
-    area.innerHTML = `<div style="text-align:center;padding:40px 16px;">
-      <div style="font-size:16px;font-weight:600;margin-bottom:8px;">${hasMore ? 'Bu oturum bitti! 🎉' : 'Bu seviye(ler)de çalışılacak başka kelime kalmadı! 🎉'}</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:${hasMore ? '20px' : '0'};">${cmDone.known} biliyordun, ${cmDone.learning} tanesi hâlâ öğreniliyor.</div>
-      ${hasMore ? `<button onclick="cmStart()" style="padding:12px 28px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Yeni Oturum Başlat</button>` : ''}
+    const remaining = moreDue.length + moreNew.length;
+    const goal = dashGoal();
+    const doneToday = dashTodayCount();
+    const goalMet = doneToday >= goal;
+    const hardCount = cmDone.learning;
+
+    // Öğrenme açısından en değerli adım, aynı oturumda zorlandığın kelimeleri
+    // hemen bir kez daha görmek (test etkisi + aralıklı tekrar). Bu yüzden
+    // "zorlandıklarını tekrar et" birincil öneri; yeni liste ikinci sırada.
+    const primary = hardCount > 0
+      ? `<button onclick="cmRetryHard()" style="padding:12px 26px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Zorlandığın ${hardCount} kelimeyi tekrar et →</button>`
+      : (hasMore ? `<button onclick="cmStart()" style="padding:12px 26px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Yeni ${cmSessionSize} kelime →</button>` : '');
+
+    const advice = goalMet
+      ? `Bugünkü hedefini (${goal}) tamamladın. Kısa ve düzenli çalışmak, uzun tek seferlik oturumlardan daha kalıcı — istersen burada bırakabilirsin.`
+      : `Bugün ${doneToday}/${goal} kelime yaptın.`;
+
+    area.innerHTML = `<div style="text-align:center;padding:30px 16px;">
+      <div style="font-size:30px;margin-bottom:8px;">${hasMore ? (goalMet ? '🎯' : '🎉') : '🏁'}</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:8px;">
+        ${hasMore ? `${cmQueue.length} kelimelik oturumu bitirdin` : 'Bu seviye(ler)de çalışılacak kelime kalmadı'}</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;">
+        ${cmDone.known} kelimeye "Biliyorum", ${cmDone.learning} kelimeye "Öğreniyorum" dedin.<br>
+        ${advice}
+        ${hasMore ? `<br><span style="color:var(--text3);">Bu filtrede ${remaining} kelime daha var.</span>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        ${primary}
+        ${(hardCount > 0 && hasMore) ? `<button onclick="cmStart()" class="chip">Yeni ${cmSessionSize} kelime</button>` : ''}
+        <button onclick="cmReviewSession()" class="chip">Oturumu gözden geçir</button>
+        <button onclick="showView('dash')" class="chip">Bugünlük yeter</button>
+      </div>
     </div>`;
     return;
   }
-  cmRenderCard(cmQueue[cmIdx], 'cmAnswer', true);
+  cmRenderCard(cmQueue[cmViewIdx], 'cmAnswer', true);
 }
 
 function cmOpenFromList(word, pos) {
@@ -2650,10 +2707,86 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
         <button onclick="${answerCall}true)" style="flex:1;padding:14px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Biliyorum</button>
       </div>
     </div>
-    ${isQueueCard ? `<div style="text-align:center;margin-top:14px;">
-      <button onclick="cmUndo()" class="chip" ${cmHistory.length?'':'disabled style="opacity:.4;"'}>↺ geri al</button>
-    </div>` : ''}`;
+    ${isQueueCard ? cmNavBarHtml() : ''}`;
   ttsWireButtons(area);
+}
+
+// Oturum içi gezinme çubuğu: ‹ Önceki · 3/10 · Sonraki ›
+// "Sonraki" yalnızca zaten cevaplanmış bir karta geri dönüldüğünde aktif olur;
+// cevaplanmamış kartı atlamak mümkün değil (aksi halde oturum boşlukla dolar).
+function cmAnsweredCount() {
+  let n = 0;
+  for (let i = 0; i < cmQueue.length; i++) if (cmAnswers[i] !== undefined) n++;
+  return n;
+}
+
+// Verilen konumdan sonraki ilk CEVAPLANMAMIŞ kartı bulur (başa sarar).
+function cmNextUnanswered(from) {
+  for (let s = 1; s <= cmQueue.length; s++) {
+    const i = (from + s) % cmQueue.length;
+    if (cmAnswers[i] === undefined) return i;
+  }
+  return -1;
+}
+
+function cmNavBarHtml() {
+  const total = cmQueue.length;
+  const pos = Math.min(cmViewIdx + 1, total);
+  // Serbest gezinme: kullanıcı 10 kartın hepsi arasında dilediği gibi dolaşır,
+  // kartı cevaplamış olması gerekmez.
+  const canPrev = cmViewIdx > 0;
+  const canNext = cmViewIdx < cmQueue.length - 1;
+  const answered = cmAnswers[cmViewIdx];
+  const badge = (answered === undefined) ? '' :
+    `<div style="font-size:11.5px;color:var(--text3);margin-top:8px;">
+       Bu karta verdiğin cevap: <b style="color:${answered ? 'var(--accent)' : '#a05000'};">${answered ? 'Biliyorum' : 'Öğreniyorum'}</b> — değiştirmek için tekrar seçebilirsin
+     </div>`;
+
+  return `<div style="margin-top:14px;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+      <button class="chip chip-nav" onclick="cmGo(-1)" ${canPrev ? '' : 'disabled'}>‹ Önceki</button>
+      <span style="font-size:12px;color:var(--text2);min-width:52px;text-align:center;">${pos} / ${total}</span>
+      <button class="chip chip-nav" onclick="cmGo(1)" ${canNext ? '' : 'disabled'}>Sonraki ›</button>
+    </div>
+    <div style="text-align:center;margin-top:8px;">
+      <button onclick="cmUndo()" class="chip chip-nav" ${cmHistory.length ? '' : 'disabled'}>↺ son cevabı geri al</button>
+    </div>
+    ${badge}
+    ${cmReviewing ? `<div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:8px;">
+       Oturumu gözden geçiriyorsun — cevapları değiştirebilirsin.</div>` : ''}
+  </div>`;
+}
+
+// Oturum bittikten sonra kartları baştan gözden geçirmek için — cevaplar
+// korunur, kullanıcı ‹ › ile gezip isterse cevabını değiştirebilir.
+// Oturumda "Öğreniyorum" denen kelimelerden yeni bir mini oturum kurar.
+// Aralıklı tekrarın en etkili anı, hatanın hemen ardındaki tekrardır.
+function cmRetryHard() {
+  const hard = cmQueue.filter((w, i) => cmAnswers[i] === false);
+  if (!hard.length) { cmStart(); return; }
+  cmQueue = hard;
+  cmIdx = 0;
+  cmViewIdx = 0;
+  cmAnswers = [];
+  cmHistory = [];
+  cmReviewing = false;
+  cmDone = { known: 0, learning: 0 };
+  cmRenderProgress();
+  cmShowCard();
+}
+
+function cmReviewSession() {
+  if (!cmQueue.length) return;
+  cmReviewing = true;
+  cmViewIdx = 0;
+  cmShowCard();
+}
+
+function cmGo(delta) {
+  const t = cmViewIdx + delta;
+  if (t < 0 || t >= cmQueue.length) return;
+  cmViewIdx = t;
+  cmShowCard();
 }
 
 function cmRevealTurkish(targetId) {
@@ -2672,15 +2805,33 @@ function cmToggleExtra(targetId) {
 }
 
 function cmAnswer(correct) {
-  const w = cmQueue[cmIdx], k = wkey(w);
+  const i = cmViewIdx;
+  const w = cmQueue[i], k = wkey(w);
+  if (!w) return;
   const wasNew = !progress[k];
-  cmHistory.push({ k, prevEntry: progress[k] ? { ...progress[k] } : null, wasNew, wasKnown: correct });
+  const prev = cmAnswers[i];               // daha önce cevaplanmış mıydı?
+  cmHistory.push({ k, prevEntry: progress[k] ? { ...progress[k] } : null, wasNew, wasKnown: correct, idx: i, prevAnswer: prev });
+
   const cur = progress[k] || {};
   const next = getNextReview(cur, correct);
   progress[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
-  if (correct) cmDone.known++; else cmDone.learning++;
+
+  if (prev === undefined) {
+    if (correct) cmDone.known++; else cmDone.learning++;
+  } else if (prev !== correct) {
+    // Cevap değiştiriliyor → sayaçları düzelt
+    if (correct) { cmDone.known++; cmDone.learning--; }
+    else { cmDone.learning++; cmDone.known--; }
+  }
+  cmAnswers[i] = correct;
+  cmIdx = cmAnsweredCount();
+
+  // Sıradaki cevaplanmamış karta geç; kalmadıysa olduğun yerde kal
+  // (cmShowCard oturum sonu ekranını gösterecek).
+  const nx = cmNextUnanswered(i);
+  if (nx !== -1) cmViewIdx = nx;
+
   saveState();
-  cmIdx++;
   cmRenderProgress();
   cmShowCard();
 }
@@ -2705,8 +2856,22 @@ function cmUndo() {
   const last = cmHistory.pop();
   if (last.prevEntry) progress[last.k] = last.prevEntry;
   else delete progress[last.k];
-  if (last.wasKnown) cmDone.known--; else cmDone.learning--;
-  cmIdx--;
+
+  if (last.prevAnswer === undefined) {
+    if (last.wasKnown) cmDone.known--; else cmDone.learning--;
+    cmAnswers[last.idx] = undefined;
+    cmViewIdx = last.idx;
+  } else {
+    // Cevap değişikliğini geri alıyoruz → sayaçları eski hâline döndür
+    if (last.prevAnswer !== last.wasKnown) {
+      if (last.prevAnswer) { cmDone.known++; cmDone.learning--; }
+      else { cmDone.learning++; cmDone.known--; }
+    }
+    cmAnswers[last.idx] = last.prevAnswer;
+    cmViewIdx = last.idx;
+  }
+  cmIdx = cmAnsweredCount();
+  cmReviewing = false;
   saveState();
   cmRenderProgress();
   cmShowCard();
