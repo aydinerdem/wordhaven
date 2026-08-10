@@ -1,5 +1,143 @@
 
 // ═══════════════════════════════════════════════════════════════════════════
+// TÜRKÇE → İNGİLİZCE ARAMA
+// ═══════════════════════════════════════════════════════════════════════════
+// builtin-content.json'daki 26.746 kaydın hepsinde `turkish` alanı dolu.
+// Bunlardan ters bir indeks kurup "kitap" yazınca "book" bulunmasını sağlıyoruz.
+// İndeks ilk Türkçe aramada kurulur (tembel), sonra bellekte kalır.
+
+let _trIndex = null;   // normalize edilmiş Türkçe terim → [wkey, ...]
+let _trEntries = null; // [{ key, word, pos, turkish, terms:[...] }]
+
+// Türkçe'ye duyarlı küçük harf: I→ı, İ→i (JS'in varsayılan toLowerCase'i
+// Türkçe'de yanlış sonuç verir).
+function trLower(s) {
+  return String(s || '').replace(/I/g, 'ı').replace(/İ/g, 'i').toLowerCase();
+}
+
+// Aksan toleransı: kullanıcı "sarki" yazsa da "şarkı" bulunsun.
+const TR_FOLD = { 'ç':'c', 'ğ':'g', 'ı':'i', 'ö':'o', 'ş':'s', 'ü':'u', 'â':'a', 'î':'i', 'û':'u' };
+function trFold(s) {
+  // 'İ'.toLowerCase() JS'te 'i' + U+0307 (birleşik nokta) üretir; bu görünmez
+  // karakter eşleşmeyi bozuyordu. Tüm birleşik aksanları temizliyoruz.
+  return trLower(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[çğıöşüâîû]/g, ch => TR_FOLD[ch] || ch);
+}
+
+function trNormalize(s) {
+  return trFold(s).replace(/[^a-z0-9\s'-]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// Türkçe karşılık metnini tekil terimlere böler.
+// "üzerinde, -in üstünde, -den yukarıda" → ["üzerinde", "-in üstünde", ...]
+function trSplitTerms(turkish) {
+  return String(turkish || '')
+    .split(/[,;/()]|\s+veya\s+|\s+ya da\s+/)
+    .map(t => trNormalize(t))
+    .filter(t => t.length > 1);
+}
+
+function trBuildIndex() {
+  if (_trIndex) return;
+  _trIndex = Object.create(null);
+  _trEntries = [];
+  for (const key in BUILTIN_CONTENT) {
+    const c = BUILTIN_CONTENT[key];
+    if (!c || !c.turkish) continue;
+    const [word, pos] = key.split('|');
+    const terms = trSplitTerms(c.turkish);
+    if (!terms.length) continue;
+    // rawTerms: aksanları korunmuş hâli. "su" ararken "şu" ile karışmasın diye
+    // birebir eşleşme, aksan katlanarak bulunan eşleşmenin önüne geçer.
+    const rawTerms = String(c.turkish).split(/[,;/()]|\s+veya\s+|\s+ya da\s+/)
+      .map(t => trLower(t).replace(/[^a-zçğıöşü0-9\s'-]/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter(t => t.length > 1);
+    const entry = { key, word, pos: pos || '', turkish: c.turkish, terms, rawTerms };
+    _trEntries.push(entry);
+    terms.forEach(t => { (_trIndex[t] || (_trIndex[t] = [])).push(entry); });
+  }
+}
+
+// Türkçe sorguyu arar, en iyi eşleşmeler önce.
+//   1 = terimin tamamı birebir  ("kitap" → "kitap")
+//   2 = terim sorguyla başlıyor ("kitap" → "kitapçı")
+//   3 = terim sorguyu içeriyor  ("kitap" → "ders kitabı" değil ama "el kitabı" evet)
+function trSearch(query, limit) {
+  trBuildIndex();
+  const q = trNormalize(query);
+  if (q.length < 2) return [];
+
+  const seen = new Set();
+  const out = [];
+  const push = (e, rank) => {
+    if (seen.has(e.key)) return;
+    seen.add(e.key);
+    out.push({ ...e, rank });
+  };
+
+  const qRaw = trLower(query).replace(/[^a-zçğıöşü0-9\s'-]/g, ' ').replace(/\s+/g, ' ').trim();
+  // Önce aksanıyla birebir eşleşenler ("su" → su), sonra katlanmış eşleşmeler ("şu")
+  (_trIndex[q] || []).forEach(e => { if (e.rawTerms.includes(qRaw)) push(e, 0); });
+  (_trIndex[q] || []).forEach(e => push(e, 1));
+
+  for (const term in _trIndex) {
+    if (out.length > 400) break;
+    if (term === q) continue;
+    if (term.startsWith(q)) _trIndex[term].forEach(e => push(e, 2));
+  }
+  for (const term in _trIndex) {
+    if (out.length > 400) break;
+    if (term === q || term.startsWith(q)) continue;
+    if (term.includes(q)) _trIndex[term].forEach(e => push(e, 3));
+  }
+
+  // Sıralama: eşleşme kalitesi → kelimenin seviyesi (kolaydan zora) → alfabetik
+  const lvlOrder = { A1:0, A2:1, B1:2, B2:3, C1:4, C2:5 };
+  out.forEach(e => {
+    const w = WORD_DATA.find(x => x.word === e.word && x.pos === e.pos)
+           || TOPIC_WORDS.find(x => x.word === e.word && x.pos === e.pos);
+    e.cefr = w ? w.cefr : '';
+    e.wordObj = w || { word: e.word, pos: e.pos };
+    e.lvl = lvlOrder[e.cefr] !== undefined ? lvlOrder[e.cefr] : 9;
+  });
+  out.sort((a, b) => a.rank - b.rank || a.lvl - b.lvl || a.word.localeCompare(b.word));
+  return out.slice(0, limit || 40);
+}
+
+// Sorgu Türkçe mi görünüyor? (İngilizce'de bulunmayan harfler veya
+// İngilizce listelerde hiç karşılığı olmaması)
+function looksTurkish(q) {
+  return /[çğışöüÇĞİŞÖÜ]/.test(q);
+}
+
+function trResultsHtml(results, query) {
+  if (!results.length) return '';
+  const rows = results.map(e => {
+    const p = progress[e.key];
+    const mark = !p ? '' : (p.mastery === 'mastered' ? '✅' : (p.lastAnswer === 'learning' ? '😓' : '👍'));
+    return `<div class="tr-hit" onclick="openWordActions(${escAttr(JSON.stringify(e.word))},${escAttr(JSON.stringify(e.pos))})">
+      <div style="min-width:0;">
+        <span class="wordfont" style="font-size:16px;">${escHtml(e.word)}</span>
+        <span style="font-size:11px;color:var(--text3);font-style:italic;margin-left:5px;">${escHtml(e.pos)}</span>
+        ${e.cefr ? `<span class="badge b-${e.cefr.toLowerCase()}" style="margin-left:5px;">${e.cefr}</span>` : ''}
+        ${mark ? `<span style="margin-left:5px;font-size:11px;">${mark}</span>` : ''}
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5;">${escHtml(e.turkish)}</div>
+      </div>
+      <span style="color:var(--text3);font-size:12px;flex-shrink:0;">›</span>
+    </div>`;
+  }).join('');
+
+  return `<div style="margin-top:4px;">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;line-height:1.6;">
+      "<b style="color:var(--text2);">${escHtml(query)}</b>" için ${results.length} İngilizce karşılık —
+      birine dokunarak çalışabilirsin.
+    </div>
+    ${rows}
+  </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
 // KELİME EYLEM MENÜSÜ — bir kelimeyi seçip nasıl çalışacağını belirle
 // ═══════════════════════════════════════════════════════════════════════════
 // Özet'teki listelerde bir kelimeye dokununca açılır. İki iş yapar:
@@ -1596,7 +1734,16 @@ function renderListSearchResults(raw){
   const resultsEl = document.getElementById('list-search-results');
   const matches = LIST_SEARCH_POOL.filter(w => w.word.toLowerCase().startsWith(raw)).slice(0, 30);
   if (!matches.length) {
-    resultsEl.innerHTML = `<p style="font-size:13px;color:var(--text2);">"<strong>${raw}</strong>" bu listelerde (Oxford 3000/5000, Konu Kelimeleri veya Ek Havuz) bulunamadı. Bu kelime muhtemelen bu gruplarda yok — <b>Sözlüğüm</b> sekmesinden aratabilirsin.</p>`;
+    // İngilizce eşleşme yoksa Türkçe karşılıklarda ara — kullanıcı "kitap"
+    // yazıp "book"u bulabilsin.
+    const trHits = trSearch(raw, 30);
+    if (trHits.length) {
+      resultsEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:10px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:10px;font-weight:600;">TÜRKÇE ARAMA</span>
+        </div>${trResultsHtml(trHits, raw)}`;
+      return;
+    }
+    resultsEl.innerHTML = `<p style="font-size:13px;color:var(--text2);">"<strong>${raw}</strong>" bulunamadı — ne İngilizce kelime ne de Türkçe karşılık olarak. <b>Sözlüğüm</b> sekmesinden de aratabilirsin.</p>`;
     return;
   }
   resultsEl.innerHTML = matches.map(w=>{
@@ -2140,6 +2287,19 @@ function performGlobalSearch() {
       </div>`;
     });
   }
+  // Türkçe arama: sorgu Türkçe görünüyorsa veya İngilizce karşılığı yoksa,
+  // Türkçe→İngilizce ters indekse bak.
+  const noEnglishHit = !matches.length && !topicMatches.length && !extraMatches.length && !customMatch;
+  const trHits = (looksTurkish(raw) || noEnglishHit) ? trSearch(raw, 40) : [];
+  if (trHits.length && (looksTurkish(raw) || noEnglishHit)) {
+    html += `<div style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="font-size:10px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:10px;font-weight:600;">TÜRKÇE ARAMA</span>
+      </div>
+      ${trResultsHtml(trHits, raw)}
+    </div>`;
+  }
+
   if (extraMatches.length) {
     extraMatches.forEach(w => {
       markLookup(w.word);
@@ -2158,7 +2318,7 @@ function performGlobalSearch() {
       </div>`;
     });
   }
-  if (!matches.length && !topicMatches.length && !customMatch && !extraMatches.length) {
+  if (!matches.length && !topicMatches.length && !customMatch && !extraMatches.length && !trHits.length) {
     const suggestions = findWordSuggestions(raw);
     const suggHtml = suggestions.length
       ? `<div style="margin-bottom:12px;">
@@ -2168,7 +2328,7 @@ function performGlobalSearch() {
           ).join('')}</div>
         </div>`
       : '';
-    html += `<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">"<strong>${raw}</strong>" hiçbir listede (Oxford 3000/5000, Konu Kelimeleri, Ek Havuz) bulunamadı.</p>
+    html += `<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">"<strong>${raw}</strong>" hiçbir listede bulunamadı — ne İngilizce kelime olarak (Oxford 3000/5000, Konu Kelimeleri, Ek Havuz) ne de Türkçe karşılık olarak.</p>
       ${suggHtml}
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--rsm);">
         <span style="font-size:13px;flex:1;">Telaffuz + Yeni Kelime olarak eklemek ister misin?</span>

@@ -151,6 +151,8 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   .b-w3{background:#1b2c0a;color:#96bb77;}
   .b-voa{background:#0c447c;color:#a8cdf2;border-color:rgba(168,205,242,.25);}
 }
+.tr-hit{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--rsm);margin-bottom:6px;cursor:pointer;background:var(--surface);}
+.tr-hit:active{background:var(--surface2);}
 .acc-word{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;line-height:1.9;font-family:ui-monospace,monospace;cursor:pointer;padding:2px 4px;border-radius:6px;}
 .acc-word:active{background:var(--surface2);}
 .wa-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;display:none;align-items:flex-end;justify-content:center;}
@@ -545,7 +547,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
     <!-- GLOBAL SEARCH -->
     <div style="display:flex;gap:8px;margin-bottom:14px;">
-      <input type="text" id="global-search-input" placeholder="Kelime ara… (örn: absolute)" style="flex:1;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);">
+      <input type="text" id="global-search-input" placeholder="İngilizce veya Türkçe ara… (örn: absolute / kitap)" style="flex:1;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);">
       <button id="global-search-clear" class="hidden" onclick="closeSearchResult()" style="padding:10px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">✕</button>
     </div>
     <div id="search-result-panel" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:16px;margin-bottom:14px;"></div>
@@ -624,7 +626,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
   <!-- WORD LIST VIEW -->
   <div id="view-list" class="hidden">
-    <input type="text" id="list-search-input" placeholder="Bu listede kelime ara... (Oxford 3000/5000 + Konu Kelimeleri + Ek Havuz)" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);margin-bottom:10px;box-sizing:border-box;" oninput="handleListSearch()">
+    <input type="text" id="list-search-input" placeholder="Bu listede ara… (İngilizce veya Türkçe)" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);margin-bottom:10px;box-sizing:border-box;" oninput="handleListSearch()">
     <div id="list-search-results" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:14px;margin-bottom:14px;"></div>
     <div id="list-normal-panels">
     <div class="nav" style="margin-bottom:14px;">
