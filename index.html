@@ -149,6 +149,11 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   .b-voa{background:#0c447c;color:#a8cdf2;border-color:rgba(168,205,242,.25);}
 }
 .band-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;}
+.gb-details{border-top:0.5px solid var(--border);padding-top:8px;}
+.gb-details summary{list-style:none;}
+.gb-details summary::-webkit-details-marker{display:none;}
+.gb-details summary::before{content:'▸ ';}
+.gb-details[open] summary::before{content:'▾ ';}
 .band-label:first-child{margin-top:0;}
 .b-s2,.b-s3,.b-w2,.b-w3{background:var(--surface2);color:var(--text2);}
 .divider{height:0.5px;background:var(--border);margin-bottom:14px;}
@@ -613,10 +618,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="filter-panel" style="margin-bottom:14px;">
         <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Seviye seç</div>
         <div class="f-row" id="list-cefr-row"></div>
-        <details style="margin-top:6px;">
-          <summary style="font-size:12px;color:var(--accent);cursor:pointer;">Longman filtreleri (konuşma / yazı / frekans)</summary>
-          <div id="list-band-filters" style="margin-top:10px;"></div>
-        </details>
+        <div id="list-band-filters" style="margin-top:10px;"></div>
         <div id="list-count-info" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
       </div>
       <div id="word-list-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0;"></div>
@@ -663,6 +665,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="sg-levels" id="sg-levels"></div>
       <div class="sg-tense-row-label">Frekans</div>
       <div class="sg-levels" id="sg-freq-filter"></div>
+      <div id="sg-band-filters" style="margin-top:10px;"></div>
       <div class="sg-tense-row-label">Gramer yapısı</div>
       <div class="sg-levels" id="sg-tense-filter"></div>
       <div class="sg-tense-row-label">Kaynak (opsiyonel — birini/birkaçını seç, listenden çalış)</div>
@@ -680,6 +683,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         Sana bir Türkçe cümle ve bir hedef kelime veriyorum; İngilizcesini sen yazıyorsun.
       </p>
       <div class="f-row" id="wr-tense-row"></div>
+      <div id="wr-band-filters" style="margin-top:10px;"></div>
       <div id="wr-status-bar" style="font-size:11.5px;color:var(--text3);margin-top:10px;line-height:1.6;"></div>
     </div>
     <div id="wr-content"></div>
@@ -692,6 +696,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="sg-levels" id="hg-levels"></div>
       <div class="sg-tense-row-label">Frekans (boş bırakırsan tüm frekanslar)</div>
       <div class="sg-levels" id="hg-freq-filter"></div>
+      <div id="hg-band-filters" style="margin-top:10px;"></div>
     </div>
     <div class="sg-stats-bar" id="hg-stats-bar">Yükleniyor...</div>
     <div id="hg-content"></div>
@@ -704,6 +709,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="f-row" id="cm-level-row"></div>
       <div class="f-label" style="margin-bottom:8px;">Frekans</div>
       <div class="f-row" id="cm-freq-row"></div>
+      <div id="cm-band-filters" style="margin-top:10px;"></div>
       <div class="f-label" style="margin:14px 0 8px;">Oturum büyüklüğü</div>
       <div class="f-row" id="cm-size-row" style="align-items:center;"></div>
     </div>
@@ -721,6 +727,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div class="filter-panel">
       <div class="f-label" style="margin-bottom:8px;">Seviye</div>
       <div class="f-row" id="st-level-row"></div>
+      <div id="st-band-filters" style="margin-top:10px;"></div>
       <div class="f-label" style="margin:14px 0 8px;">Sırala</div>
       <div class="f-row" id="st-sort-row"></div>
     </div>

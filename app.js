@@ -1,5 +1,268 @@
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ORTAK LONGMAN / VOA FİLTRESİ  (tüm modüllerde geçerli tek seçim)
+// ═══════════════════════════════════════════════════════════════════════════
+// Bir kez seçilir, Kart Modu / Kelime Listem / Cümle Kur / Asmaca / Tekrar Et /
+// Kelime Durumu ekranlarının hepsinde aynı daraltma uygulanır. Seçim
+// localStorage'a yazılır, uygulama yeniden açıldığında korunur.
+//
+// CEFR seviyesi bilinçli olarak ORTAK DEĞİL: her modülde farklı anlamı var
+// (Kelime Listem tek seviye gösterir, Kart Modu/Asmaca çoklu seçer), ortaklaşa
+// yönetmek kafa karıştırıcı olurdu. Ortak olan sadece Longman bantları + VOA.
+
+const GB_STORAGE_KEY = 'wordhavenBandFilter';
+
+let gbFilter = { sp: new Set(), wr: new Set(), fr: new Set(), voa: false };
+
+function gbLoad() {
+  try {
+    const raw = localStorage.getItem(GB_STORAGE_KEY);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    gbFilter.sp = new Set(o.sp || []);
+    gbFilter.wr = new Set(o.wr || []);
+    gbFilter.fr = new Set(o.fr || []);
+    gbFilter.voa = !!o.voa;
+  } catch (e) { /* bozuk kayıt: varsayılanla devam */ }
+}
+function gbSave() {
+  try {
+    localStorage.setItem(GB_STORAGE_KEY, JSON.stringify({
+      sp: [...gbFilter.sp], wr: [...gbFilter.wr], fr: [...gbFilter.fr], voa: gbFilter.voa
+    }));
+  } catch (e) {}
+}
+gbLoad();
+
+function gbActive() {
+  return gbFilter.sp.size > 0 || gbFilter.wr.size > 0 || gbFilter.fr.size > 0 || gbFilter.voa;
+}
+
+// Bir kelime NESNESİ ortak filtreden geçiyor mu?
+function gbPasses(w) {
+  if (!w) return !gbActive();
+  return bandMatches(w.speaking, gbFilter.sp, SP_OPTS.length)
+      && bandMatches(w.writing,  gbFilter.wr, WR_OPTS.length)
+      && bandMatches(w.freq,     gbFilter.fr, FREQ_OPTS_LIST.length)
+      && (!gbFilter.voa || !!w.voa);
+}
+
+// ── Kelime → bant çözümleyici (kök duyarlı) ────────────────────────────────
+// Cümle Kur egzersizlerinde hedef kelime çekimli hâlde tutuluyor ("works",
+// "walking", "finished"). Sözlükte kök hâli ("work", "walk", "finish") var.
+// Bu yüzden doğrudan eşleşme başarısız olursa kök adaylarını sırayla deneriz.
+const GB_IRREGULAR = {
+  left: 'leave', went: 'go', gone: 'go', done: 'do', made: 'make', said: 'say',
+  took: 'take', taken: 'take', came: 'come', saw: 'see', seen: 'see',
+  got: 'get', gotten: 'get', gave: 'give', given: 'give', found: 'find',
+  thought: 'think', told: 'tell', became: 'become', knew: 'know', known: 'know',
+  felt: 'feel', brought: 'bring', began: 'begin', begun: 'begin', kept: 'keep',
+  held: 'hold', wrote: 'write', written: 'write', stood: 'stand', heard: 'hear',
+  let: 'let', meant: 'mean', met: 'meet', ran: 'run', paid: 'pay', sat: 'sit',
+  spoke: 'speak', spoken: 'speak', lay: 'lie', led: 'lead', grew: 'grow',
+  grown: 'grow', lost: 'lose', fell: 'fall', fallen: 'fall', sent: 'send',
+  built: 'build', understood: 'understand', drew: 'draw', drawn: 'draw',
+  broke: 'break', broken: 'break', spent: 'spend', chose: 'choose',
+  chosen: 'choose', drove: 'drive', driven: 'drive', bought: 'buy',
+  wore: 'wear', worn: 'wear', ate: 'eat', eaten: 'eat', threw: 'throw',
+  thrown: 'throw', caught: 'catch', taught: 'teach', slept: 'sleep',
+  sold: 'sell', won: 'win', flew: 'fly', flown: 'fly', drank: 'drink',
+  drunk: 'drink', sang: 'sing', sung: 'sing', swam: 'swim', rose: 'rise',
+  risen: 'rise', read: 'read', put: 'put', cut: 'cut', set: 'set',
+  children: 'child', men: 'man', women: 'woman', feet: 'foot', teeth: 'tooth',
+  people: 'person', better: 'good', best: 'good', worse: 'bad', worst: 'bad',
+  was: 'be', were: 'be', been: 'be', am: 'be', is: 'be', are: 'be',
+  had: 'have', has: 'have', did: 'do', does: 'do'
+};
+
+function gbLemmaCandidates(word) {
+  const w = String(word || '').toLowerCase().trim();
+  const out = [w];
+  if (GB_IRREGULAR[w]) out.push(GB_IRREGULAR[w]);
+  const push = s => { if (s && s.length >= 2 && !out.includes(s)) out.push(s); };
+
+  if (w.endsWith('ies') && w.length > 4) push(w.slice(0, -3) + 'y');
+  if (w.endsWith('es')  && w.length > 3) push(w.slice(0, -2));
+  if (w.endsWith('s')   && !w.endsWith('ss') && w.length > 2) push(w.slice(0, -1));
+  if (w.endsWith('ied') && w.length > 4) push(w.slice(0, -3) + 'y');
+  if (w.endsWith('ed')  && w.length > 3) { push(w.slice(0, -2)); push(w.slice(0, -1)); }
+  if (w.endsWith('ing') && w.length > 4) {
+    push(w.slice(0, -3));
+    push(w.slice(0, -3) + 'e');                       // making → make
+    const s = w.slice(0, -3);
+    if (s.length > 2 && s[s.length - 1] === s[s.length - 2]) push(s.slice(0, -1)); // running → run
+  }
+  if (w.endsWith('ier') && w.length > 4) push(w.slice(0, -3) + 'y');
+  if (w.endsWith('er')  && w.length > 3) { push(w.slice(0, -2)); push(w.slice(0, -1)); }
+  if (w.endsWith('est') && w.length > 4) { push(w.slice(0, -3)); push(w.slice(0, -2)); }
+  return out;
+}
+
+let _gbBandIndex = null;
+function gbBandIndex() {
+  if (_gbBandIndex) return _gbBandIndex;
+  _gbBandIndex = Object.create(null);
+  const add = w => {
+    if (!w || !w.word) return;
+    const k = String(w.word).toLowerCase();
+    const cur = _gbBandIndex[k];
+    const rec = {
+      speaking: w.speaking || '', writing: w.writing || '',
+      freq: w.freq || '', voa: !!w.voa
+    };
+    if (!cur) { _gbBandIndex[k] = rec; return; }
+    // Aynı kelimenin birden fazla kaydı varsa en zengin bilgiyi birleştir
+    cur.speaking = cur.speaking || rec.speaking;
+    cur.writing  = cur.writing  || rec.writing;
+    cur.freq     = cur.freq     || rec.freq;
+    cur.voa      = cur.voa      || rec.voa;
+  };
+  WORD_DATA.forEach(add);
+  TOPIC_WORDS.forEach(add);
+  EXTRA_WORDS.forEach(add);
+  return _gbBandIndex;
+}
+
+// Çekimli hâli de çözerek kelimenin bantlarını bulur.
+// İLK eşleşmede DURMAZ: "running" / "writing" / "making" gibi kelimeler
+// sözlükte isim olarak da kayıtlı (koşu, yazı) ve o kayıtların bantları
+// eksik olabiliyor. Bu yüzden adayları sırayla gezip BOŞ alanları kökün
+// değerleriyle tamamlıyoruz — bilgi kaybetmeden zenginleştirme.
+function gbBandsFor(word) {
+  const idx = gbBandIndex();
+  let out = null;
+  for (const cand of gbLemmaCandidates(word)) {
+    const hit = idx[cand];
+    if (!hit) continue;
+    if (!out) { out = { speaking: hit.speaking, writing: hit.writing, freq: hit.freq, voa: hit.voa }; }
+    else {
+      out.speaking = out.speaking || hit.speaking;
+      out.writing  = out.writing  || hit.writing;
+      out.freq     = out.freq     || hit.freq;
+      out.voa      = out.voa      || hit.voa;
+    }
+    if (out.speaking && out.writing && out.freq && out.voa) break;
+  }
+  return out;
+}
+
+// Kelime ADIYLA filtre kontrolü (Cümle Kur gibi kelime nesnesi olmayan yerler).
+function gbPassesWord(word, fallbackObj) {
+  const bands = gbBandsFor(word);
+  if (bands) return gbPasses(bands);
+  // Sözlükte hiç bulunamadıysa: nesnede varsa onun alanlarına bak, yoksa
+  // "etiketsiz" say — daraltma aktifken elenir, değilken geçer.
+  return gbPasses(fallbackObj || {});
+}
+
+// ── Ortak filtre arayüzü ───────────────────────────────────────────────────
+// Her modül kendi havuzunu verir; sayaçlar o havuza göre hesaplanır ve
+// "bu chip'e tıklarsan kaç kelime kalır" anlamına gelir.
+function gbCountWith(pool, sp, wr, fr, voa) {
+  return pool.filter(w =>
+    bandMatches(w.speaking, sp, SP_OPTS.length)
+    && bandMatches(w.writing, wr, WR_OPTS.length)
+    && bandMatches(w.freq, fr, FREQ_OPTS_LIST.length)
+    && (!voa || !!w.voa)
+  ).length;
+}
+
+function gbChipCounts(pool, dim, v) {
+  const cur = gbFilter[dim];
+  const selected = cur.has(v);
+  const mk = s => dim === 'sp' ? gbCountWith(pool, s, gbFilter.wr, gbFilter.fr, gbFilter.voa)
+              : dim === 'wr' ? gbCountWith(pool, gbFilter.sp, s, gbFilter.fr, gbFilter.voa)
+                             : gbCountWith(pool, gbFilter.sp, gbFilter.wr, s, gbFilter.voa);
+  const added = new Set(cur); added.add(v);
+  const own = mk(new Set([v]));
+  return { selected, own, display: selected ? own : (own === 0 ? 0 : mk(added)) };
+}
+
+// containerId : filtrenin çizileceği div
+// poolFn      : o modülün ham (filtresiz) kelime havuzunu döndüren fonksiyon
+// onChange    : seçim değişince çağrılacak yenileme fonksiyonu
+const GB_MOUNTS = [];   // {containerId, poolFn, onChange}
+
+function gbMount(containerId, poolFn, onChange) {
+  if (!GB_MOUNTS.some(m => m.containerId === containerId)) {
+    GB_MOUNTS.push({ containerId, poolFn, onChange });
+  }
+  gbRender(containerId);
+}
+
+function gbRender(containerId) {
+  const m = GB_MOUNTS.find(x => x.containerId === containerId);
+  if (!m) return;
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let pool = [];
+  try { pool = m.poolFn() || []; } catch (e) { pool = []; }
+
+  const chip = (label, on, handler, disabled) =>
+    `<button class="chip${on ? ' on' : ''}${disabled ? ' disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="${handler}">${label}</button>`;
+
+  const row = (opts, dim) => opts.map(([v, l]) => {
+    const c = gbChipCounts(pool, dim, v);
+    return chip(`${l} <span style="color:var(--text3);">(${c.display})</span>`, c.selected,
+                `gbToggle('${dim}','${v}')`, c.own === 0 && !c.selected);
+  }).join('');
+
+  const voaOwn = gbCountWith(pool, gbFilter.sp, gbFilter.wr, gbFilter.fr, true);
+  const total = gbCountWith(pool, gbFilter.sp, gbFilter.wr, gbFilter.fr, gbFilter.voa);
+  const on = gbActive();
+
+  el.innerHTML = `
+    <details class="gb-details"${on ? ' open' : ''}>
+      <summary style="font-size:12px;color:var(--accent);cursor:pointer;">
+        Longman / VOA filtresi${on ? ` <span style="color:var(--warn);font-weight:600;">• açık</span>` : ''}
+      </summary>
+      <div style="margin-top:10px;">
+        <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px;">
+          Bu seçim tüm modüllerde geçerlidir.
+        </div>
+        <div class="band-label">Konuşma sıklığı</div>
+        <div class="f-row">${row(SP_OPTS, 'sp')}</div>
+        <div class="band-label">Yazı sıklığı</div>
+        <div class="f-row">${row(WR_OPTS, 'wr')}</div>
+        <div class="band-label">Genel frekans</div>
+        <div class="f-row">${row(FREQ_OPTS_LIST, 'fr')}</div>
+        <div class="band-label">Özel liste</div>
+        <div class="f-row">
+          ${chip(`VOA çekirdeği <span style="color:var(--text3);">(${voaOwn})</span>`, gbFilter.voa, 'gbToggleVoa()', voaOwn === 0 && !gbFilter.voa)}
+          ${on ? `<button class="chip-all" onclick="gbClear()">Filtreleri temizle</button>` : ''}
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:10px;">${total} kelime bu filtreden geçiyor</div>
+      </div>
+    </details>`;
+}
+
+function gbRenderAll() {
+  GB_MOUNTS.forEach(m => gbRender(m.containerId));
+}
+
+// Seçim değişti → kaydet, tüm bağlı ekranları ve aktif modülü yenile
+function gbApplyChange() {
+  gbSave();
+  gbRenderAll();
+  GB_MOUNTS.forEach(m => { try { m.onChange && m.onChange(); } catch (e) { console.error('gb onChange', e); } });
+}
+
+function gbToggle(dim, v) {
+  const s = gbFilter[dim];
+  if (s.has(v)) s.delete(v); else s.add(v);
+  gbApplyChange();
+}
+function gbToggleVoa() {
+  gbFilter.voa = !gbFilter.voa;
+  gbApplyChange();
+}
+function gbClear() {
+  gbFilter.sp.clear(); gbFilter.wr.clear(); gbFilter.fr.clear(); gbFilter.voa = false;
+  gbApplyChange();
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
 // EK KELİME HAVUZU + LONGMAN BANT FİLTRELERİ + VOA ROZETİ
 // ═══════════════════════════════════════════════════════════════════════════
 // EXTRA_WORDS = Longman 3000/9000 ve VOA'da olup Oxford 3000/5000 ile Konu
@@ -29,102 +292,14 @@ let listWrFilter = new Set();
 let listFreqFilter = new Set();
 let listVoaOnly = false;
 
-function listWordPasses(w) {
-  return bandMatches(w.speaking, listSpFilter, SP_OPTS.length)
-      && bandMatches(w.writing, listWrFilter, WR_OPTS.length)
-      && bandMatches(w.freq, listFreqFilter, FREQ_OPTS_LIST.length)
-      && (!listVoaOnly || !!w.voa);
-}
-
-// Faset sayacı — kural: her chip'in yanındaki sayı, O CHIP'E TIKLARSAN listede
-// kaç kelime kalacağını gösterir. Böylece "2 kelime" yazarken yanında
-// "High (28)" gibi tahmin edilemeyen bir sayı görünmez; her rakam doğrudan
-// tıklama sonucudur.
-//   • Seçili OLMAYAN chip → seçime eklenirse çıkacak sonuç (aynı grupta VEYA)
-//   • Seçili chip         → seçimden çıkarılırsa çıkacak sonuç
-//   • Tek başına 0 sonuç veren chip devre dışı (seçili değilse)
-function listCountWith(spSet, wrSet, frSet, voaOn) {
-  return WORD_DATA.filter(w =>
-    w.cefr === listLevel
-    && bandMatches(w.speaking, spSet, SP_OPTS.length)
-    && bandMatches(w.writing, wrSet, WR_OPTS.length)
-    && bandMatches(w.freq, frSet, FREQ_OPTS_LIST.length)
-    && (!voaOn || !!w.voa)
-  ).length;
-}
-
-function listBandChipCounts(dim, v) {
-  const cur = dim === 'sp' ? listSpFilter : dim === 'wr' ? listWrFilter : listFreqFilter;
-  const selected = cur.has(v);
-  const added = new Set(cur); added.add(v);
-  const removed = new Set(cur); removed.delete(v);
-  const only = new Set([v]);
-  const pick = s => dim === 'sp' ? listCountWith(s, listWrFilter, listFreqFilter, listVoaOnly)
-                  : dim === 'wr' ? listCountWith(listSpFilter, s, listFreqFilter, listVoaOnly)
-                                 : listCountWith(listSpFilter, listWrFilter, s, listVoaOnly);
-  const own = pick(only);
-  // Seçili chip kendi katkısını gösterir (listedeki toplamla uyumlu okunur),
-  // seçili olmayan chip ise "tıklarsam ne olur" sonucunu gösterir.
-  // Devre dışı kalacak chip (own === 0) gerçek 0'ı gösterir; "eklersem ne olur"
-  // sayısı orada yanıltıcı olurdu (ör. Low ekleyince hiçbir şey değişmiyorsa 0).
-  const display = selected ? own : (own === 0 ? 0 : pick(added));
-  return { selected, display, own };
-}
+function listWordPasses(w) { return gbPasses(w); }
 
 function renderListBandFilters() {
-  const el = document.getElementById('list-band-filters');
-  if (!el) return;
-  const chip = (label, on, handler, disabled) =>
-    `<button class="chip${on ? ' on' : ''}${disabled ? ' disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="${handler}">${label}</button>`;
-
-  const bandChips = (opts, dim) => opts.map(([v, l]) => {
-    const c = listBandChipCounts(dim, v);
-    return chip(`${l} <span style="color:var(--text3);">(${c.display})</span>`, c.selected,
-                `listToggleBand('${dim}','${v}')`, c.own === 0 && !c.selected);
-  }).join('');
-
-  const spHtml = bandChips(SP_OPTS, 'sp');
-  const wrHtml = bandChips(WR_OPTS, 'wr');
-  const frHtml = bandChips(FREQ_OPTS_LIST, 'fr');
-  const voaOwn = listCountWith(listSpFilter, listWrFilter, listFreqFilter, true);
-  const voaN = voaOwn; // VOA tekil bir daraltma: seçili de olsa sonucu gösterir
-  const voaHtml = chip(`VOA çekirdeği <span style="color:var(--text3);">(${voaN})</span>`, listVoaOnly, `listToggleVoa()`, voaOwn === 0 && !listVoaOnly);
-
-  const anyOn = listSpFilter.size || listWrFilter.size || listFreqFilter.size || listVoaOnly;
-  el.innerHTML = `
-    <div class="band-label">Konuşma sıklığı (Longman)</div>
-    <div class="f-row">${spHtml}</div>
-    <div class="band-label">Yazı sıklığı (Longman)</div>
-    <div class="f-row">${wrHtml}</div>
-    <div class="band-label">Genel frekans</div>
-    <div class="f-row">${frHtml}</div>
-    <div class="band-label">Özel liste</div>
-    <div class="f-row">${voaHtml}${anyOn ? `<button class="chip-all" onclick="listClearBands()">Filtreleri temizle</button>` : ''}</div>`;
+  gbMount('list-band-filters',
+          () => WORD_DATA.filter(w => w.cefr === listLevel),
+          () => { listOpenKey = null; renderListCefrRow(); renderWordList(listLevel); });
 }
-
-function listToggleBand(kind, v) {
-  const set = kind === 'sp' ? listSpFilter : kind === 'wr' ? listWrFilter : listFreqFilter;
-  if (set.has(v)) set.delete(v); else set.add(v);
-  listOpenKey = null;
-  listRefreshAll();
-}
-function listToggleVoa() {
-  listVoaOnly = !listVoaOnly;
-  listOpenKey = null;
-  listRefreshAll();
-}
-function listClearBands() {
-  listSpFilter.clear(); listWrFilter.clear(); listFreqFilter.clear(); listVoaOnly = false;
-  listOpenKey = null;
-  listRefreshAll();
-}
-// Seviye satırı + bant chipleri + liste birlikte tazelenir; seviye sayaçları da
-// aktif bant filtrelerine göre daralır.
-function listRefreshAll() {
-  renderListCefrRow();
-  renderListBandFilters();
-  renderWordList(listLevel);
-}
+function listRefreshAll() { renderListCefrRow(); renderListBandFilters(); renderWordList(listLevel); }
 
 // ── EK HAVUZ sekmesi ───────────────────────────────────────────────────────
 let extraFreqFilter = new Set();
@@ -249,60 +424,61 @@ const WR_TENSE_SIGNALS = {
   // arıyoruz. Bu, yanlış alarmı ciddi biçimde azaltır.
   'Present Simple': {
     req: [], ban: [/\b(will|shall|won't)\b/i, /\b(was|were)\b/i, /\bhad\b/i,
-                   /\b(have|has)\s+been\b/i, /\b(am|is|are)\s+(\w+\s+)?\w+ing\b/i, /\bdid\b/i],
+                   /\b(have|has)\s+been\b/i, /\b(am|is|are)\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i, /\bdid\b/i],
     verbHint: 'yalın fiil (3. tekilde -s/-es)'
   },
   'Present Continuous': {
-    req: [/\b(am|is|are)\s+(\w+\s+)?\w+ing\b/i],
+    req: [/\b(am|is|are)\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i],
     ban: [/\b(will|shall)\b/i, /\bhad\b/i, /\b(was|were)\b/i],
     verbHint: 'am/is/are + fiil-ing'
   },
   'Present Perfect': {
     req: [/\b(have|has)\b/i],
-    ban: [/\b(have|has)\s+been\s+(\w+\s+)?\w+ing\b/i, /\b(will|shall)\b/i, /\bhad\b/i],
+    ban: [/\b(have|has)\s+been\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i, /\b(will|shall)\b/i, /\bhad\b/i],
     verbHint: 'have/has + V3'
   },
   'Present Perfect Continuous': {
-    req: [/\b(have|has)\s+been\s+(\w+\s+)?\w+ing\b/i], ban: [/\bhad\b/i, /\b(will|shall)\b/i],
+    req: [/\b(have|has)\s+been\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i], ban: [/\bhad\b/i, /\b(will|shall)\b/i],
     verbHint: 'have/has been + fiil-ing'
   },
   'Past Simple': {
     req: [], ban: [/\b(will|shall|won't)\b/i, /\b(have|has)\b/i, /\bhad\b/i,
-                   /\b(am|is|are)\b/i, /\b(was|were)\s+(\w+\s+)?\w+ing\b/i],
+                   /\b(am|is|are)\b/i, /\b(was|were)\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i],
     verbHint: 'fiilin 2. hâli (V2) / did'
   },
   'Past Continuous': {
-    req: [/\b(was|were)\s+(\w+\s+)?\w+ing\b/i], ban: [/\b(will|shall)\b/i, /\bhad\b/i],
+    req: [/\b(was|were)\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i], ban: [/\b(will|shall)\b/i, /\bhad\b/i],
     verbHint: 'was/were + fiil-ing'
   },
   'Past Perfect': {
-    req: [/\bhad\b/i], ban: [/\bhad\s+been\s+(\w+\s+)?\w+ing\b/i, /\b(will|shall)\b/i],
+    req: [/\bhad\b/i], ban: [/\bhad\s+been\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i, /\b(will|shall)\b/i],
     verbHint: 'had + V3'
   },
   'Past Perfect Continuous': {
-    req: [/\bhad\s+been\s+(\w+\s+)?\w+ing\b/i], ban: [/\b(will|shall)\b/i],
+    req: [/\bhad\s+been\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i], ban: [/\b(will|shall)\b/i],
     verbHint: 'had been + fiil-ing'
   },
   'Future Simple': {
     req: [/\b(will|shall|won't)\b/i],
-    ban: [/\bwill\s+be\s+(\w+\s+)?\w+ing\b/i, /\bwill\s+have\b/i],
+    ban: [/\bwill\s+be\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i, /\bwill\s+have\b/i],
     verbHint: 'will + yalın fiil'
   },
   'Future Continuous': {
-    req: [/\bwill\s+be\s+(\w+\s+)?\w+ing\b/i], ban: [/\bwill\s+have\b/i],
+    req: [/\bwill\s+be\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i], ban: [/\bwill\s+have\b/i],
     verbHint: 'will be + fiil-ing'
   },
   'Future Perfect': {
-    req: [/\bwill\s+have\b/i], ban: [/\bwill\s+have\s+been\s+(\w+\s+)?\w+ing\b/i],
+    req: [/\bwill\s+have\b/i], ban: [/\bwill\s+have\s+been\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i],
     verbHint: 'will have + V3'
   },
   'Future Perfect Continuous': {
-    req: [/\bwill\s+have\s+been\s+(\w+\s+)?\w+ing\b/i], ban: [],
+    req: [/\bwill\s+have\s+been\s+(?:(?:not|never|always|still|currently|just|also|now|really|already|only|even)\s+)?\w+ing\b/i], ban: [],
     verbHint: 'will have been + fiil-ing'
   }
 };
 
 let wrTense = null;
+let wrHintLevel = 0;   // 0 = ipucu yok, 1 = yapı+iskelet, 2 = kelime başlangıçları, 3 = tam cevap
 let wrCurrent = null;      // {word, pos, cefr, turkish, tense, source}
 let wrChecking = false;
 let wrLastResult = null;
@@ -314,6 +490,9 @@ function wrGetApiKey() {
 }
 
 function wrInit() {
+  gbMount('wr-band-filters',
+          () => SG_EXERCISES.map(sgExerciseBands),
+          () => { wrRenderTenses(); wrRenderStatus(); });
   wrRenderTenses();
   wrRenderStatus();
   if (!wrCurrent) {
@@ -334,7 +513,7 @@ function wrRenderTenses() {
 // Havuz: önce üretilmiş egzersizler (Türkçe cümle hazır), yoksa kelime havuzu.
 function wrPoolFor(tense) {
   if (typeof SG_EXERCISES !== 'undefined' && SG_EXERCISES.length) {
-    const hit = SG_EXERCISES.filter(e => e.tense === tense);
+    const hit = SG_EXERCISES.filter(e => e.tense === tense && sgPassesBands(e));
     if (hit.length) return hit;
   }
   return [];
@@ -375,6 +554,7 @@ function wrNextQuestion() {
     reference: wrBuildReference(e)
   };
   wrLastResult = null;
+  wrHintLevel = 0;
   wrRenderQuestion();
 }
 
@@ -412,7 +592,7 @@ function wrRenderQuestion() {
       <textarea id="wr-answer" rows="3" placeholder="İngilizce cümleni buraya yaz…" style="width:100%;padding:12px;font-size:15px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);box-sizing:border-box;font-family:inherit;resize:vertical;"></textarea>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         <button class="start-btn" style="flex:1;min-width:130px;margin-top:0;" onclick="wrCheckAnswer()">Kontrol et</button>
-        <button class="chip" onclick="wrShowHint()">İpucu</button>
+        <button class="chip" onclick="wrShowHint()">${wrHintLevel === 0 ? 'İpucu' : wrHintLevel === 1 ? 'Daha fazla ipucu' : 'Cevabı göster'}</button>
         <button class="chip" onclick="wrNextQuestion()">Başka cümle</button>
       </div>
       <div id="wr-hint" style="margin-top:10px;"></div>
@@ -423,22 +603,82 @@ function wrRenderQuestion() {
   if (ta) ta.focus();
 }
 
+// Kademeli ipucu: takılan kullanıcıyı boş ekranda bırakmamak için üç adım.
+// 1) yapı + harf iskeleti  2) her kelimenin ilk harfleri  3) tam cevap
 function wrShowHint() {
+  if (!wrCurrent) return;
+  wrHintLevel = Math.min(wrHintLevel + 1, 3);
+  wrRenderHint();
+  // buton etiketi değişsin diye soru gövdesini değil sadece butonu tazele
+  const btns = document.querySelectorAll('#wr-content .chip');
+  if (btns[0]) btns[0].textContent = wrHintLevel === 1 ? 'Daha fazla ipucu' : wrHintLevel === 2 ? 'Cevabı göster' : 'Cevap gösterildi';
+  if (wrHintLevel >= 3 && btns[0]) btns[0].disabled = true;
+}
+
+function wrRenderHint() {
   const el = document.getElementById('wr-hint');
   if (!el || !wrCurrent) return;
   const sig = WR_TENSE_SIGNALS[wrCurrent.tense];
   const words = (wrCurrent.reference || '').split(/\s+/).filter(Boolean);
-  const skeleton = words.map(w => w.length <= 2 ? w : w[0] + '·'.repeat(Math.min(w.length - 1, 6))).join(' ');
-  el.innerHTML = `<div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:var(--rsm);line-height:1.7;">
-    <b>Yapı:</b> ${sig ? escHtml(sig.verbHint) : '—'}<br>
-    <b>İskelet:</b> <span style="font-family:ui-monospace,monospace;letter-spacing:.5px;">${escHtml(skeleton)}</span>
-  </div>`;
+  const box = inner => `<div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:var(--rsm);line-height:1.8;">${inner}</div>`;
+
+  if (wrHintLevel === 1) {
+    const skeleton = words.map(w => w.length <= 2 ? w : w[0] + '·'.repeat(Math.min(w.length - 1, 6))).join(' ');
+    el.innerHTML = box(`<b>Yapı:</b> ${sig ? escHtml(sig.verbHint) : '—'}<br>
+      <b>İskelet:</b> <span style="font-family:ui-monospace,monospace;letter-spacing:.5px;">${escHtml(skeleton)}</span>
+      <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">Takıldıysan tekrar dokun, daha fazla ipucu vereyim.</div>`);
+  } else if (wrHintLevel === 2) {
+    // Kısa/yapısal kelimeleri açık göster, anlam kelimelerini ilk harfle bırak
+    const partial = words.map(w => {
+      const clean = w.replace(/[^A-Za-z']/g, '').toLowerCase();
+      if (clean.length <= 3 || WR_STOPWORDS.has(clean)) return w;
+      return w.slice(0, 2) + '·'.repeat(Math.min(w.length - 2, 6));
+    }).join(' ');
+    el.innerHTML = box(`<b>Yapı:</b> ${sig ? escHtml(sig.verbHint) : '—'}<br>
+      <b>Neredeyse tamam:</b> <span style="font-family:ui-monospace,monospace;letter-spacing:.5px;">${escHtml(partial)}</span>
+      <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">Hâlâ çıkmıyorsa tekrar dokun, cevabı göstereyim.</div>`);
+  } else {
+    el.innerHTML = box(`<b>Örnek çözüm:</b><br>
+      <span style="font-size:15px;font-weight:600;color:var(--text);">${escHtml(wrCurrent.reference)}</span>${ttsButtonHtml(wrCurrent.reference)}
+      <div style="font-size:11.5px;color:var(--text3);margin-top:8px;">Cevabı gördüğün için bu cümle "Zorlandım" olarak işaretlenecek. Kopyalamak yerine kapatıp kendin yazmayı dene.</div>
+      <div style="margin-top:8px;"><button class="chip" onclick="wrRateWord('unknown')">Anladım, sıradaki →</button></div>`);
+    const el2 = document.getElementById('wr-hint');
+    if (el2) ttsWireButtons(el2);
+  }
 }
 
 // ── Offline (anahtarsız) kontrol ───────────────────────────────────────────
+// Referans cümledeki anlam taşıyan kelimelerin ne kadarı cevapta var?
+// "This is an ___ game for children." gibi eksik cevapları yakalar — hedef
+// kelime ve zaman kalıbı doğru olsa bile cümle tamamlanmamışsa uyarır.
+const WR_STOPWORDS = new Set(['a','an','the','is','are','am','was','were','be','been','being',
+  'do','does','did','have','has','had','will','shall','would','could','should','can','may',
+  'to','of','in','on','at','for','with','by','from','as','and','or','but','not','this','that',
+  'these','those','it','its','he','she','they','we','you','i','his','her','their','our','your',
+  'my','me','him','them','us','there','very','so','too','also','just']);
+
+function wrContentWords(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z\s']/g, ' ')
+    .split(/\s+/).filter(x => x.length > 2 && !WR_STOPWORDS.has(x));
+}
+
+function wrCoverage(answer, reference) {
+  const ref = wrContentWords(reference);
+  if (!ref.length) return null;
+  const ansTxt = String(answer).toLowerCase();
+  let hit = 0;
+  ref.forEach(r => {
+    const stem = r.length > 5 ? r.slice(0, r.length - 2) : r;
+    if (ansTxt.includes(stem)) hit++;
+  });
+  return { hit, total: ref.length, ratio: hit / ref.length,
+           missing: ref.filter(r => !ansTxt.includes(r.length > 5 ? r.slice(0, r.length - 2) : r)) };
+}
+
 function wrOfflineCheck(answer) {
   const a = answer.trim();
-  const issues = [];
+  const issues = [];   // anlamı bozan / cümleyi yanlış yapan sorunlar
+  const minor  = [];   // yazım-noktalama gibi küçük düzeltmeler
   const good = [];
 
   if (a.split(/\s+/).filter(Boolean).length < 3) {
@@ -468,10 +708,25 @@ function wrOfflineCheck(answer) {
     }
   }
 
-  if (!/^[A-Z]/.test(a)) issues.push('Cümle büyük harfle başlamalı.');
-  if (!/[.!?]$/.test(a)) issues.push('Cümle noktalama işaretiyle bitmeli.');
+  // Kapsam: referanstaki anlam kelimelerinin kaçı cevapta var?
+  const cov = wrCoverage(a, wrCurrent && wrCurrent.reference);
+  if (cov) {
+    if (cov.ratio < 0.5) {
+      issues.push(`Cümle eksik görünüyor — beklenen anlamın önemli bir kısmı yok${cov.missing.length ? ` (örn. "${cov.missing[0]}" karşılığı)` : ''}.`);
+    } else if (cov.ratio < 0.8) {
+      minor.push(cov.missing.length
+        ? `Örnek çözümde "${cov.missing[0]}" geçiyor, cümlende karşılığını göremedim — eşanlamlı kullandıysan sorun yok.`
+        : 'Cümlenin bir kısmı örnek çözümden farklı — anlamı karşılıyorsa sorun değil.');
+    } else {
+      good.push('Cümlenin kapsamı örnek çözümle örtüşüyor.');
+    }
+  }
 
-  return { ok: issues.length === 0, issues, good, mode: 'offline' };
+  // Yazım/noktalama: cümleyi yanlış yapmaz, "küçük düzeltme" olarak ayrılır
+  if (!/^[A-Z]/.test(a)) minor.push('Cümle büyük harfle başlamalı.');
+  if (!/[.!?]$/.test(a)) minor.push('Cümle noktalama işaretiyle bitmeli.');
+
+  return { ok: issues.length === 0, issues, minor, good, mode: 'offline' };
 }
 
 // ── Claude kontrolü (BYOK) ─────────────────────────────────────────────────
@@ -536,7 +791,19 @@ async function wrCheckAnswer() {
   const answer = (ta ? ta.value : '').trim();
   const box = document.getElementById('wr-result');
   if (!answer) {
-    box.innerHTML = `<p style="font-size:13px;color:var(--danger);padding:4px;">Önce bir cümle yaz.</p>`;
+    // Boş bırakmak da bir sinyal: kullanıcı takılmış olabilir. Azarlamak yerine
+    // çıkış yolu sun — ipucu kademesi ya da doğrudan cevap.
+    box.innerHTML = `<div class="filter-panel">
+      <p style="font-size:14px;color:var(--text);margin-bottom:8px;">Henüz bir şey yazmadın.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+        Aklına gelmiyorsa sorun değil — yarısını yazman bile yeterli, ya da ipucu isteyebilirsin.
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="chip" onclick="wrShowHint()">${wrHintLevel === 0 ? 'İpucu ver' : wrHintLevel === 1 ? 'Daha fazla ipucu' : 'Cevabı göster'}</button>
+        <button class="chip" onclick="wrRevealAnswer()">Cevabı göster</button>
+        <button class="chip" onclick="wrNextQuestion()">Bu cümleyi atla</button>
+      </div>
+    </div>`;
     return;
   }
 
@@ -571,12 +838,13 @@ function wrRenderResult(r, answer, append) {
 
   const isClaude = r.mode === 'claude';
   const ok = isClaude ? !!r.correct : !!r.ok;
+  const hasMinor = !isClaude && Array.isArray(r.minor) && r.minor.length > 0;
 
   wrSessionStats.total++;
   if (ok) wrSessionStats.good++;
 
   const head = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-    <span style="font-size:16px;font-weight:700;color:${ok ? 'var(--success)' : 'var(--danger)'};">${ok ? '✓ Doğru' : '✗ Düzeltme gerekiyor'}</span>
+    <span style="font-size:16px;font-weight:700;color:${ok ? (hasMinor ? 'var(--warn)' : 'var(--success)') : 'var(--danger)'};">${ok ? (hasMinor ? '✓ Doğru — küçük düzeltme var' : '✓ Doğru') : '✗ Düzeltme gerekiyor'}</span>
     ${isClaude && typeof r.score === 'number' ? `<span class="badge" style="background:var(--surface2);color:var(--text2);">${r.score}/100</span>` : ''}
     <span style="font-size:11px;color:var(--text3);margin-left:auto;">${isClaude ? 'Claude kontrolü' : 'Basit kontrol'}</span>
   </div>`;
@@ -610,6 +878,10 @@ function wrRenderResult(r, answer, append) {
       body += `<div style="margin-bottom:10px;">${r.issues.map(i =>
         `<div style="font-size:13px;color:var(--danger);margin-bottom:4px;">• ${escHtml(i)}</div>`).join('')}</div>`;
     }
+    if (r.minor && r.minor.length) {
+      body += `<div style="margin-bottom:10px;">${r.minor.map(i =>
+        `<div style="font-size:13px;color:var(--warn);margin-bottom:4px;">◦ ${escHtml(i)}</div>`).join('')}</div>`;
+    }
     body += `<p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin-bottom:10px;">
       Bu basit kontrol sadece kelime ve zaman kalıbına bakar; gramerin tamamını denetlemez.
       Ayarlar'dan Claude anahtarı eklersen tam kontrol açılır.</p>`;
@@ -632,6 +904,16 @@ function wrRenderResult(r, answer, append) {
   box.innerHTML = `<div class="filter-panel">${head}${body}</div>`;
   ttsWireButtons(box);
   wrRenderStatus();
+}
+
+// Kullanıcı pes etti: cevabı göster, kelimeyi "zorlandım" olarak işaretle.
+function wrRevealAnswer() {
+  wrHintLevel = 3;
+  wrRenderHint();
+  const box = document.getElementById('wr-result');
+  if (box) box.innerHTML = '';
+  const el = document.getElementById('wr-hint');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function wrRateWord(rating) {
@@ -724,10 +1006,8 @@ function getNextDate(n) {
 
 // ── FILTER & QUEUE ─────────────────────────────────────────────────────────
 function filteredWords() {
-  return WORD_DATA.filter(w =>
-    filters.cefr.has(w.cefr) && filters.sp.has(w.speaking) &&
-    filters.wr.has(w.writing) && filters.fr.has(w.freq)
-  );
+  // Eski yerel sp/wr/fr seçimleri yerine ortak Longman/VOA filtresi geçerli.
+  return WORD_DATA.filter(w => filters.cefr.has(w.cefr) && gbPasses(w));
 }
 function buildQueue() {
   const fw=filteredWords(), today=todayStr();
@@ -1959,7 +2239,7 @@ function cmRenderLevels() {
   const row = document.getElementById('cm-level-row');
   const levels = ['A1','A2','B1','B2','C1'];
   row.innerHTML = levels.map(lv => {
-    const count = WORD_DATA.filter(w => w.cefr === lv && freqMatches(w.freq, cmSelectedFreq, 3)).length;
+    const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w)).length;
     const disabled = count === 0;
     return `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleLevel('${lv}')"`}>${lv}</button>`;
   }).join('');
@@ -1975,7 +2255,11 @@ function cmToggleLevel(lv) {
 
 const CM_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
 function cmRenderFreqFilter() {
+  gbMount('cm-band-filters',
+          () => WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr)),
+          () => { cmRenderLevels(); cmRenderFreqFilter(); cmRenderProgress(); });
   const row = document.getElementById('cm-freq-row');
+  if (!row) return;
   if (!row) return;
   // Mevcut seviye seçimiyle hiç eşleşmeyen frekans seçenekleri otomatik pasif olur;
   // seçiliyken pasif hale gelirse (seviye değişince) seçimden de otomatik çıkarılır.
@@ -2036,7 +2320,7 @@ function cmSetSizeManual(raw) {
 
 function cmBuildQueue() {
   const today = todayStr();
-  const pool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && freqMatches(w.freq, cmSelectedFreq, 3));
+  const pool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && gbPasses(w));
   const due = pool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
   const nw = pool.filter(w => !progress[wkey(w)]).slice(0, Math.max(0, cmSessionSize - due.length));
   const combined = [...due, ...nw].slice(0, cmSessionSize);
@@ -2086,7 +2370,7 @@ async function cmShowCard() {
     // Oturum bitti — bu seviye(ler)de gerçekten başka çalışılacak kelime kalıp
     // kalmadığını kontrol et (tekrar zamanı gelenler + hiç görülmemiş yeniler).
     const today = todayStr();
-    const morePool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && freqMatches(w.freq, cmSelectedFreq, 3));
+    const morePool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && gbPasses(w));
     if (morePool.length === 0) {
       // Filtre kombinasyonunun (seviye+frekans) kendisi hiç kelimeye denk
       // gelmiyor — bu "tebrikler, bitirdin" değil, "bu kombinasyon boş" durumu.
@@ -2233,6 +2517,9 @@ let stAddStatusKnown = false;
 function stInit() {
   document.getElementById('st-card-area').innerHTML = '';
   document.getElementById('st-list').classList.remove('hidden');
+  gbMount('st-band-filters',
+          () => WORD_DATA.filter(w => stSelectedLevels.has(w.cefr)),
+          () => { stRenderLevels(); stRenderList(); });
   stRenderLevels();
   stRenderSort();
   stSetTab(stTab);
@@ -2420,7 +2707,7 @@ function stRenderList() {
   const listEl = document.getElementById('st-list');
   const countEl = document.getElementById('st-count-label');
   let items = WORD_DATA
-    .filter(w => stSelectedLevels.has(w.cefr))
+    .filter(w => stSelectedLevels.has(w.cefr) && gbPasses(w))
     .map(w => ({ w, p: progress[wkey(w)] }))
     .filter(x => x.p && (stTab==='known' ? x.p.mastery==='mastered' : x.p.mastery!=='mastered'));
 
@@ -3028,6 +3315,26 @@ const SG_TENSE_CEFR_MAP = {
 
 let sgSelectedLevels = new Set(["A1"]);
 let sgSelectedFreq = new Set(["High Frequency", "Medium Frequency", "Low Frequency"]);
+
+// Egzersiz kayıtlarında speaking/writing/voa alanı YOK, freq'in de 1.016'sı boş
+// (hedef kelime çekimli: works / walking / left). Bantları hedef kelimeden
+// kök duyarlı olarak çözüp önbelleğe alıyoruz.
+const _sgBandCache = Object.create(null);
+function sgExerciseBands(e) {
+  const k = e.id || e.targetWord;
+  if (_sgBandCache[k]) return _sgBandCache[k];
+  const found = gbBandsFor(e.targetWord) || {};
+  const rec = {
+    speaking: found.speaking || '',
+    writing:  found.writing  || '',
+    // Egzersizde freq varsa ona güven; yoksa sözlükten gelenle tamamla.
+    freq:     e.freq || found.freq || '',
+    voa:      !!found.voa
+  };
+  _sgBandCache[k] = rec;
+  return rec;
+}
+function sgPassesBands(e) { return gbPasses(sgExerciseBands(e)); }
 let sgSelectedTenseFilter = null; // null = "Otomatik" (seviyeye göre)
 let sgCurrentExercise = null;
 let sgTokens = [];
@@ -3041,7 +3348,7 @@ let sgLastExerciseId = null;
 function sgRenderLevels() {
   const el = document.getElementById('sg-levels');
   const all = ["A1", "A2", "B1", "B2", "C1", "C2"];
-  const countFor = l => SG_EXERCISES.filter(e => e.cefr === l && freqMatches(e.freq, sgSelectedFreq, 3) && (!sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)).length;
+  const countFor = l => SG_EXERCISES.filter(e => e.cefr === l && sgPassesBands(e) && (!sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)).length;
   const validLevels = all.filter(l => countFor(l) > 0);
   // Önceden "size > 1" şartı, seçili TEK seviye geçersiz hale gelince onu
   // çıkarmıyordu - sonuç: "seçili ama tıklanamaz, hiç egzersiz yok" diye
@@ -3069,6 +3376,10 @@ function sgRenderLevels() {
 
 const SG_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
 function sgRenderFreqFilter() {
+  gbMount('sg-band-filters',
+          () => SG_EXERCISES.filter(e => !sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)
+                            .map(sgExerciseBands),
+          () => { sgRenderLevels(); sgRenderFreqFilter(); });
   const el = document.getElementById('sg-freq-filter');
   if (!el) return;
   // Mevcut seviye + yapı (tense) seçimiyle hiç eşleşmeyen frekanslar pasif
@@ -3170,7 +3481,7 @@ function sgGetPool() {
   // otomatik soluklaştırıyor (aşağıya bkz).
   let pool = SG_EXERCISES.filter(e => sgSelectedLevels.has(e.cefr));
   if (sgSelectedTenseFilter) pool = pool.filter(e => e.tense === sgSelectedTenseFilter);
-  pool = pool.filter(e => freqMatches(e.freq, sgSelectedFreq, 3));
+  pool = pool.filter(sgPassesBands);
   if (sgSourceFilters.size) pool = pool.filter(e => sgExerciseWords(e).some(w => sgWordMatchesSource(w)));
   return pool;
 }
@@ -3596,11 +3907,11 @@ function hgRenderLevels() {
   // Mevcut frekans seçimiyle hiç eşleşmeyen seviyeler pasif olur; seçiliyken
   // pasif hale gelirse (frekans değişince) seçimden otomatik çıkarılır.
   all.forEach(l => {
-    const count = HG_POOL.filter(w => w.cefr === l && freqMatches(w.freq, hgSelectedFreq, 3)).length;
+    const count = HG_POOL.filter(w => w.cefr === l && gbPasses(w)).length;
     if (count === 0 && hgSelectedLevels.has(l)) hgSelectedLevels.delete(l);
   });
   el.innerHTML = all.map(l => {
-    const count = HG_POOL.filter(w => w.cefr === l && freqMatches(w.freq, hgSelectedFreq, 3)).length;
+    const count = HG_POOL.filter(w => w.cefr === l && gbPasses(w)).length;
     const disabled = count === 0;
     return `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}</div>`;
   }).join('');
@@ -3617,12 +3928,15 @@ function hgRenderLevels() {
 
 function hgGetPool() {
   let pool = hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr));
-  pool = pool.filter(w => freqMatches(w.freq, hgSelectedFreq, 3));
+  pool = pool.filter(gbPasses);
   return pool;
 }
 
 const HG_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
 function hgRenderFreqFilter() {
+  gbMount('hg-band-filters',
+          () => hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr)),
+          () => { hgRenderLevels(); hgRenderFreqFilter(); });
   const el = document.getElementById('hg-freq-filter');
   if (!el) return;
   const levelPool = hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr));
