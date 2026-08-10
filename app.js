@@ -1,5 +1,204 @@
 
 // ═══════════════════════════════════════════════════════════════════════════
+// KELİME EYLEM MENÜSÜ — bir kelimeyi seçip nasıl çalışacağını belirle
+// ═══════════════════════════════════════════════════════════════════════════
+// Özet'teki listelerde bir kelimeye dokununca açılır. İki iş yapar:
+//   1) Kelimeyi "Biliyorum" / "Bilmiyorum" havuzları arasında taşır
+//   2) Kart Modu / Cümle Kur / Cümle Yaz / Asmaca modüllerinden birini
+//      DOĞRUDAN o kelime için başlatır
+// İçeriği olmayan modüller (örn. o kelime için egzersiz üretilmemişse)
+// devre dışı görünür — kullanıcı boş bir ekrana düşmez.
+
+let waCurrent = null;   // { word, pos }
+
+function waFindWord(word, pos) {
+  return WORD_DATA.find(x => x.word === word && x.pos === pos)
+      || TOPIC_WORDS.find(x => x.word === word && x.pos === pos)
+      || EXTRA_WORDS.find(x => x.word === word && x.pos === pos)
+      || { word, pos };
+}
+
+// O kelime için Cümle Kur / Cümle Yaz egzersizi var mı?
+function waExercisesFor(word) {
+  if (typeof SG_EXERCISES === 'undefined') return [];
+  const lw = String(word).toLowerCase();
+  const cands = gbLemmaCandidates(lw);
+  return SG_EXERCISES.filter(e => {
+    const t = String(e.targetWord || '').toLowerCase();
+    if (t === lw) return true;
+    if (cands.includes(t)) return true;
+    return (e.chunks || []).some(c => String(c.vocabWord || '').toLowerCase() === lw);
+  });
+}
+
+// Asmaca havuzunda var mı? (kısa/uzun ve pos filtreleri yüzünden her kelime yok)
+function waInHangman(word, pos) {
+  return HG_POOL.some(w => w.word === word && w.pos === pos);
+}
+
+function openWordActions(word, pos) {
+  waCurrent = { word, pos };
+  const w = waFindWord(word, pos);
+  const k = wkey(w);
+  const p = progress[k];
+  const ex = waExercisesFor(word);
+  const inHg = waInHangman(word, pos);
+  const c = BUILTIN_CONTENT[k];
+
+  const statusLabel = !p ? 'Henüz çalışılmadı'
+    : p.mastery === 'mastered' ? '✅ Tam öğrenildi'
+    : p.lastAnswer === 'learning' ? '😓 Bilmiyorum dedin'
+    : '👍 Biliyorum dedin';
+
+  const opt = (label, sub, handler, enabled) =>
+    `<button class="wa-opt${enabled ? '' : ' disabled'}" ${enabled ? `onclick="${handler}"` : 'disabled'}>
+       <span class="wa-opt-label">${label}</span>
+       <span class="wa-opt-sub">${sub}</span>
+     </button>`;
+
+  const html = `
+    <div class="wa-sheet" onclick="event.stopPropagation()">
+      <div class="wa-head">
+        <div>
+          <div class="wordfont" style="font-size:22px;">${escHtml(word)}</div>
+          <div style="font-size:12px;color:var(--text3);font-style:italic;margin-top:2px;">${escHtml(pos || '')} · ${statusLabel}</div>
+        </div>
+        <button class="wa-close" onclick="closeWordActions()">✕</button>
+      </div>
+
+      ${c && c.turkish ? `<div style="font-size:13px;color:var(--text2);padding:0 16px 12px;line-height:1.6;">${escHtml(c.turkish)}</div>` : ''}
+
+      <div class="wa-section-label">Durumunu değiştir</div>
+      <div style="display:flex;gap:8px;padding:0 16px 14px;">
+        <button class="chip" style="flex:1;" onclick="waSetStatus(false)">😓 Bilmiyorum</button>
+        <button class="chip" style="flex:1;" onclick="waSetStatus(true)">👍 Biliyorum</button>
+      </div>
+
+      <div class="wa-section-label">Bu kelimeyi nasıl çalışmak istersin?</div>
+      <div class="wa-opts">
+        ${opt('🃏 Kart Modu', 'Kartı gör, Türkçesini hatırla', "waStudy('card')", true)}
+        ${opt('🧩 Cümle Kur', ex.length ? `${ex.length} egzersiz hazır` : 'Bu kelime için egzersiz yok', "waStudy('sentence')", ex.length > 0)}
+        ${opt('✍️ Cümle Yaz', ex.length ? 'Türkçesini İngilizce yaz' : 'Bu kelime için egzersiz yok', "waStudy('writing')", ex.length > 0)}
+        ${opt('🎯 Asmaca', inHg ? 'Harf harf tahmin et' : 'Bu kelime oyuna uygun değil', "waStudy('hangman')", inHg)}
+        ${opt('📖 Sözlükte aç', 'Tanım, nüans ve örnekler', "waStudy('dict')", true)}
+      </div>
+    </div>`;
+
+  let ov = document.getElementById('wa-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'wa-overlay';
+    ov.className = 'wa-overlay';
+    ov.onclick = closeWordActions;
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = html;
+  ov.classList.add('open');
+}
+
+function closeWordActions() {
+  const ov = document.getElementById('wa-overlay');
+  if (ov) ov.classList.remove('open');
+}
+
+// ── Durum değiştirme ───────────────────────────────────────────────────────
+function waSetStatus(known) {
+  if (!waCurrent) return;
+  const w = waFindWord(waCurrent.word, waCurrent.pos);
+  const k = wkey(w);
+  const cur = progress[k] || {};
+  const next = getNextReview(cur, known);
+  progress[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
+  saveState();
+  closeWordActions();
+  updateDashboard();
+  if (typeof stRenderList === 'function' && !document.getElementById('view-status').classList.contains('hidden')) stRenderList();
+}
+
+// ── Modüle yönlendirme ─────────────────────────────────────────────────────
+function waStudy(mode) {
+  if (!waCurrent) return;
+  const { word, pos } = waCurrent;
+  closeWordActions();
+
+  if (mode === 'card')      return waStudyCard(word, pos);
+  if (mode === 'sentence')  return waStudySentence(word);
+  if (mode === 'writing')   return waStudyWriting(word);
+  if (mode === 'hangman')   return waStudyHangman(word, pos);
+  if (mode === 'dict')      return waStudyDict(word);
+}
+
+// Kart Modu: tek kelimelik bir oturum kur
+function waStudyCard(word, pos) {
+  const w = waFindWord(word, pos);
+  showView('cardmode');
+  cmQueue = [w];
+  cmIdx = 0; cmViewIdx = 0; cmAnswers = []; cmHistory = [];
+  cmReviewing = false;
+  cmDone = { known: 0, learning: 0 };
+  cmRenderProgress();
+  cmShowCard();
+}
+
+// Cümle Kur: o kelimenin egzersizlerinden birini aç
+function waStudySentence(word) {
+  const ex = waExercisesFor(word);
+  if (!ex.length) { showView('sentence'); return; }
+  showView('sentence');
+  sgCurrentExercise = ex[Math.floor(Math.random() * ex.length)];
+  sgLastExerciseId = sgCurrentExercise.id;
+  sgTokens = [...sgCurrentExercise.root];
+  sgChunkIndex = 0;
+  sgWrongCount = 0;
+  sgTotalWrongTaps = 0;
+  sgVerbResolved = false;
+  sgPrepResolved = {};
+  sgRenderExercise();
+}
+
+// Cümle Yaz: o kelimenin egzersizinden soru kur
+function waStudyWriting(word) {
+  const ex = waExercisesFor(word);
+  showView('writing');
+  if (!ex.length) return;
+  const e = ex[Math.floor(Math.random() * ex.length)];
+  wrTense = e.tense;
+  wrRenderTenses();
+  wrCurrent = {
+    word: e.targetWord,
+    turkish: e.turkish,
+    tense: e.tense,
+    cefr: e.cefr || '',
+    reference: wrBuildReference(e)
+  };
+  wrHintLevel = 0;
+  wrLastResult = null;
+  wrRenderQuestion();
+}
+
+// Asmaca: o kelimeyi zorla seç
+function waStudyHangman(word, pos) {
+  showView('hangman');
+  const w = HG_POOL.find(x => x.word === word && x.pos === pos);
+  if (!w) return;
+  hgCurrentWord = w;
+  hgLastWordKey = w.word + '|' + w.pos;
+  hgGuessedLetters = new Set();
+  hgLives = HG_MAX_LIVES;
+  hgHintsUsed = 0;
+  hgGameOver = null;
+  hgRenderGame();
+}
+
+// Sözlüğüm: kelimeyi arama kutusuna yazıp sonucu aç
+function waStudyDict(word) {
+  showView('wordadd');
+  const input = document.getElementById('global-search-input');
+  if (input) { input.value = word; performGlobalSearch(); }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ÖZET EKRANI — "bugün" odaklı yeniden tasarım
 // ═══════════════════════════════════════════════════════════════════════════
 // Eski ekran bir RAPOR ekranıydı: üç sıfırla karşılıyor, dokunulacak bir şey
@@ -1666,7 +1865,13 @@ function renderAccordion(id, label, words, defOpen, styleKey) {
       <span class="acc-label" style="color:${st.fg};"><span id="${id}-ic">${open?'▾':'▸'}</span> ${label} <span style="font-weight:400;opacity:.7;">(${words.length})</span></span>
       <button class="copy-btn" onclick="event.stopPropagation();copyList(${wordsJson},this)">Kopyala</button>
     </div>
-    <div class="acc-body${open?' open':''}" id="${id}">${words.map(w=>`<div style="font-size:13px;line-height:2;font-family:monospace;">${w.word} <span style="color:var(--text3);font-size:11px;">${w.pos}</span></div>`).join('')}</div>
+    <div class="acc-body${open?' open':''}" id="${id}">${words.map(w=>{
+      const p = progress[wkey(w)];
+      const mark = !p ? '' : (p.mastery==='mastered' ? '✅' : (p.lastAnswer==='learning' ? '😓' : '👍'));
+      return `<div class="acc-word" onclick="openWordActions(${escAttr(JSON.stringify(w.word))},${escAttr(JSON.stringify(w.pos))})">
+        <span>${w.word} <span style="color:var(--text3);font-size:11px;">${w.pos}</span></span>
+        <span style="font-size:11px;opacity:.75;">${mark} ›</span>
+      </div>`;}).join('')}</div>
   </div>`;
 }
 function toggleAcc(id) {
@@ -1771,24 +1976,25 @@ function renderCefrSection(cefrWords, level) {
   const today=todayStr();
   const mastered      = cefrWords.filter(w=>progress[wkey(w)]?.mastery==='mastered');
   const consolidating = cefrWords.filter(w=>progress[wkey(w)]?.mastery==='consolidating');
-  const reviewing     = cefrWords.filter(w=>progress[wkey(w)]?.mastery==='reviewing');
   const upcoming      = cefrWords.filter(w=>!progress[wkey(w)]);
-  const dueNow        = cefrWords.filter(w=>{ const p=progress[wkey(w)]; return p&&p.nextReview<=today; });
+  // "Bugün tekrar" yerine BUGÜN ÇALIŞTIKLARIN — tekrar zamanı gelmiş olmak
+  // değil, bugün gerçekten dokunduğun kelimeler.
+  const studiedToday  = cefrWords.filter(w=>progress[wkey(w)]?.lastSeen === today);
+  // Öğrenme aşaması: sistem "tam öğrenildi" diyene kadar süren tüm kelimeler.
+  const learningAll   = cefrWords.filter(w=>{ const p=progress[wkey(w)]; return p && p.mastery!=='mastered'; });
+  const saidKnown     = learningAll.filter(w=>progress[wkey(w)]?.lastAnswer !== 'learning');
+  const saidUnknown   = learningAll.filter(w=>progress[wkey(w)]?.lastAnswer === 'learning');
   const mastCount     = mastered.length;
   const pct           = cefrWords.length ? (mastCount/cefrWords.length*100).toFixed(0) : 0;
   const color         = CEFR_COLORS[level];
 
-  // "Tekrarda" grubunu son cevaba göre ikiye ayır: kullanıcı neye "Biliyorum",
-  // neye "Öğreniyorum" dediğini görebilsin.
-  const struggling = reviewing.filter(w => progress[wkey(w)]?.lastAnswer === 'learning');
-  const knownEarly = reviewing.filter(w => progress[wkey(w)]?.lastAnswer !== 'learning');
-
   const cats = [
-    dueNow.length ? {id:level+'-due', label:'⏰ Bugün tekrar', words:dueNow, open:true, style:'due'} : null,
-    {id:level+'-mastered', label:'✅ Tam öğrenildi', words:mastered, open:true, style:'mastered'},
+    studiedToday.length ? {id:level+'-today', label:'📅 Bugün çalıştıkların', words:studiedToday, open:true, style:'due'} : null,
+    {id:level+'-learning', label:'🔁 Öğrenme aşamasında', words:learningAll, open:true, style:'reviewing'},
+    {id:level+'-unknown', label:'😓 Bilmiyorum dediklerin', words:saidUnknown, open:true, style:'due'},
+    {id:level+'-known', label:'👍 Biliyorum dediklerin', words:saidKnown, open:false, style:'consolidating'},
     {id:level+'-consolidating', label:'📈 Pekişiyor', words:consolidating, open:false, style:'consolidating'},
-    {id:level+'-struggling', label:'🔁 Öğreniyorum', words:struggling, open:true, style:'reviewing'},
-    {id:level+'-knownearly', label:'👍 Biliyorum dediklerin', words:knownEarly, open:false, style:'reviewing'},
+    {id:level+'-mastered', label:'✅ Tam öğrenildi', words:mastered, open:false, style:'mastered'},
     {id:level+'-upcoming', label:'🆕 Sıradaki yeniler', words:upcoming, open:false, style:'upcoming'},
   ].filter(Boolean);
 
