@@ -1,5 +1,222 @@
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ÖZET EKRANI — "bugün" odaklı yeniden tasarım
+// ═══════════════════════════════════════════════════════════════════════════
+// Eski ekran bir RAPOR ekranıydı: üç sıfırla karşılıyor, dokunulacak bir şey
+// sunmuyor, beş özdeş boş seviye kartıyla ekranı dolduruyordu. Yeni ekran tek
+// bir soruya cevap veriyor: "şimdi ne yapayım?"
+//
+//   • Üstte tek birincil eylem (bugünün çalışması)
+//   • Bugünkü ilerleme halkası — toplam istatistik değil
+//   • Streak sıfırken cesaretlendirici, sonrasında alev rozeti
+//   • Beş seviye kartı → tek kompakt liste, dokununca detay açılır
+//   • Hiç ilerleme yoksa istatistik yerine hoş geldin kartı
+
+const DASH_GOAL_KEY = 'wordhavenDailyGoal';
+const DASH_GOAL_DEFAULT = 10;
+
+function dashGoal() {
+  try {
+    const v = parseInt(localStorage.getItem(DASH_GOAL_KEY), 10);
+    if (v && v > 0 && v <= 200) return v;
+  } catch (e) {}
+  return DASH_GOAL_DEFAULT;
+}
+function dashSetGoal(n) {
+  try { localStorage.setItem(DASH_GOAL_KEY, String(n)); } catch (e) {}
+}
+
+// Bugün dokunulan kelime sayısı — progress kayıtlarındaki lastSeen'den okunur,
+// ayrı bir sayaç tutmaya gerek yok.
+function dashTodayCount() {
+  const t = todayStr();
+  return Object.values(progress).filter(p => p && p.lastSeen === t).length;
+}
+
+function dashDueCount() {
+  const t = todayStr();
+  return WORD_DATA.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= t; }).length;
+}
+
+// ── İlerleme halkası (SVG) ─────────────────────────────────────────────────
+function dashRing(done, goal) {
+  const R = 34, C = 2 * Math.PI * R;
+  const ratio = goal ? Math.min(done / goal, 1) : 0;
+  const off = C * (1 - ratio);
+  const complete = done >= goal;
+  const col = complete ? 'var(--success)' : 'var(--accent)';
+  return `<svg width="84" height="84" viewBox="0 0 84 84" style="flex-shrink:0;">
+    <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="7"/>
+    <circle cx="42" cy="42" r="${R}" fill="none" stroke="${col}" stroke-width="7"
+      stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+      transform="rotate(-90 42 42)" style="transition:stroke-dashoffset .5s ease;"/>
+    <text x="42" y="41" text-anchor="middle" font-size="21" font-weight="700"
+      fill="var(--text)" dominant-baseline="middle">${done}</text>
+    <text x="42" y="57" text-anchor="middle" font-size="10" fill="var(--text3)">/ ${goal}</text>
+  </svg>`;
+}
+
+// ── Motive edici tek satır — gerçek duruma göre değişir ────────────────────
+function dashMessage(done, goal, due, totalMastered) {
+  if (done === 0 && due > 0) return `${due} kelime tekrar zamanını bekliyor.`;
+  if (done === 0)            return 'Bugün henüz başlamadın — birkaç kelime yeter.';
+  if (done < goal)           return `Hedefe ${goal - done} kelime kaldı.`;
+  if (done === goal)         return 'Günlük hedefini tamamladın. Devam etmek serbest.';
+  return `Hedefini ${done - goal} kelime aştın.`;
+}
+
+// ── Streak ─────────────────────────────────────────────────────────────────
+function dashStreakHtml() {
+  const n = streak.days.length;
+  const dayNames = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  const dots = dayNames.map((d, i) => {
+    const done = streak.days.includes(d);
+    return `<div class="s-day ${done ? 'done' : ''} ${i === todayIdx ? 'today' : ''}">${d}</div>`;
+  }).join('');
+
+  const head = n === 0
+    ? `<div style="font-size:13px;font-weight:600;">Seri başlamadı</div>
+       <div style="font-size:12px;color:var(--text2);margin-top:2px;">Bugün çalışırsan 1. gün</div>`
+    : `<div style="font-size:13px;font-weight:600;">🔥 ${n} gün</div>
+       <div style="font-size:12px;color:var(--text2);margin-top:2px;">${n >= 7 ? 'Tam hafta!' : 'Seriyi sürdür'}</div>`;
+
+  return `<div class="streak-bar"><div>${head}</div><div class="streak-days">${dots}</div></div>`;
+}
+
+// ── Kompakt seviye listesi ─────────────────────────────────────────────────
+let dashOpenLevel = null;
+
+function dashLevelRows() {
+  return CEFR_LEVELS.map(lv => {
+    const words = WORD_DATA.filter(w => w.cefr === lv);
+    const mast = words.filter(w => progress[wkey(w)]?.mastery === 'mastered').length;
+    const started = words.filter(w => progress[wkey(w)]).length;
+    const pct = words.length ? (mast / words.length * 100) : 0;
+    const startedPct = words.length ? (started / words.length * 100) : 0;
+    const col = CEFR_COLORS[lv];
+    const open = dashOpenLevel === lv;
+
+    return `<div class="dash-lvl-row" onclick="dashToggleLevel('${lv}')">
+        <span style="font-size:14px;font-weight:600;color:var(${col});width:26px;flex-shrink:0;">${lv}</span>
+        <div class="dash-lvl-bar">
+          <div style="position:absolute;inset:0;width:${startedPct}%;background:var(${col});opacity:.25;border-radius:99px;"></div>
+          <div style="position:absolute;inset:0;width:${pct}%;background:var(${col});border-radius:99px;"></div>
+        </div>
+        <span style="font-size:12px;color:var(--text2);white-space:nowrap;flex-shrink:0;">${mast} / ${words.length}</span>
+        <span style="font-size:11px;color:var(--text3);flex-shrink:0;">${open ? '▾' : '›'}</span>
+      </div>
+      ${open ? `<div class="dash-lvl-detail">${renderCefrSection(words, lv)}</div>` : ''}`;
+  }).join('');
+}
+
+function dashToggleLevel(lv) {
+  dashOpenLevel = (dashOpenLevel === lv) ? null : lv;
+  updateDashboard();
+}
+
+// ── Birincil eylem ─────────────────────────────────────────────────────────
+function dashStartStudy() {
+  // Tekrar bekleyen varsa SRS kuyruğuna, yoksa yeni kelimelere.
+  if (dashDueCount() > 0) showView('filter');
+  else showView('cardmode');
+}
+
+// ── Ana çizim ──────────────────────────────────────────────────────────────
+function updateDashboard() {
+  const el = document.getElementById('dash-body');
+  if (!el) return;
+
+  const goal = dashGoal();
+  const done = dashTodayCount();
+  const due = dashDueCount();
+  const mastered = Object.values(progress).filter(p => p.mastery === 'mastered').length;
+  const anyProgress = Object.keys(progress).length > 0;
+
+  // ── Hiç başlanmamış: istatistik yerine davet ──
+  if (!anyProgress) {
+    const a1 = WORD_DATA.filter(w => w.cefr === 'A1').length;
+    el.innerHTML = `
+      <div class="dash-hero" style="text-align:center;">
+        <div style="font-size:34px;margin-bottom:6px;">📖</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px;">WordHaven'a hoş geldin</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;">
+          A1 seviyesinde <b>${a1}</b> kelime seni bekliyor. Günde ${goal} kelime ile başla —
+          birkaç dakika yeter.
+        </p>
+        <button class="start-btn" style="margin-top:0;" onclick="showView('cardmode')">İlk kelimelerini çalış →</button>
+      </div>
+      <div class="dash-lvl-list">${dashLevelRows()}</div>`;
+    return;
+  }
+
+  // ── Normal durum ──
+  const complete = done >= goal;
+  const btnLabel = due > 0
+    ? `${due} kelime tekrar zamanı →`
+    : (complete ? 'Çalışmaya devam et →' : `Bugünkü çalışmana devam et →`);
+
+  el.innerHTML = `
+    <div class="dash-hero">
+      <div style="display:flex;align-items:center;gap:16px;">
+        ${dashRing(done, goal)}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">
+            ${complete ? 'Bugünü tamamladın 🎉' : 'Bugün'}
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.6;">
+            ${dashMessage(done, goal, due, mastered)}
+          </p>
+          <button class="dash-goal-btn" onclick="dashEditGoal()">Hedef: ${goal} kelime · değiştir</button>
+        </div>
+      </div>
+      <button class="start-btn" onclick="dashStartStudy()">${btnLabel}</button>
+    </div>
+
+    ${dashStreakHtml()}
+
+    <div class="dash-summary-row">
+      <div><span class="dash-sum-n" style="color:var(--success);">${mastered}</span><span class="dash-sum-l">tam öğrenildi</span></div>
+      <div><span class="dash-sum-n">${Object.keys(progress).length}</span><span class="dash-sum-l">çalışıldı</span></div>
+      <div><span class="dash-sum-n" style="color:var(--warn);">${due}</span><span class="dash-sum-l">tekrar bekliyor</span></div>
+    </div>
+
+    <div class="dash-lvl-list">
+      <div class="dash-lvl-title">Seviyelerin</div>
+      ${dashLevelRows()}
+    </div>`;
+}
+
+// Hedefi ekrandan hızlıca değiştir (Ayarlar'daki alanla aynı değeri yazar)
+function dashEditGoal() {
+  const cur = dashGoal();
+  const v = prompt('Günlük hedefin kaç kelime olsun? (1-200)', String(cur));
+  if (v === null) return;
+  const n = parseInt(v, 10);
+  if (!n || n < 1 || n > 200) { alert('1 ile 200 arasında bir sayı gir.'); return; }
+  dashSetGoal(n);
+  updateDashboard();
+  const inp = document.getElementById('daily-goal-input');
+  if (inp) inp.value = n;
+}
+
+// Ayarlar ekranındaki alan
+function renderDailyGoalSetting() {
+  const inp = document.getElementById('daily-goal-input');
+  if (inp) inp.value = dashGoal();
+}
+function saveDailyGoal() {
+  const inp = document.getElementById('daily-goal-input');
+  const n = parseInt(inp.value, 10);
+  if (!n || n < 1 || n > 200) { alert('1 ile 200 arasında bir sayı gir.'); return; }
+  dashSetGoal(n);
+  updateDashboard();
+  const s = document.getElementById('daily-goal-status');
+  if (s) { s.textContent = `✓ Kaydedildi: günde ${n} kelime`; setTimeout(() => s.textContent = '', 2500); }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ORTAK LONGMAN / VOA FİLTRESİ  (tüm modüllerde geçerli tek seçim)
 // ═══════════════════════════════════════════════════════════════════════════
 // Bir kez seçilir, Kart Modu / Kelime Listem / Cümle Kur / Asmaca / Tekrar Et /
@@ -1075,7 +1292,7 @@ function showView(v) {
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
   if (v==='writing') wrInit();
-  if (v==='settings') renderClaudeKeyStatus();
+  if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); }
 }
 
 // ── WORD LIST (2-column, toggle accordion) ──────────────────────────────────
@@ -1572,30 +1789,6 @@ function renderCefrSection(cefrWords, level) {
     ${accordionsHtml}
     ${emptyHtml}
   </div>`;
-}
-
-function updateDashboard() {
-  const today=todayStr();
-  const mastered      = Object.values(progress).filter(p=>p.mastery==='mastered').length;
-  const consolidating = Object.values(progress).filter(p=>p.mastery==='consolidating').length;
-  const reviewing     = Object.values(progress).filter(p=>p.mastery==='reviewing').length;
-  const due           = WORD_DATA.filter(w=>{ const p=progress[wkey(w)]; return p&&p.nextReview<=today; }).length;
-  document.getElementById('d-mastered').textContent  = mastered;
-  document.getElementById('d-reviewing').textContent = consolidating+reviewing;
-  document.getElementById('d-due').textContent       = due;
-
-  // CEFR sections
-  document.getElementById('cefr-sections').innerHTML =
-    CEFR_LEVELS.map(lv => renderCefrSection(WORD_DATA.filter(w=>w.cefr===lv), lv)).join('');
-
-  // Streak
-  const dayNames=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-  document.getElementById('streak-days').innerHTML = dayNames.map((d,i)=>{
-    const isToday=i===(new Date().getDay()+6)%7;
-    const done=streak.days.includes(d);
-    return `<div class="s-day ${done?'done':''} ${isToday?'today':''}">${d}</div>`;
-  }).join('');
-  document.getElementById('streak-label').textContent=`${streak.days.length} gün`;
 }
 
 // ── FILTER CHIPS ───────────────────────────────────────────────────────────

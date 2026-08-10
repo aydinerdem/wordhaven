@@ -148,6 +148,18 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   .b-w3{background:#1b2c0a;color:#96bb77;}
   .b-voa{background:#0c447c;color:#a8cdf2;border-color:rgba(168,205,242,.25);}
 }
+.dash-hero{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.dash-goal-btn{margin-top:8px;background:none;border:none;padding:0;font-size:11.5px;color:var(--accent);cursor:pointer;font-family:inherit;text-align:left;}
+.dash-summary-row{display:flex;gap:8px;margin-bottom:12px;}
+.dash-summary-row>div{flex:1;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px 8px;text-align:center;}
+.dash-sum-n{display:block;font-size:19px;font-weight:700;line-height:1.2;}
+.dash-sum-l{display:block;font-size:10.5px;color:var(--text3);margin-top:3px;line-height:1.3;}
+.dash-lvl-list{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:6px 12px 10px;}
+.dash-lvl-title{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 4px;}
+.dash-lvl-row{display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer;border-bottom:0.5px solid var(--border);}
+.dash-lvl-row:last-child{border-bottom:none;}
+.dash-lvl-bar{position:relative;flex:1;height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;min-width:40px;}
+.dash-lvl-detail{padding:4px 0 12px;border-bottom:0.5px solid var(--border);}
 .band-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;}
 .gb-details{border-top:0.5px solid var(--border);padding-top:8px;}
 .gb-details summary{list-style:none;}
@@ -346,16 +358,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
   <!-- DASHBOARD -->
   <div id="view-dash">
-    <div class="dash-grid">
-      <div class="dash-card"><div class="dash-label">Tam öğrenildi</div><div class="dash-value" id="d-mastered">0</div><div class="dash-sub">kelime</div></div>
-      <div class="dash-card"><div class="dash-label">Tekrarda</div><div class="dash-value" id="d-reviewing">0</div><div class="dash-sub">pekişiyor</div></div>
-      <div class="dash-card" style="border-left:3px solid var(--warn);"><div class="dash-label">Bugün</div><div class="dash-value" style="color:var(--warn);" id="d-due">0</div><div class="dash-sub">bekliyor</div></div>
-    </div>
-    <div class="streak-bar">
-      <div><div style="font-size:13px;font-weight:500;">Streak</div><div style="font-size:12px;color:var(--text2);margin-top:2px;" id="streak-label">0 gün</div></div>
-      <div class="streak-days" id="streak-days"></div>
-    </div>
-    <div id="cefr-sections"></div>
+    <div id="dash-body"></div>
   </div>
 
   <!-- FILTER -->
@@ -780,6 +783,21 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         </ol>
         <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">Ücretsiz plan ayda ~10 dakika ses veriyor. Anahtar girmezsen veya bitince, otomatik olarak cihazının kendi (daha mekanik) sesine geçilir — uygulama her zaman çalışmaya devam eder.</p>
       </details>
+    </div>
+
+    <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Günlük hedef</div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+        Özet ekranındaki halka bu hedefe göre dolar. Hedefe ulaşınca çalışmayı bırakman
+        gerekmez — istediğin kadar devam edebilirsin.
+      </p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="number" id="daily-goal-input" min="1" max="200" value="10"
+          style="width:90px;padding:10px 12px;font-size:15px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);box-sizing:border-box;">
+        <span style="font-size:13px;color:var(--text2);">kelime / gün</span>
+        <button class="chip" onclick="saveDailyGoal()">Kaydet</button>
+      </div>
+      <div id="daily-goal-status" style="font-size:12px;color:var(--success);margin-top:8px;"></div>
     </div>
 
     <div class="filter-panel">
