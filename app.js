@@ -302,7 +302,10 @@ function dashLevelRows() {
           <div style="position:absolute;inset:0;width:${startedPct}%;background:var(${col});opacity:.25;border-radius:99px;"></div>
           <div style="position:absolute;inset:0;width:${pct}%;background:var(${col});border-radius:99px;"></div>
         </div>
-        <span style="font-size:12px;color:var(--text2);white-space:nowrap;flex-shrink:0;">${mast} / ${words.length}</span>
+        <span style="flex-shrink:0;text-align:right;line-height:1.3;">
+          <span style="font-size:12px;color:var(--text2);white-space:nowrap;">${mast} / ${words.length}</span>
+          ${started ? `<br><span style="font-size:10.5px;color:var(--text3);white-space:nowrap;">${started} çalışıldı</span>` : ''}
+        </span>
         <span style="font-size:11px;color:var(--text3);flex-shrink:0;">${open ? '▾' : '›'}</span>
       </div>
       ${open ? `<div class="dash-lvl-detail">${renderCefrSection(words, lv)}</div>` : ''}`;
@@ -389,6 +392,11 @@ function updateDashboard() {
 
     <div class="dash-lvl-list">
       <div class="dash-lvl-title">Seviyelerin</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.6;padding:0 0 8px;">
+        Koyu dolgu <b>tam öğrenildi</b>, soluk dolgu <b>çalıştıkların</b>.
+        Bir kelime, 4 farklı günde doğru hatırlandığında (yaklaşık bir aya yayılarak)
+        tam öğrenildi sayılır.
+      </div>
       ${dashLevelRows()}
     </div>`;
 }
