@@ -1,3 +1,674 @@
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EK KELİME HAVUZU + LONGMAN BANT FİLTRELERİ + VOA ROZETİ
+// ═══════════════════════════════════════════════════════════════════════════
+// EXTRA_WORDS = Longman 3000/9000 ve VOA'da olup Oxford 3000/5000 ile Konu
+// Kelimeleri'nde bulunmayan kelimeler (1.130 benzersiz kelime). CEFR bilgisi
+// yok — bu yüzden seviyeye göre değil, Longman frekans bandına göre gruplanır.
+const EXTRA_WORDS = (typeof window !== 'undefined' && window.EXTRA_WORDS) ? window.EXTRA_WORDS : [];
+
+// Bant filtresi: freqMatches ile aynı mantık — daraltma yoksa etiketsiz
+// kelimeler de geçer, daraltma varsa sadece seçilenler eşleşir.
+function bandMatches(value, selectedSet, allCount) {
+  const noNarrowing = selectedSet.size === 0 || selectedSet.size === allCount;
+  if (noNarrowing) return true;
+  return selectedSet.has(value || '');
+}
+
+const SP_OPTS = [['S1', 'S1'], ['S2', 'S2'], ['S3', 'S3']];
+const WR_OPTS = [['W1', 'W1'], ['W2', 'W2'], ['W3', 'W3']];
+const FREQ_OPTS_LIST = [['High Frequency', 'High'], ['Medium Frequency', 'Medium'], ['Low Frequency', 'Low']];
+
+function voaBadgeHtml(w) {
+  return w && w.voa ? '<span class="badge b-voa" title="VOA Special English çekirdek listesi">VOA</span>' : '';
+}
+
+// ── Kelime Listem → Oxford paneli bant filtreleri ──────────────────────────
+let listSpFilter = new Set();
+let listWrFilter = new Set();
+let listFreqFilter = new Set();
+let listVoaOnly = false;
+
+function listWordPasses(w) {
+  return bandMatches(w.speaking, listSpFilter, SP_OPTS.length)
+      && bandMatches(w.writing, listWrFilter, WR_OPTS.length)
+      && bandMatches(w.freq, listFreqFilter, FREQ_OPTS_LIST.length)
+      && (!listVoaOnly || !!w.voa);
+}
+
+// Faset sayacı — kural: her chip'in yanındaki sayı, O CHIP'E TIKLARSAN listede
+// kaç kelime kalacağını gösterir. Böylece "2 kelime" yazarken yanında
+// "High (28)" gibi tahmin edilemeyen bir sayı görünmez; her rakam doğrudan
+// tıklama sonucudur.
+//   • Seçili OLMAYAN chip → seçime eklenirse çıkacak sonuç (aynı grupta VEYA)
+//   • Seçili chip         → seçimden çıkarılırsa çıkacak sonuç
+//   • Tek başına 0 sonuç veren chip devre dışı (seçili değilse)
+function listCountWith(spSet, wrSet, frSet, voaOn) {
+  return WORD_DATA.filter(w =>
+    w.cefr === listLevel
+    && bandMatches(w.speaking, spSet, SP_OPTS.length)
+    && bandMatches(w.writing, wrSet, WR_OPTS.length)
+    && bandMatches(w.freq, frSet, FREQ_OPTS_LIST.length)
+    && (!voaOn || !!w.voa)
+  ).length;
+}
+
+function listBandChipCounts(dim, v) {
+  const cur = dim === 'sp' ? listSpFilter : dim === 'wr' ? listWrFilter : listFreqFilter;
+  const selected = cur.has(v);
+  const added = new Set(cur); added.add(v);
+  const removed = new Set(cur); removed.delete(v);
+  const only = new Set([v]);
+  const pick = s => dim === 'sp' ? listCountWith(s, listWrFilter, listFreqFilter, listVoaOnly)
+                  : dim === 'wr' ? listCountWith(listSpFilter, s, listFreqFilter, listVoaOnly)
+                                 : listCountWith(listSpFilter, listWrFilter, s, listVoaOnly);
+  const own = pick(only);
+  // Seçili chip kendi katkısını gösterir (listedeki toplamla uyumlu okunur),
+  // seçili olmayan chip ise "tıklarsam ne olur" sonucunu gösterir.
+  // Devre dışı kalacak chip (own === 0) gerçek 0'ı gösterir; "eklersem ne olur"
+  // sayısı orada yanıltıcı olurdu (ör. Low ekleyince hiçbir şey değişmiyorsa 0).
+  const display = selected ? own : (own === 0 ? 0 : pick(added));
+  return { selected, display, own };
+}
+
+function renderListBandFilters() {
+  const el = document.getElementById('list-band-filters');
+  if (!el) return;
+  const chip = (label, on, handler, disabled) =>
+    `<button class="chip${on ? ' on' : ''}${disabled ? ' disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="${handler}">${label}</button>`;
+
+  const bandChips = (opts, dim) => opts.map(([v, l]) => {
+    const c = listBandChipCounts(dim, v);
+    return chip(`${l} <span style="color:var(--text3);">(${c.display})</span>`, c.selected,
+                `listToggleBand('${dim}','${v}')`, c.own === 0 && !c.selected);
+  }).join('');
+
+  const spHtml = bandChips(SP_OPTS, 'sp');
+  const wrHtml = bandChips(WR_OPTS, 'wr');
+  const frHtml = bandChips(FREQ_OPTS_LIST, 'fr');
+  const voaOwn = listCountWith(listSpFilter, listWrFilter, listFreqFilter, true);
+  const voaN = voaOwn; // VOA tekil bir daraltma: seçili de olsa sonucu gösterir
+  const voaHtml = chip(`VOA çekirdeği <span style="color:var(--text3);">(${voaN})</span>`, listVoaOnly, `listToggleVoa()`, voaOwn === 0 && !listVoaOnly);
+
+  const anyOn = listSpFilter.size || listWrFilter.size || listFreqFilter.size || listVoaOnly;
+  el.innerHTML = `
+    <div class="band-label">Konuşma sıklığı (Longman)</div>
+    <div class="f-row">${spHtml}</div>
+    <div class="band-label">Yazı sıklığı (Longman)</div>
+    <div class="f-row">${wrHtml}</div>
+    <div class="band-label">Genel frekans</div>
+    <div class="f-row">${frHtml}</div>
+    <div class="band-label">Özel liste</div>
+    <div class="f-row">${voaHtml}${anyOn ? `<button class="chip-all" onclick="listClearBands()">Filtreleri temizle</button>` : ''}</div>`;
+}
+
+function listToggleBand(kind, v) {
+  const set = kind === 'sp' ? listSpFilter : kind === 'wr' ? listWrFilter : listFreqFilter;
+  if (set.has(v)) set.delete(v); else set.add(v);
+  listOpenKey = null;
+  listRefreshAll();
+}
+function listToggleVoa() {
+  listVoaOnly = !listVoaOnly;
+  listOpenKey = null;
+  listRefreshAll();
+}
+function listClearBands() {
+  listSpFilter.clear(); listWrFilter.clear(); listFreqFilter.clear(); listVoaOnly = false;
+  listOpenKey = null;
+  listRefreshAll();
+}
+// Seviye satırı + bant chipleri + liste birlikte tazelenir; seviye sayaçları da
+// aktif bant filtrelerine göre daralır.
+function listRefreshAll() {
+  renderListCefrRow();
+  renderListBandFilters();
+  renderWordList(listLevel);
+}
+
+// ── EK HAVUZ sekmesi ───────────────────────────────────────────────────────
+let extraFreqFilter = new Set();
+let extraVoaOnly = false;
+let extraOpenKey = null;
+let extraLetter = null;
+
+function extraWordPasses(w) {
+  return bandMatches(w.freq, extraFreqFilter, FREQ_OPTS_LIST.length)
+      && (!extraVoaOnly || !!w.voa);
+}
+
+function renderExtraFilters() {
+  const el = document.getElementById('extra-filter-row');
+  if (!el) return;
+  const chip = (label, on, handler, disabled) =>
+    `<button class="chip${on ? ' on' : ''}${disabled ? ' disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="${handler}">${label}</button>`;
+  const frHtml = FREQ_OPTS_LIST.map(([v, l]) => {
+    const n = EXTRA_WORDS.filter(w => w.freq === v).length;
+    return chip(`${l} <span style="color:var(--text3);">(${n})</span>`, extraFreqFilter.has(v), `extraToggleFreq('${v}')`, n === 0);
+  }).join('');
+  const voaN = EXTRA_WORDS.filter(w => w.voa).length;
+  const anyOn = extraFreqFilter.size || extraVoaOnly;
+  el.innerHTML = `${frHtml}${chip(`VOA <span style="color:var(--text3);">(${voaN})</span>`, extraVoaOnly, 'extraToggleVoa()', voaN === 0)}${anyOn ? `<button class="chip-all" onclick="extraClearFilters()">Temizle</button>` : ''}`;
+}
+
+function extraToggleFreq(v) {
+  if (extraFreqFilter.has(v)) extraFreqFilter.delete(v); else extraFreqFilter.add(v);
+  extraOpenKey = null; renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid();
+}
+function extraToggleVoa() {
+  extraVoaOnly = !extraVoaOnly;
+  extraOpenKey = null; renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid();
+}
+function extraClearFilters() {
+  extraFreqFilter.clear(); extraVoaOnly = false;
+  extraOpenKey = null; renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid();
+}
+
+function renderExtraLetterRow() {
+  const el = document.getElementById('extra-letter-row');
+  if (!el) return;
+  const pool = EXTRA_WORDS.filter(extraWordPasses);
+  const letters = [...new Set(pool.map(w => (w.word[0] || '#').toUpperCase()))].sort();
+  el.innerHTML = letters.map(l =>
+    `<button class="chip${l === extraLetter ? ' on' : ''}" onclick="extraSelectLetter('${l}')">${l} <span style="color:var(--text3);">(${pool.filter(w => (w.word[0] || '#').toUpperCase() === l).length})</span></button>`
+  ).join('') + (extraLetter ? `<button class="chip-all" onclick="extraSelectLetter(null)">Tümü</button>` : '');
+}
+function extraSelectLetter(l) {
+  extraLetter = (extraLetter === l) ? null : l;
+  extraOpenKey = null; renderExtraLetterRow(); renderExtraGrid();
+}
+
+function renderExtraGrid() {
+  const grid = document.getElementById('extra-word-grid');
+  if (!grid) return;
+  let pool = EXTRA_WORDS.filter(extraWordPasses);
+  if (extraLetter) pool = pool.filter(w => (w.word[0] || '#').toUpperCase() === extraLetter);
+  const info = document.getElementById('extra-count-info');
+  if (info) info.textContent = `${pool.length} kelime` + (extraLetter ? ` (${extraLetter})` : '');
+  if (!pool.length) {
+    grid.innerHTML = `<p style="grid-column:1/-1;font-size:13px;color:var(--text3);padding:12px 4px;">Bu filtreyle kelime yok.</p>`;
+    return;
+  }
+  const shown = pool.slice(0, 400);
+  grid.innerHTML = shown.map(w => {
+    const k = wkey(w);
+    const open = (k === extraOpenKey);
+    let html = `<div class="list-word-item" onclick="toggleExtraWord('${k.replace(/'/g, "\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos || ''}</span>${voaBadgeHtml(w)}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}</span>
+      <span style="color:var(--text3);font-size:11px;">${open ? '▾' : '▸'}</span>
+    </div>`;
+    if (open) {
+      html += `<div style="grid-column:1/-1;border-bottom:0.5px solid var(--border);background:var(--surface);padding:14px;" id="extra-def-${btoa(unescape(encodeURIComponent(k))).replace(/[^a-zA-Z0-9]/g, '')}">${extraDefPlaceholder(w)}</div>`;
+    }
+    return html;
+  }).join('');
+  if (pool.length > shown.length) {
+    grid.innerHTML += `<p style="grid-column:1/-1;font-size:12px;color:var(--text3);padding:10px 4px;">İlk ${shown.length} kelime gösteriliyor — daraltmak için harf veya frekans filtresi kullan.</p>`;
+  }
+  ttsWireButtons(grid);
+}
+
+function extraDefPlaceholder(w) {
+  const k = wkey(w);
+  const c = BUILTIN_CONTENT[k];
+  if (c && c.definition) return renderListDefHTML(c, w);
+  const voaDef = w.voaDefinition
+    ? `<p style="font-size:13px;color:var(--text2);margin-bottom:10px;"><b>VOA tanımı:</b> ${escHtml(w.voaDefinition)}</p>`
+    : '';
+  return `${wordSourceInfoHtml(w)}${voaDef}<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">Bu kelimenin Türkçe içeriği henüz üretilmedi.</p>
+    ${dictButtonsHtml(w.word)}`;
+}
+
+function toggleExtraWord(k) {
+  extraOpenKey = (extraOpenKey === k) ? null : k;
+  if (extraOpenKey) markLookup(k.split('|')[0]);
+  renderExtraGrid();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CÜMLE YAZ — serbest yazma modülü
+// ═══════════════════════════════════════════════════════════════════════════
+// Kullanıcı bir zaman (tense) seçer, uygulama bir hedef kelime + Türkçe cümle
+// verir, kullanıcı İngilizce karşılığını YAZAR. Kontrol iki katmanlı:
+//   1) Offline kontrol (her zaman çalışır): hedef kelime kullanılmış mı,
+//      zamana ait yardımcı fiil/ek yapısı var mı, uzunluk makul mü.
+//   2) Claude kontrolü (API anahtarı girildiyse): gramer, doğallık, anlam.
+// Anahtar yoksa modül KİLİTLENMEZ — offline kontrolle çalışmaya devam eder.
+
+const WR_TENSES = [
+  'Present Simple', 'Present Continuous', 'Present Perfect', 'Present Perfect Continuous',
+  'Past Simple', 'Past Continuous', 'Past Perfect', 'Past Perfect Continuous',
+  'Future Simple', 'Future Continuous', 'Future Perfect', 'Future Perfect Continuous'
+];
+
+// Her zaman için offline sinyal: cümlede beklenen yardımcı/işaret kalıpları.
+const WR_TENSE_SIGNALS = {
+  // req: hepsi bulunmalı | ban: hiçbiri bulunmamalı
+  // Present/Past Simple'da olumlu cümlenin yardımcı fiili yoktur; bu yüzden
+  // "olması gereken"i değil, "olmaması gereken" (çakışan zaman) işaretlerini
+  // arıyoruz. Bu, yanlış alarmı ciddi biçimde azaltır.
+  'Present Simple': {
+    req: [], ban: [/\b(will|shall|won't)\b/i, /\b(was|were)\b/i, /\bhad\b/i,
+                   /\b(have|has)\s+been\b/i, /\b(am|is|are)\s+(\w+\s+)?\w+ing\b/i, /\bdid\b/i],
+    verbHint: 'yalın fiil (3. tekilde -s/-es)'
+  },
+  'Present Continuous': {
+    req: [/\b(am|is|are)\s+(\w+\s+)?\w+ing\b/i],
+    ban: [/\b(will|shall)\b/i, /\bhad\b/i, /\b(was|were)\b/i],
+    verbHint: 'am/is/are + fiil-ing'
+  },
+  'Present Perfect': {
+    req: [/\b(have|has)\b/i],
+    ban: [/\b(have|has)\s+been\s+(\w+\s+)?\w+ing\b/i, /\b(will|shall)\b/i, /\bhad\b/i],
+    verbHint: 'have/has + V3'
+  },
+  'Present Perfect Continuous': {
+    req: [/\b(have|has)\s+been\s+(\w+\s+)?\w+ing\b/i], ban: [/\bhad\b/i, /\b(will|shall)\b/i],
+    verbHint: 'have/has been + fiil-ing'
+  },
+  'Past Simple': {
+    req: [], ban: [/\b(will|shall|won't)\b/i, /\b(have|has)\b/i, /\bhad\b/i,
+                   /\b(am|is|are)\b/i, /\b(was|were)\s+(\w+\s+)?\w+ing\b/i],
+    verbHint: 'fiilin 2. hâli (V2) / did'
+  },
+  'Past Continuous': {
+    req: [/\b(was|were)\s+(\w+\s+)?\w+ing\b/i], ban: [/\b(will|shall)\b/i, /\bhad\b/i],
+    verbHint: 'was/were + fiil-ing'
+  },
+  'Past Perfect': {
+    req: [/\bhad\b/i], ban: [/\bhad\s+been\s+(\w+\s+)?\w+ing\b/i, /\b(will|shall)\b/i],
+    verbHint: 'had + V3'
+  },
+  'Past Perfect Continuous': {
+    req: [/\bhad\s+been\s+(\w+\s+)?\w+ing\b/i], ban: [/\b(will|shall)\b/i],
+    verbHint: 'had been + fiil-ing'
+  },
+  'Future Simple': {
+    req: [/\b(will|shall|won't)\b/i],
+    ban: [/\bwill\s+be\s+(\w+\s+)?\w+ing\b/i, /\bwill\s+have\b/i],
+    verbHint: 'will + yalın fiil'
+  },
+  'Future Continuous': {
+    req: [/\bwill\s+be\s+(\w+\s+)?\w+ing\b/i], ban: [/\bwill\s+have\b/i],
+    verbHint: 'will be + fiil-ing'
+  },
+  'Future Perfect': {
+    req: [/\bwill\s+have\b/i], ban: [/\bwill\s+have\s+been\s+(\w+\s+)?\w+ing\b/i],
+    verbHint: 'will have + V3'
+  },
+  'Future Perfect Continuous': {
+    req: [/\bwill\s+have\s+been\s+(\w+\s+)?\w+ing\b/i], ban: [],
+    verbHint: 'will have been + fiil-ing'
+  }
+};
+
+let wrTense = null;
+let wrCurrent = null;      // {word, pos, cefr, turkish, tense, source}
+let wrChecking = false;
+let wrLastResult = null;
+let wrSessionStats = { total: 0, good: 0 };
+
+const WR_KEY_STORAGE = 'userClaudeKey';
+function wrGetApiKey() {
+  try { return (localStorage.getItem(WR_KEY_STORAGE) || '').trim(); } catch (e) { return ''; }
+}
+
+function wrInit() {
+  wrRenderTenses();
+  wrRenderStatus();
+  if (!wrCurrent) {
+    document.getElementById('wr-content').innerHTML =
+      `<p style="font-size:13px;color:var(--text2);padding:14px 4px;">Yukarıdan bir zaman seç, sana bir kelime ve Türkçe cümle vereyim.</p>`;
+  }
+}
+
+function wrRenderTenses() {
+  const el = document.getElementById('wr-tense-row');
+  if (!el) return;
+  el.innerHTML = WR_TENSES.map(t => {
+    const n = wrPoolFor(t).length;
+    return `<button class="chip${t === wrTense ? ' on' : ''}${n === 0 ? ' disabled' : ''}" ${n === 0 ? 'disabled' : ''} onclick="wrSelectTense('${t}')">${t}</button>`;
+  }).join('');
+}
+
+// Havuz: önce üretilmiş egzersizler (Türkçe cümle hazır), yoksa kelime havuzu.
+function wrPoolFor(tense) {
+  if (typeof SG_EXERCISES !== 'undefined' && SG_EXERCISES.length) {
+    const hit = SG_EXERCISES.filter(e => e.tense === tense);
+    if (hit.length) return hit;
+  }
+  return [];
+}
+
+function wrRenderStatus() {
+  const el = document.getElementById('wr-status-bar');
+  if (!el) return;
+  const key = wrGetApiKey();
+  const mode = key
+    ? '<span style="color:var(--success);">✓ Claude kontrolü açık</span>'
+    : '<span style="color:var(--text3);">Basit kontrol modu — Ayarlar\'dan Claude anahtarı ekleyerek tam gramer kontrolü açabilirsin</span>';
+  const stats = wrSessionStats.total
+    ? ` &nbsp;·&nbsp; Bu oturum: ${wrSessionStats.good}/${wrSessionStats.total}`
+    : '';
+  el.innerHTML = mode + stats;
+}
+
+function wrSelectTense(t) {
+  wrTense = t;
+  wrRenderTenses();
+  wrNextQuestion();
+}
+
+function wrNextQuestion() {
+  const pool = wrPoolFor(wrTense);
+  if (!pool.length) {
+    document.getElementById('wr-content').innerHTML =
+      `<p style="font-size:13px;color:var(--text2);padding:14px 4px;">Bu zaman için henüz içerik üretilmemiş.</p>`;
+    return;
+  }
+  const e = pool[Math.floor(Math.random() * pool.length)];
+  wrCurrent = {
+    word: e.targetWord,
+    turkish: e.turkish,
+    tense: e.tense,
+    cefr: e.cefr || '',
+    reference: wrBuildReference(e)
+  };
+  wrLastResult = null;
+  wrRenderQuestion();
+}
+
+// Referans cümleyi kur: root token'larına chunk'ları pos sırasına göre yerleştir.
+// (Cümle Kur'daki sgHandleGapTap ile aynı mantık — chunk.pos nihai cümledeki
+// ekleme noktası, artan sırada eklenince cümle doğru oluşur.)
+function wrBuildReference(e) {
+  const tokens = (e.root || []).slice();
+  const chunks = (e.chunks || []).slice().sort((a, b) => a.pos - b.pos);
+  chunks.forEach(c => {
+    const words = String(c.text || '').split(' ').filter(Boolean);
+    const at = Math.min(Math.max(c.pos, 0), tokens.length);
+    tokens.splice(at, 0, ...words);
+  });
+  let s = tokens.join(' ').replace(/\s+([,.!?;:])/g, '$1').trim();
+  if (s) s = s.charAt(0).toUpperCase() + s.slice(1);
+  if (s && !/[.!?]$/.test(s)) s += '.';
+  return s;
+}
+
+function wrRenderQuestion() {
+  const el = document.getElementById('wr-content');
+  if (!el || !wrCurrent) return;
+  const sig = WR_TENSE_SIGNALS[wrCurrent.tense];
+  el.innerHTML = `
+    <div class="filter-panel" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">${wrCurrent.tense}</span>
+        ${wrCurrent.cefr ? `<span class="badge b-${wrCurrent.cefr.toLowerCase()}">${wrCurrent.cefr}</span>` : ''}
+        <span style="font-size:11px;color:var(--text3);margin-left:auto;">${sig ? sig.verbHint : ''}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Bu cümleyi İngilizce yaz:</div>
+      <div style="font-size:17px;font-weight:600;color:var(--accent);margin-bottom:12px;line-height:1.5;">${escHtml(wrCurrent.turkish)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">Şu kelimeyi mutlaka kullan: <b class="wordfont" style="font-size:15px;color:var(--text);">${escHtml(wrCurrent.word)}</b>${ttsButtonHtml(wrCurrent.word, wrCurrent.word)}</div>
+      <textarea id="wr-answer" rows="3" placeholder="İngilizce cümleni buraya yaz…" style="width:100%;padding:12px;font-size:15px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);box-sizing:border-box;font-family:inherit;resize:vertical;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button class="start-btn" style="flex:1;min-width:130px;margin-top:0;" onclick="wrCheckAnswer()">Kontrol et</button>
+        <button class="chip" onclick="wrShowHint()">İpucu</button>
+        <button class="chip" onclick="wrNextQuestion()">Başka cümle</button>
+      </div>
+      <div id="wr-hint" style="margin-top:10px;"></div>
+    </div>
+    <div id="wr-result"></div>`;
+  ttsWireButtons(el);
+  const ta = document.getElementById('wr-answer');
+  if (ta) ta.focus();
+}
+
+function wrShowHint() {
+  const el = document.getElementById('wr-hint');
+  if (!el || !wrCurrent) return;
+  const sig = WR_TENSE_SIGNALS[wrCurrent.tense];
+  const words = (wrCurrent.reference || '').split(/\s+/).filter(Boolean);
+  const skeleton = words.map(w => w.length <= 2 ? w : w[0] + '·'.repeat(Math.min(w.length - 1, 6))).join(' ');
+  el.innerHTML = `<div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:var(--rsm);line-height:1.7;">
+    <b>Yapı:</b> ${sig ? escHtml(sig.verbHint) : '—'}<br>
+    <b>İskelet:</b> <span style="font-family:ui-monospace,monospace;letter-spacing:.5px;">${escHtml(skeleton)}</span>
+  </div>`;
+}
+
+// ── Offline (anahtarsız) kontrol ───────────────────────────────────────────
+function wrOfflineCheck(answer) {
+  const a = answer.trim();
+  const issues = [];
+  const good = [];
+
+  if (a.split(/\s+/).filter(Boolean).length < 3) {
+    issues.push('Cümle çok kısa görünüyor — en az bir özne ve yüklem olmalı.');
+  }
+
+  // Hedef kelime kullanılmış mı? (basit kök eşleşmesi: kelimenin ilk 4 harfi)
+  const target = (wrCurrent.word || '').toLowerCase();
+  const stem = target.length > 4 ? target.slice(0, Math.max(4, target.length - 2)) : target;
+  if (stem && a.toLowerCase().includes(stem)) {
+    good.push(`Hedef kelime "${wrCurrent.word}" kullanılmış.`);
+  } else {
+    issues.push(`Hedef kelime "${wrCurrent.word}" cümlede görünmüyor.`);
+  }
+
+  // Zaman yapısı sinyali
+  const sig = WR_TENSE_SIGNALS[wrCurrent.tense];
+  if (sig) {
+    const missing = (sig.req || []).some(r => !r.test(a));
+    const conflict = (sig.ban || []).find(r => r.test(a));
+    if (missing) {
+      issues.push(`${wrCurrent.tense} kalıbı görünmüyor — beklenen: ${sig.verbHint}.`);
+    } else if (conflict) {
+      issues.push(`Cümlede ${wrCurrent.tense} ile çakışan bir zaman işareti var — beklenen: ${sig.verbHint}.`);
+    } else {
+      good.push(`${wrCurrent.tense} yapısına uygun görünüyor.`);
+    }
+  }
+
+  if (!/^[A-Z]/.test(a)) issues.push('Cümle büyük harfle başlamalı.');
+  if (!/[.!?]$/.test(a)) issues.push('Cümle noktalama işaretiyle bitmeli.');
+
+  return { ok: issues.length === 0, issues, good, mode: 'offline' };
+}
+
+// ── Claude kontrolü (BYOK) ─────────────────────────────────────────────────
+const WR_SYSTEM_PROMPT = `Sen Türk öğrencilere İngilizce öğreten deneyimli bir öğretmensin.
+Öğrenci sana bir Türkçe cümlenin İngilizce çevirisini yazacak. Belirli bir zaman
+(tense) ve belirli bir hedef kelime kullanması isteniyor.
+
+Değerlendirmeni SADECE geçerli JSON olarak döndür, başka hiçbir metin ekleme,
+markdown kod bloğu kullanma. Format:
+{
+  "correct": true/false,
+  "score": 0-100,
+  "tenseOk": true/false,
+  "wordUsed": true/false,
+  "corrected": "düzeltilmiş İngilizce cümle",
+  "feedbackTr": "Türkçe, kısa ve yapıcı geri bildirim (en fazla 2 cümle)",
+  "errors": [{"wrong":"hatalı kısım","right":"doğrusu","whyTr":"Türkçe kısa açıklama"}],
+  "alternatives": ["aynı anlamı veren 1-2 doğal alternatif cümle"]
+}
+
+Kurallar:
+- Anlam Türkçe cümleyle örtüşüyorsa ve gramer doğruysa correct=true ver.
+- Küçük noktalama/büyük harf hataları correct=false yapmasın, ama errors'a ekle.
+- Öğrenci farklı ama doğru bir kelime seçimi yaptıysa bunu hata sayma, alternatives'e yaz.
+- feedbackTr her zaman Türkçe olsun ve cesaretlendirici bir dil kullan.`;
+
+async function wrCallClaude(answer) {
+  const key = wrGetApiKey();
+  const userMsg = `Türkçe cümle: ${wrCurrent.turkish}
+İstenen zaman: ${wrCurrent.tense}
+Kullanılması gereken kelime: ${wrCurrent.word}
+Öğrencinin yazdığı: ${answer}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: WR_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`API ${res.status}: ${t.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  const clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+async function wrCheckAnswer() {
+  if (wrChecking) return;
+  const ta = document.getElementById('wr-answer');
+  const answer = (ta ? ta.value : '').trim();
+  const box = document.getElementById('wr-result');
+  if (!answer) {
+    box.innerHTML = `<p style="font-size:13px;color:var(--danger);padding:4px;">Önce bir cümle yaz.</p>`;
+    return;
+  }
+
+  const offline = wrOfflineCheck(answer);
+  const key = wrGetApiKey();
+
+  if (!key) {
+    wrRenderResult(offline, answer);
+    return;
+  }
+
+  wrChecking = true;
+  box.innerHTML = `<p style="font-size:13px;color:var(--text2);padding:10px 4px;">Claude kontrol ediyor…</p>`;
+  try {
+    const r = await wrCallClaude(answer);
+    wrRenderResult({ ...r, mode: 'claude', offline }, answer);
+  } catch (err) {
+    console.error('Cümle Yaz — Claude hatası:', err);
+    box.innerHTML = `<div style="font-size:12px;color:var(--warn);background:var(--warnbg);padding:10px 12px;border-radius:var(--rsm);margin-bottom:10px;">
+      Claude kontrolü yapılamadı (${escHtml(String(err.message || err))}). Basit kontrole geçildi.</div>`;
+    wrRenderResult(offline, answer, true);
+  } finally {
+    wrChecking = false;
+    wrRenderStatus();
+  }
+}
+
+function wrRenderResult(r, answer, append) {
+  const box = document.getElementById('wr-result');
+  if (!box) return;
+  wrLastResult = r;
+
+  const isClaude = r.mode === 'claude';
+  const ok = isClaude ? !!r.correct : !!r.ok;
+
+  wrSessionStats.total++;
+  if (ok) wrSessionStats.good++;
+
+  const head = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <span style="font-size:16px;font-weight:700;color:${ok ? 'var(--success)' : 'var(--danger)'};">${ok ? '✓ Doğru' : '✗ Düzeltme gerekiyor'}</span>
+    ${isClaude && typeof r.score === 'number' ? `<span class="badge" style="background:var(--surface2);color:var(--text2);">${r.score}/100</span>` : ''}
+    <span style="font-size:11px;color:var(--text3);margin-left:auto;">${isClaude ? 'Claude kontrolü' : 'Basit kontrol'}</span>
+  </div>`;
+
+  let body = '';
+  if (isClaude) {
+    if (r.feedbackTr) body += `<p style="font-size:14px;color:var(--text);margin-bottom:12px;line-height:1.6;">${escHtml(r.feedbackTr)}</p>`;
+    if (r.corrected && r.corrected.trim().toLowerCase() !== answer.trim().toLowerCase()) {
+      body += `<div style="background:var(--successbg);padding:10px 12px;border-radius:var(--rsm);margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">Düzeltilmiş hâli</div>
+        <div style="font-size:15px;font-weight:600;">${escHtml(r.corrected)}${ttsButtonHtml(r.corrected)}</div></div>`;
+    }
+    if (Array.isArray(r.errors) && r.errors.length) {
+      body += `<div style="margin-bottom:10px;">${r.errors.map(e => `
+        <div style="font-size:13px;padding:8px 10px;background:var(--surface2);border-radius:var(--rsm);margin-bottom:6px;line-height:1.6;">
+          <span style="color:var(--danger);text-decoration:line-through;">${escHtml(e.wrong || '')}</span>
+          &nbsp;→&nbsp;<span style="color:var(--success);font-weight:600;">${escHtml(e.right || '')}</span>
+          ${e.whyTr ? `<div style="font-size:12px;color:var(--text2);margin-top:3px;">${escHtml(e.whyTr)}</div>` : ''}
+        </div>`).join('')}</div>`;
+    }
+    if (Array.isArray(r.alternatives) && r.alternatives.length) {
+      body += `<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7;">
+        <b>Alternatifler:</b><br>${r.alternatives.map(a => escHtml(a)).join('<br>')}</div>`;
+    }
+  } else {
+    if (r.good && r.good.length) {
+      body += `<div style="margin-bottom:8px;">${r.good.map(g =>
+        `<div style="font-size:13px;color:var(--success);margin-bottom:4px;">✓ ${escHtml(g)}</div>`).join('')}</div>`;
+    }
+    if (r.issues && r.issues.length) {
+      body += `<div style="margin-bottom:10px;">${r.issues.map(i =>
+        `<div style="font-size:13px;color:var(--danger);margin-bottom:4px;">• ${escHtml(i)}</div>`).join('')}</div>`;
+    }
+    body += `<p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin-bottom:10px;">
+      Bu basit kontrol sadece kelime ve zaman kalıbına bakar; gramerin tamamını denetlemez.
+      Ayarlar'dan Claude anahtarı eklersen tam kontrol açılır.</p>`;
+  }
+
+  // Referans cümle (üretilmiş egzersizden)
+  if (wrCurrent.reference) {
+    body += `<details style="margin-bottom:12px;">
+      <summary style="font-size:12px;color:var(--accent);cursor:pointer;">Örnek çözümü göster</summary>
+      <div style="font-size:14px;font-weight:600;margin-top:8px;">${escHtml(wrCurrent.reference)}${ttsButtonHtml(wrCurrent.reference)}</div>
+    </details>`;
+  }
+
+  body += `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="start-btn" style="flex:1;min-width:130px;margin-top:0;" onclick="wrNextQuestion()">Sıradaki cümle →</button>
+    <button class="chip" onclick="wrRateWord('known')">Bildim</button>
+    <button class="chip" onclick="wrRateWord('unknown')">Zorlandım</button>
+  </div>`;
+
+  box.innerHTML = `<div class="filter-panel">${head}${body}</div>`;
+  ttsWireButtons(box);
+  wrRenderStatus();
+}
+
+function wrRateWord(rating) {
+  if (!wrCurrent) return;
+  if (typeof sgScheduleReview === 'function') {
+    sgScheduleReview(`word:${wrCurrent.word}`, rating);
+    sgScheduleReview(`structure:${wrCurrent.tense}`, rating);
+  }
+  if (typeof markContact === 'function') markContact(wrCurrent.word, 'used');
+  wrNextQuestion();
+}
+
+// ── Ayarlar: Claude API anahtarı ───────────────────────────────────────────
+function renderClaudeKeyStatus() {
+  const el = document.getElementById('claude-key-status');
+  if (!el) return;
+  const key = wrGetApiKey();
+  el.innerHTML = key
+    ? `<span style="color:var(--success);">✓ Anahtar kayıtlı (…${escHtml(key.slice(-6))})</span>`
+    : `<span style="color:var(--text3);">Anahtar girilmedi — Cümle Yaz basit kontrol modunda çalışır.</span>`;
+}
+function saveClaudeKey() {
+  const input = document.getElementById('claude-key-input');
+  const v = (input.value || '').trim();
+  if (!v) { alert('Lütfen bir anahtar gir.'); return; }
+  try { localStorage.setItem(WR_KEY_STORAGE, v); } catch (e) {}
+  input.value = '';
+  renderClaudeKeyStatus();
+  wrRenderStatus();
+}
+function clearClaudeKey() {
+  if (!confirm('Claude API anahtarı silinsin mi?')) return;
+  try { localStorage.removeItem(WR_KEY_STORAGE); } catch (e) {}
+  renderClaudeKeyStatus();
+  wrRenderStatus();
+}
+
 const CEFR_LEVELS = ['A1','A2','B1','B2','C1'];
 const CEFR_COLORS = { A1:'--a1', A2:'--a2', B1:'--b1', B2:'--b2', C1:'--c1' };
 
@@ -86,7 +757,7 @@ function selectAll(group) {
 }
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar' };
+const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -105,7 +776,7 @@ function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings','cardmode','status'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
   document.getElementById('nav-study').classList.toggle('active', v==='filter'||v==='study');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
@@ -116,12 +787,15 @@ function showView(v) {
   document.getElementById('nav-cardmode').classList.toggle('active', v==='cardmode');
   document.getElementById('nav-status').classList.toggle('active', v==='status');
   document.getElementById('nav-settings').classList.toggle('active', v==='settings');
+  document.getElementById('nav-writing').classList.toggle('active', v==='writing');
   if (v==='dash') updateDashboard();
   if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
-  if (v==='list') { if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else renderWordList(listLevel); }
+  if (v==='list') { if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
+  if (v==='writing') wrInit();
+  if (v==='settings') renderClaudeKeyStatus();
 }
 
 // ── WORD LIST (2-column, toggle accordion) ──────────────────────────────────
@@ -131,23 +805,27 @@ function renderListCefrRow(){
   const row=document.getElementById('list-cefr-row');
   const levels=['A1','A2','B1','B2','C1'];
   row.innerHTML=levels.map(lv=>{
-    const count=WORD_DATA.filter(w=>w.cefr===lv).length;
-    return `<button class="chip lvl-${lv.toLowerCase()}${lv===listLevel?' on':''}" data-lv="${lv}" onclick="selectListLevel('${lv}')">${lv} <span style="color:var(--text3);">(${count})</span></button>`;
+    // Sayaç aktif Longman/VOA filtrelerini de hesaba katar (listWordPasses),
+    // böylece "Medium" seçiliyken her seviyenin gerçek kelime sayısı görünür.
+    const count=WORD_DATA.filter(w=>w.cefr===lv && listWordPasses(w)).length;
+    const dis = count===0 && lv!==listLevel;
+    return `<button class="chip lvl-${lv.toLowerCase()}${lv===listLevel?' on':''}${dis?' disabled':''}" ${dis?'disabled':''} data-lv="${lv}" onclick="selectListLevel('${lv}')">${lv} <span style="color:var(--text3);">(${count})</span></button>`;
   }).join('');
 }
 function selectListLevel(lv){
   listLevel=lv; listOpenKey=null;
-  document.querySelectorAll('#list-cefr-row .chip').forEach(c=>c.classList.toggle('on', c.dataset.lv===lv));
-  renderWordList(lv);
+  listRefreshAll();
 }
 function renderWordList(level){
-  const words=WORD_DATA.filter(w=>w.cefr===level);
+  const words=WORD_DATA.filter(w=>w.cefr===level && listWordPasses(w));
+  const info=document.getElementById('list-count-info');
+  if(info) info.textContent = `${words.length} kelime`;
   const grid=document.getElementById('word-list-grid');
   grid.innerHTML=words.map(w=>{
     const k=wkey(w);
     const open=(k===listOpenKey);
     let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${voaBadgeHtml(w)}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -177,7 +855,7 @@ const _MC={};(()=>{ALL_CATEGORY_WORDS.forEach(w=>{(w.categories||[]).forEach(g=>
 // ── LİSTE İÇİ ARAMA (sadece Oxford 3000/5000 + Konu Kelimeleri havuzunda) ──
 // Özel kelime havuzuna bakmaz — o "Kelime Ekle" sekmesinin işi, burası sadece
 // mevcut sabit listeleri taramak/filtrelemek için.
-const LIST_SEARCH_POOL = WORD_DATA.concat(TOPIC_WORDS);
+const LIST_SEARCH_POOL = WORD_DATA.concat(TOPIC_WORDS).concat(EXTRA_WORDS);
 let listSearchOpenKey = null;
 
 function handleListSearch(){
@@ -199,7 +877,7 @@ function renderListSearchResults(raw){
   const resultsEl = document.getElementById('list-search-results');
   const matches = LIST_SEARCH_POOL.filter(w => w.word.toLowerCase().startsWith(raw)).slice(0, 30);
   if (!matches.length) {
-    resultsEl.innerHTML = `<p style="font-size:13px;color:var(--text2);">"<strong>${raw}</strong>" bu listelerde (Oxford 3000/5000 veya Konu Kelimeleri) bulunamadı. Bu kelime muhtemelen bu gruplarda yok — <b>Sözlüğüm</b> sekmesinden aratabilirsin.</p>`;
+    resultsEl.innerHTML = `<p style="font-size:13px;color:var(--text2);">"<strong>${raw}</strong>" bu listelerde (Oxford 3000/5000, Konu Kelimeleri veya Ek Havuz) bulunamadı. Bu kelime muhtemelen bu gruplarda yok — <b>Sözlüğüm</b> sekmesinden aratabilirsin.</p>`;
     return;
   }
   resultsEl.innerHTML = matches.map(w=>{
@@ -207,9 +885,12 @@ function renderListSearchResults(raw){
     const open = (k===listSearchOpenKey);
     const c = BUILTIN_CONTENT[k];
     const isOxford = OXFORD_WORD_SET.has(w.word.toLowerCase());
-    const sourceTag = isOxford ? '' : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>';
+    const isExtra = EXTRA_WORD_SET.has(w.word.toLowerCase());
+    const sourceTag = isOxford ? '' : (isExtra
+      ? ' <span style="font-size:10px;color:var(--warn);">Ek Havuz</span>'
+      : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>');
     let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
+      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${voaBadgeHtml(w)}${sourceTag}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
       <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
     </div>`;
     if (open) {
@@ -232,13 +913,16 @@ function selectListMode(mode){
   document.getElementById('list-mode-topic').classList.toggle('active', mode==='topic');
   document.getElementById('list-mode-favorites').classList.toggle('active', mode==='favorites');
   document.getElementById('list-mode-struggle').classList.toggle('active', mode==='struggle');
+  document.getElementById('list-mode-extra').classList.toggle('active', mode==='extra');
   document.getElementById('list-oxford-panel').classList.toggle('hidden', mode!=='oxford');
   document.getElementById('list-topic-panel').classList.toggle('hidden', mode!=='topic');
   document.getElementById('list-favorites-panel').classList.toggle('hidden', mode!=='favorites');
   document.getElementById('list-struggle-panel').classList.toggle('hidden', mode!=='struggle');
-  if(mode==='oxford'){ renderWordList(listLevel); }
+  document.getElementById('list-extra-panel').classList.toggle('hidden', mode!=='extra');
+  if(mode==='oxford'){ renderListBandFilters(); renderWordList(listLevel); }
   else if(mode==='topic'){ renderTopicGroupRow(); renderTopicLetterPanel(); renderTopicWordGrid(); }
   else if(mode==='favorites'){ renderFavoritesList(); }
+  else if(mode==='extra'){ renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); }
   else { renderStruggleList(); }
 }
 
@@ -378,6 +1062,41 @@ function toggleTopicWord(k){
   renderTopicWordGrid();
 }
 
+// Kelimenin hangi listelerde geçtiğini ve Longman bantlarını gösteren blok.
+// Kaynak çıkarımı kesin: speaking/writing SADECE Longman 3000'den, freq SADECE
+// Longman 9000'den gelir (enrich_wordlists.py böyle doldurur). voa bayrağı da
+// VOA Special English listesinden.
+const SP_TITLES = { S1: 'Konuşulan İngilizcede ilk 1000', S2: 'ilk 2000', S3: 'ilk 3000' };
+const WR_TITLES = { W1: 'Yazılı İngilizcede ilk 1000', W2: 'ilk 2000', W3: 'ilk 3000' };
+
+function wordSourceInfoHtml(w) {
+  if (!w) return '';
+  const inL3 = !!(w.speaking || w.writing);
+  const inL9 = !!w.freq;
+  const inExtra = (typeof EXTRA_WORD_SET !== 'undefined') && EXTRA_WORD_SET.has(String(w.word).toLowerCase());
+  const inOxford = (typeof OXFORD_WORD_SET !== 'undefined') && OXFORD_WORD_SET.has(String(w.word).toLowerCase());
+
+  const bands = [];
+  if (w.speaking) bands.push(`<span class="badge b-${w.speaking.toLowerCase()}" title="${SP_TITLES[w.speaking] || ''}">Konuşma ${w.speaking}</span>`);
+  if (w.writing)  bands.push(`<span class="badge b-${w.writing.toLowerCase()}" title="${WR_TITLES[w.writing] || ''}">Yazı ${w.writing}</span>`);
+  if (w.freq)     bands.push(`<span class="badge" style="background:var(--surface2);color:var(--text2);">${w.freq.replace(' Frequency', '')} frekans</span>`);
+  if (w.voa)      bands.push('<span class="badge b-voa" title="VOA Special English — basitleştirilmiş haber İngilizcesinin ~1.500 kelimelik çekirdeği">VOA çekirdeği</span>');
+
+  const sources = [];
+  if (inOxford) sources.push('Oxford 3000/5000');
+  else if (inExtra) sources.push('Ek Havuz');
+  if (inL3) sources.push('Longman 3000');
+  if (inL9) sources.push('Longman 9000');
+  if (w.voa) sources.push('VOA');
+
+  if (!bands.length && !sources.length) return '';
+  return `<div class="c-section">
+    <div class="c-section-label">Listeler ve sıklık</div>
+    ${bands.length ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;">${bands.join('')}</div>` : ''}
+    ${sources.length ? `<div style="font-size:11.5px;color:var(--text3);line-height:1.6;">Geçtiği listeler: ${sources.join(' · ')}</div>` : ''}
+  </div>`;
+}
+
 function renderListDefHTML(c,w){
   const paras=(c.nuance||'—').split(/\n\n+/).filter(p=>p.trim());
   const nuanceHtml=paras.map(p=>`<p style="margin-bottom:8px;font-size:13px;line-height:1.6;color:var(--text);">${p.trim()}</p>`).join('');
@@ -404,6 +1123,7 @@ function renderListDefHTML(c,w){
   const statusHtml = (w.word && WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos)) ? progressQuickControlHtml(w) : '';
   const html = `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
+    ${wordSourceInfoHtml(w)}
     ${catsHtml}
     <div class="c-section"><div class="c-section-label">Nüans</div>${nuanceHtml}</div>
     <div class="c-section"><div class="c-section-label">Örnekler</div>${exHtml}</div>
@@ -650,9 +1370,10 @@ function levenshtein(a, b) {
 function findWordSuggestions(raw) {
   if (!raw || raw.length < 3) return [];
   const prefix = raw.slice(0, Math.min(4, raw.length));
-  const byPrefix = WORD_DATA.filter(w => w.word.toLowerCase().startsWith(prefix) && w.word.toLowerCase() !== raw);
+  const SUGGEST_POOL = WORD_DATA.concat(EXTRA_WORDS);
+  const byPrefix = SUGGEST_POOL.filter(w => w.word.toLowerCase().startsWith(prefix) && w.word.toLowerCase() !== raw);
   if (byPrefix.length) return byPrefix.slice(0, 6);
-  const scored = WORD_DATA
+  const scored = SUGGEST_POOL
     .filter(w => Math.abs(w.word.length - raw.length) <= 3)
     .map(w => ({ w, d: levenshtein(raw, w.word.toLowerCase()) }))
     .filter(x => x.d > 0 && x.d <= 3)
@@ -667,6 +1388,7 @@ function performGlobalSearch() {
   if (!raw) { panel.classList.add('hidden'); panel.innerHTML=''; clearBtn.classList.add('hidden'); return; }
   const matches = WORD_DATA.filter(w => w.word.toLowerCase() === raw);
   const topicMatches = TOPIC_WORD_MAP[raw] || [];
+  const extraMatches = EXTRA_WORD_MAP[raw] || [];
   const customMatch = customWords[raw];
   let html = '';
   if (customMatch) {
@@ -710,7 +1432,25 @@ function performGlobalSearch() {
       </div>`;
     });
   }
-  if (!matches.length && !topicMatches.length && !customMatch) {
+  if (extraMatches.length) {
+    extraMatches.forEach(w => {
+      markLookup(w.word);
+      const c = BUILTIN_CONTENT[wkey(w)];
+      const bands = [w.freq, w.speaking, w.writing].filter(Boolean).join(' · ');
+      html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+          <span class="wordfont" style="font-size:22px;">${w.word}</span>${ttsButtonHtml(w.word, w.word)}
+          <span style="font-size:12px;color:var(--text3);font-style:italic;">${w.pos || ''}</span>
+          ${voaBadgeHtml(w)}
+          <span style="font-size:10px;color:var(--warn);background:var(--warnbg);padding:2px 8px;border-radius:10px;font-weight:600;">Ek Havuz</span>
+          ${favStarHtml(w)}
+        </div>
+        ${bands ? `<div style="font-size:11px;color:var(--text3);margin-bottom:8px;">${bands}</div>` : ''}
+        ${c && c.definition ? renderListDefHTML(c, w) : extraDefPlaceholder(w)}
+      </div>`;
+    });
+  }
+  if (!matches.length && !topicMatches.length && !customMatch && !extraMatches.length) {
     const suggestions = findWordSuggestions(raw);
     const suggHtml = suggestions.length
       ? `<div style="margin-bottom:12px;">
@@ -720,7 +1460,7 @@ function performGlobalSearch() {
           ).join('')}</div>
         </div>`
       : '';
-    html += `<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">"<strong>${raw}</strong>" Oxford listesinde bulunamadı.</p>
+    html += `<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">"<strong>${raw}</strong>" hiçbir listede (Oxford 3000/5000, Konu Kelimeleri, Ek Havuz) bulunamadı.</p>
       ${suggHtml}
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--rsm);">
         <span style="font-size:13px;flex:1;">Telaffuz + Yeni Kelime olarak eklemek ister misin?</span>
@@ -783,6 +1523,7 @@ async function showCard() {
   const badges=[`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`];
   if(w.speaking) badges.push(`<span class="badge b-${w.speaking.toLowerCase()}">${w.speaking}</span>`);
   if(w.writing)  badges.push(`<span class="badge b-${w.writing.toLowerCase()}">${w.writing}</span>`);
+  if(w.voa)      badges.push('<span class="badge b-voa">VOA</span>');
   document.getElementById('c-badges').innerHTML=badges.join('');
   const k=wkey(w);
   if(contentCache[k]) { renderContent(contentCache[k],w); }
@@ -1098,6 +1839,12 @@ WORD_DATA.forEach(w => {
   const k = w.word.toLowerCase();
   if (!OXFORD_WORD_MAP[k]) OXFORD_WORD_MAP[k] = [];
   OXFORD_WORD_MAP[k].push(w);
+});
+const EXTRA_WORD_SET = new Set(EXTRA_WORDS.map(w => w.word.toLowerCase()));
+const EXTRA_WORD_MAP = Object.create(null); // word_lower → array of extra pool word objects
+EXTRA_WORDS.forEach(w => {
+  const k = w.word.toLowerCase();
+  (EXTRA_WORD_MAP[k] || (EXTRA_WORD_MAP[k] = [])).push(w);
 });
 const TOPIC_WORD_MAP = Object.create(null); // word_lower → array of topic word objects (not in Oxford 3000/5000)
 TOPIC_WORDS.forEach(w => {
@@ -2742,11 +3489,18 @@ function sgHandleTrCheck() {
     { key: `structure:${sgCurrentExercise.tense}`, label: `Cümle kurulumu (${sgCurrentExercise.tense})` },
     { key: `word:${sgCurrentExercise.targetWord}`, label: sgCurrentExercise.targetWord }
   ];
-  sgCurrentExercise.chunks.forEach(chunk => { if (chunk.vocabWord) items.push({ key: `word:${chunk.vocabWord}`, label: chunk.vocabWord }); });
+  const seenItemKeys = new Set(items.map(it => it.key));
+  sgCurrentExercise.chunks.forEach(chunk => {
+    if (chunk.vocabWord) {
+      const k = `word:${chunk.vocabWord}`;
+      if (!seenItemKeys.has(k)) { seenItemKeys.add(k); items.push({ key: k, label: chunk.vocabWord }); }
+    }
+  });
   items.forEach(item => { if (item.key.startsWith('word:')) markContact(item.key.slice(5), 'used'); });
   if (sgCurrentExercise.verbConjugation && sgCurrentExercise.verbConjugation.irregular) {
     const vc = sgCurrentExercise.verbConjugation;
-    items.push({ key: `verb:${vc.baseForm}`, label: `${vc.correctForm} (düzensiz fiil)` });
+    const k = `verb:${vc.baseForm}`;
+    if (!seenItemKeys.has(k)) { seenItemKeys.add(k); items.push({ key: k, label: `${vc.correctForm} (düzensiz fiil)` }); }
   }
 
   const suggestedRating = sgTotalWrongTaps === 0 ? 'known' : (sgTotalWrongTaps <= 2 ? 'partial' : 'unknown');
