@@ -2451,6 +2451,7 @@ function cmRenderFreqFilter() {
   gbMount('cm-band-filters',
           () => WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr)),
           () => { cmRenderLevels(); cmRenderFreqFilter(); cmRenderProgress(); });
+  if (!document.getElementById('cm-freq-row')) return;   // eski frekans satırı kaldırıldı
   const row = document.getElementById('cm-freq-row');
   if (!row) return;
   if (!row) return;
@@ -3573,6 +3574,7 @@ function sgRenderFreqFilter() {
           () => SG_EXERCISES.filter(e => !sgSelectedTenseFilter || e.tense === sgSelectedTenseFilter)
                             .map(sgExerciseBands),
           () => { sgRenderLevels(); sgRenderFreqFilter(); });
+  if (!document.getElementById('sg-freq-filter')) return;   // eski frekans satırı kaldırıldı
   const el = document.getElementById('sg-freq-filter');
   if (!el) return;
   // Mevcut seviye + yapı (tense) seçimiyle hiç eşleşmeyen frekanslar pasif
@@ -4130,6 +4132,7 @@ function hgRenderFreqFilter() {
   gbMount('hg-band-filters',
           () => hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr)),
           () => { hgRenderLevels(); hgRenderFreqFilter(); });
+  if (!document.getElementById('hg-freq-filter')) return;   // eski frekans satırı kaldırıldı
   const el = document.getElementById('hg-freq-filter');
   if (!el) return;
   const levelPool = hgSelectedLevels.size === 0 ? HG_POOL : HG_POOL.filter(w => hgSelectedLevels.has(w.cefr));

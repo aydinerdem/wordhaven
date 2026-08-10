@@ -667,7 +667,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div class="filter-panel">
       <div class="sg-levels" id="sg-levels"></div>
       <div class="sg-tense-row-label">Frekans</div>
-      <div class="sg-levels" id="sg-freq-filter"></div>
       <div id="sg-band-filters" style="margin-top:10px;"></div>
       <div class="sg-tense-row-label">Gramer yapısı</div>
       <div class="sg-levels" id="sg-tense-filter"></div>
@@ -698,7 +697,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="sg-tense-row-label">CEFR seviye (boş bırakırsan tüm seviyeler)</div>
       <div class="sg-levels" id="hg-levels"></div>
       <div class="sg-tense-row-label">Frekans (boş bırakırsan tüm frekanslar)</div>
-      <div class="sg-levels" id="hg-freq-filter"></div>
       <div id="hg-band-filters" style="margin-top:10px;"></div>
     </div>
     <div class="sg-stats-bar" id="hg-stats-bar">Yükleniyor...</div>
@@ -711,7 +709,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div class="f-label" style="margin-bottom:8px;">Seviye</div>
       <div class="f-row" id="cm-level-row"></div>
       <div class="f-label" style="margin-bottom:8px;">Frekans</div>
-      <div class="f-row" id="cm-freq-row"></div>
       <div id="cm-band-filters" style="margin-top:10px;"></div>
       <div class="f-label" style="margin:14px 0 8px;">Oturum büyüklüğü</div>
       <div class="f-row" id="cm-size-row" style="align-items:center;"></div>
@@ -903,7 +900,10 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     window.EXTRA_WORDS = results[4] || [];
     setStatus('Uygulama başlatılıyor…');
     var s = document.createElement('script');
-    s.src = 'app.js';
+    // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
+    // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
+    // ile eşleşmediği için ekran boş kalır.
+    s.src = 'app.js?v=202608101201';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
@@ -911,6 +911,11 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     s.onerror = function(){
       showError('app.js yüklenemedi.');
     };
+    // Emniyet: onload beklenmedik şekilde tetiklenmezse ekran kilitli kalmasın.
+    setTimeout(function(){
+      var el = document.getElementById('wh-loading-overlay');
+      if (el && typeof window.showView === 'function') el.remove();
+    }, 4000);
     document.body.appendChild(s);
   }).catch(function(err){
     console.error('WordHaven veri yükleme hatası:', err);
