@@ -114,7 +114,7 @@ function trResultsHtml(results, query) {
   if (!results.length) return '';
   const rows = results.map(e => {
     const p = progress[e.key];
-    const mark = !p ? '' : (p.mastery === 'mastered' ? '✅' : (p.lastAnswer === 'learning' ? '😓' : '👍'));
+    const mark = !p ? '' : (p.mastery === 'mastered' ? ico('check',12,'#5cb87a',false) : (p.lastAnswer === 'learning' ? ico('alert',12,'#e08a5c',false) : ico('check',12,'var(--text3)',false)));
     return `<div class="tr-hit" onclick="openWordActions(${escAttr(JSON.stringify(e.word))},${escAttr(JSON.stringify(e.pos))})">
       <div style="min-width:0;">
         <span class="wordfont" style="font-size:16px;">${escHtml(e.word)}</span>
@@ -184,9 +184,9 @@ function openWordActions(word, pos) {
   const c = BUILTIN_CONTENT[k];
 
   const statusLabel = !p ? 'Henüz çalışılmadı'
-    : p.mastery === 'mastered' ? '✅ Tam öğrenildi'
-    : p.lastAnswer === 'learning' ? '😓 Bilmiyorum dedin'
-    : '👍 Biliyorum dedin';
+    : p.mastery === 'mastered' ? ico('award')+'Tam öğrenildi'
+    : p.lastAnswer === 'learning' ? ico('alert')+'Bilmiyorum dedin'
+    : ico('check')+'Biliyorum dedin';
 
   const opt = (label, sub, handler, enabled) =>
     `<button class="wa-opt${enabled ? '' : ' disabled'}" ${enabled ? `onclick="${handler}"` : 'disabled'}>
@@ -208,8 +208,8 @@ function openWordActions(word, pos) {
 
       <div class="wa-section-label">Durumunu değiştir</div>
       <div style="display:flex;gap:8px;padding:0 16px 14px;">
-        <button class="chip" style="flex:1;" onclick="waSetStatus(false)">😓 Bilmiyorum</button>
-        <button class="chip" style="flex:1;" onclick="waSetStatus(true)">👍 Biliyorum</button>
+        <button class="chip" style="flex:1;" onclick="waSetStatus(false)">${ico('alert')}Bilmiyorum</button>
+        <button class="chip" style="flex:1;" onclick="waSetStatus(true)">${ico('check')}Biliyorum</button>
       </div>
 
       <div class="wa-section-label">Bu kelimeyi nasıl çalışmak istersin?</div>
@@ -801,7 +801,7 @@ function gbRender(containerId) {
         <div class="f-row">${row(FREQ_OPTS_LIST, 'fr')}</div>
         <div class="band-label">Özel liste</div>
         <div class="f-row">
-          ${chip(`VOA çekirdeği <span style="color:var(--text3);">(${voaOwn})</span>`, gbFilter.voa, 'gbToggleVoa()', voaOwn === 0 && !gbFilter.voa)}
+          ${chip(`VOA çekirdeği <span style="color:var(--text3);">(${voaOwn})</span>`, gbFilter.voa, 'gbToggleVoa()', voaOwn === 0 && !gbFilter.voa).replace('class="chip', `class="chip chip-voa`)}
           ${on ? `<button class="chip-all" onclick="gbClear()">Filtreleri temizle</button>` : ''}
         </div>
         <div style="font-size:12px;color:var(--text3);margin-top:10px;">${total} kelime bu filtreden geçiyor</div>
@@ -857,6 +857,21 @@ const FREQ_OPTS_LIST = [['High Frequency', 'High'], ['Medium Frequency', 'Medium
 
 function voaBadgeHtml(w) {
   return w && w.voa ? '<span class="badge b-voa" title="VOA Special English çekirdek listesi">VOA</span>' : '';
+}
+
+// Longman konuşma/yazı sıklığı rozetleri — VOA rozetiyle aynı küçük "badge"
+// dilinde, kelime satırlarının ikinci satırında VOA ile yan yana gösterilir.
+function lfBadgesHtml(w) {
+  let h = '';
+  if (w && w.speaking) h += `<span class="badge b-${w.speaking.toLowerCase()}" title="Konuşma sıklığı ${w.speaking}">${w.speaking}</span>`;
+  if (w && w.writing)  h += `<span class="badge b-${w.writing.toLowerCase()}" title="Yazı sıklığı ${w.writing}">${w.writing}</span>`;
+  return h;
+}
+// Kelime satırının ikinci satırı: sıklık rozetleri (Longman S/W + VOA) +
+// hoparlör + favori + temas noktaları. Kelime uzunluğundan ve rozet sayısından
+// bağımsız, tüm Kelime Listem alt sekmelerinde aynı hizada başlar.
+function wordRowLine2Html(w) {
+  return `<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;">${lfBadgesHtml(w)}${voaBadgeHtml(w)}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</div>`;
 }
 
 // ── Kelime Listem → Oxford paneli bant filtreleri ──────────────────────────
@@ -941,9 +956,9 @@ function renderExtraGrid() {
   grid.innerHTML = shown.map(w => {
     const k = wkey(w);
     const open = (k === extraOpenKey);
-    let html = `<div class="list-word-item" onclick="toggleExtraWord('${k.replace(/'/g, "\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos || ''}</span>${voaBadgeHtml(w)}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}</span>
-      <span style="color:var(--text3);font-size:11px;">${open ? '▾' : '▸'}</span>
+    let html = `<div class="list-word-item" onclick="toggleExtraWord('${k.replace(/'/g, "\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos || ''}</span></div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open ? '▾' : '▸'}</span>
     </div>`;
     if (open) {
       html += `<div style="grid-column:1/-1;border-bottom:0.5px solid var(--border);background:var(--surface);padding:14px;" id="extra-def-${btoa(unescape(encodeURIComponent(k))).replace(/[^a-zA-Z0-9]/g, '')}">${extraDefPlaceholder(w)}</div>`;
@@ -1527,6 +1542,31 @@ function clearClaudeKey() {
 const CEFR_LEVELS = ['A1','A2','B1','B2','C1'];
 const CEFR_COLORS = { A1:'--a1', A2:'--a2', B1:'--b1', B2:'--b2', C1:'--c1' };
 
+// ── Paylaşılan çizgi ikon seti — emojilerin yerini alır (sol menüdeki
+// ikonlarla aynı dil: 20x20 viewBox, stroke currentColor, 1.6-1.8px, yuvarlak
+// uç). Tek bir yerden yönetilir; Kelime Durumu, kelime modalı, Kelime Listem
+// sekmeleri ve durum/sıralama chip'lerinin hepsi buradan besleniyor.
+const ICO = {
+  calendar: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.2" width="13" height="12" rx="1.5"/><path d="M3.5 8h13M7 2.8v2.4M13 2.8v2.4"/></svg>',
+  repeat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg>',
+  alert: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 7v3.6"/><circle cx="10" cy="13.2" r=".15" fill="currentColor" stroke-width="2.4"/></svg>',
+  check: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5 8 14l7.5-8.5"/></svg>',
+  trend: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14 8 9.2l3 2.6 5.5-6.3"/><path d="M13.2 5.5H16.5V8.8"/></svg>',
+  award: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.3 12 6.7l3.8.6-2.7 2.7.6 3.8L10 12.1l-3.7 1.7.6-3.8-2.7-2.7 3.8-.6z"/><path d="M7.3 10.2 9 12l3.7-4"/></svg>',
+  upcoming: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4v5.2M13.5 6.6l-3.8 2.8-3.8-2.8"/><rect x="4" y="9.6" width="12" height="6.4" rx="1.4"/></svg>',
+  star: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.3 12 6.7l3.8.6-2.7 2.7.6 3.8L10 12.1l-3.7 1.7.6-3.8-2.7-2.7 3.8-.6z"/></svg>',
+  clock: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 6.5V10l2.6 1.6"/></svg>'
+};
+// name: ICO anahtarı. size: px. color: opsiyonel currentColor override. inline:
+// true ise metinle aynı satırda hizalanacak margin-right taşır (etiket önü),
+// false ise sade bir ikon (sayaç/rozet yanı) döner.
+function ico(name, size, color, inline) {
+  size = size || 13;
+  if (inline === undefined) inline = true;
+  const style = `display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0;vertical-align:-2px;${inline?'margin-right:4px;':''}${color?`color:${color};`:''}`;
+  return `<span style="${style}">${ICO[name] || ''}</span>`;
+}
+
 let progress = {};
 // Frekans filtresi ortak mantığı: filtre daraltılmamışsa (tüm seçenekler
 // seçili / boş = "tümü") etiketsiz (freq: "") kelimeler de gösterilir.
@@ -1648,7 +1688,7 @@ function showView(v) {
   if (v==='dash') updateDashboard();
   if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
-  if (v==='list') { if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
+  if (v==='list') { listUpdatePersonalCounts(); if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
   if (v==='writing') wrInit();
@@ -1681,9 +1721,9 @@ function renderWordList(level){
   grid.innerHTML=words.map(w=>{
     const k=wkey(w);
     const open=(k===listOpenKey);
-    let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>${voaBadgeHtml(w)}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
-      <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
+    let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span></div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
       const c=BUILTIN_CONTENT[k];
@@ -1755,9 +1795,9 @@ function renderListSearchResults(raw){
     const sourceTag = isOxford ? '' : (isExtra
       ? ' <span style="font-size:10px;color:var(--warn);">Ek Havuz</span>'
       : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>');
-    let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${voaBadgeHtml(w)}${sourceTag}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
-      <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
+    let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}</div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if (open) {
       html += `<div style="border-bottom:0.5px solid var(--border);padding:14px 4px;">${c?renderListDefHTML(c,w):'<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}</div>`;
@@ -1773,8 +1813,24 @@ function toggleListSearchWord(k){
   renderListSearchResults(raw);
 }
 
+// Kişisel koleksiyon rozetlerindeki sayaçlar — sekmeyi açmadan kaç kelime
+// olduğunu gösterir (Kelime Listem'in yeni gruplu sekme tasarımı).
+function listUpdatePersonalCounts(){
+  const favCount = Object.keys(favorites).length;
+  const struggleCount = WORD_DATA.filter(w => {
+    const n = lookupCount[w.word.toLowerCase()] || 0;
+    const mastered = progress[wkey(w)]?.mastery === 'mastered';
+    return n >= LOOKUP_STRUGGLE_THRESHOLD && !mastered;
+  }).length;
+  const favEl = document.getElementById('list-mode-favorites-count');
+  const strEl = document.getElementById('list-mode-struggle-count');
+  if (favEl) favEl.textContent = favCount ? ` ${favCount}` : '';
+  if (strEl) strEl.textContent = struggleCount ? ` ${struggleCount}` : '';
+}
+
 function selectListMode(mode){
   listMode=mode;
+  listUpdatePersonalCounts();
   document.getElementById('list-mode-oxford').classList.toggle('active', mode==='oxford');
   document.getElementById('list-mode-topic').classList.toggle('active', mode==='topic');
   document.getElementById('list-mode-favorites').classList.toggle('active', mode==='favorites');
@@ -1810,9 +1866,9 @@ function renderStruggleList(){
     const k=wkey(w);
     const open=(k===struggleOpenKey);
     const n = lookupCount[w.word.toLowerCase()] || 0;
-    let html=`<div class="list-word-item" onclick="toggleStruggleWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);">🔍${n}</span>${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
-      <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
+    let html=`<div class="list-word-item" onclick="toggleStruggleWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);">🔍${n}</span></div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
       const c=BUILTIN_CONTENT[k];
@@ -1842,9 +1898,9 @@ function renderFavoritesList(){
   grid.innerHTML=words.map(w=>{
     const k=wkey(w);
     const open=(k===favoritesOpenKey);
-    let html=`<div class="list-word-item" onclick="toggleFavoritesWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
-      <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
+    let html=`<div class="list-word-item" onclick="toggleFavoritesWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}</div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
       const c=BUILTIN_CONTENT[k];
@@ -1909,9 +1965,9 @@ function renderTopicWordGrid(){
     const open=(k===topicOpenKey);
     const _w=BUILTIN_CONTENT[k];
     const _warn=(_w&&_w.definition&&_w.definition.trim())?'':'⚠️';
-    let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span><span class="wordfont">${w.word}</span>${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</span>
-      <span style="color:var(--text3);font-size:11px;">${open?'▾':'▸'}</span>
+    let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span>${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}</div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
       const c=BUILTIN_CONTENT[k];
@@ -2022,7 +2078,7 @@ function renderAccordion(id, label, words, defOpen, styleKey) {
     </div>
     <div class="acc-body${open?' open':''}" id="${id}">${words.map(w=>{
       const p = progress[wkey(w)];
-      const mark = !p ? '' : (p.mastery==='mastered' ? '✅' : (p.lastAnswer==='learning' ? '😓' : '👍'));
+      const mark = !p ? '' : (p.mastery==='mastered' ? ico('award',12,'#5cb87a',false) : (p.lastAnswer==='learning' ? ico('alert',12,'#e08a5c',false) : ico('check',12,'var(--text3)',false)));
       return `<div class="acc-word" onclick="openWordActions(${escAttr(JSON.stringify(w.word))},${escAttr(JSON.stringify(w.pos))})">
         <span>${w.word} <span style="color:var(--text3);font-size:11px;">${w.pos}</span></span>
         <span style="font-size:11px;opacity:.75;">${mark} ›</span>
@@ -2144,13 +2200,13 @@ function renderCefrSection(cefrWords, level) {
   const color         = CEFR_COLORS[level];
 
   const cats = [
-    studiedToday.length ? {id:level+'-today', label:'📅 Bugün çalıştıkların', words:studiedToday, open:true, style:'due'} : null,
-    {id:level+'-learning', label:'🔁 Öğrenme aşamasında', words:learningAll, open:true, style:'reviewing'},
-    {id:level+'-unknown', label:'😓 Bilmiyorum dediklerin', words:saidUnknown, open:true, style:'due'},
-    {id:level+'-known', label:'👍 Biliyorum dediklerin', words:saidKnown, open:false, style:'consolidating'},
-    {id:level+'-consolidating', label:'📈 Pekişiyor', words:consolidating, open:false, style:'consolidating'},
-    {id:level+'-mastered', label:'✅ Tam öğrenildi', words:mastered, open:false, style:'mastered'},
-    {id:level+'-upcoming', label:'🆕 Sıradaki yeniler', words:upcoming, open:false, style:'upcoming'},
+    studiedToday.length ? {id:level+'-today', label:ico('calendar')+'Bugün çalıştıkların', words:studiedToday, open:true, style:'due'} : null,
+    {id:level+'-learning', label:ico('repeat')+'Öğrenme aşamasında', words:learningAll, open:true, style:'reviewing'},
+    {id:level+'-unknown', label:ico('alert')+'Bilmiyorum dediklerin', words:saidUnknown, open:true, style:'due'},
+    {id:level+'-known', label:ico('check')+'Biliyorum dediklerin', words:saidKnown, open:false, style:'consolidating'},
+    {id:level+'-consolidating', label:ico('trend')+'Pekişiyor', words:consolidating, open:false, style:'consolidating'},
+    {id:level+'-mastered', label:ico('award')+'Tam öğrenildi', words:mastered, open:false, style:'mastered'},
+    {id:level+'-upcoming', label:ico('upcoming')+'Sıradaki yeniler', words:upcoming, open:false, style:'upcoming'},
   ].filter(Boolean);
 
   // Boş kategorileri ayrı ayrı kutular yerine tek satırda topla — beş kez
@@ -2533,8 +2589,8 @@ function progressQuickControlHtml(w) {
   const status = p ? (p.mastery === 'mastered' ? 'known' : 'learning') : null;
   const wa = `'${w.word.replace(/'/g,"\\'")}','${w.pos}'`;
   return `<div style="display:flex;gap:6px;margin-top:4px;">
-    <button onclick="event.stopPropagation();quickSetStatus(${wa},false)" class="chip${status==='learning'?' on':''}" style="flex:1;">🔁 Öğreniyorum</button>
-    <button onclick="event.stopPropagation();quickSetStatus(${wa},true)" class="chip${status==='known'?' on':''}" style="flex:1;">✅ Biliyorum</button>
+    <button onclick="event.stopPropagation();quickSetStatus(${wa},false)" class="chip${status==='learning'?' on':''}" style="flex:1;">${ico('repeat')}Öğreniyorum</button>
+    <button onclick="event.stopPropagation();quickSetStatus(${wa},true)" class="chip${status==='known'?' on':''}" style="flex:1;">${ico('check')}Biliyorum</button>
     ${status ? `<button onclick="event.stopPropagation();quickRemoveStatus(${wa})" title="Listeden çıkar" class="chip" style="flex:0 0 auto;">✕</button>` : ''}
   </div>`;
 }
@@ -2608,10 +2664,27 @@ function favStarHtml(w) {
   const isFav = !!favorites[wkey(w)];
   return `<span onclick="event.stopPropagation();toggleFavFromRow('${w.word.replace(/'/g,"\\'")}','${w.pos.replace(/'/g,"\\'")}')" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;font-size:19px;cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};margin-left:10px;flex-shrink:0;">${isFav?'★':'☆'}</span>`;
 }
+// Kart Modu'ndaki kart için favori yıldızı — liste satırlarındaki favStarHtml
+// ile aynı veriyi kullanır ama tam liste yeniden çizimini tetiklemek yerine
+// sadece kendi ikonunu günceller (kart o an görünen tek satır, liste değil).
+function cardFavStarHtml(w) {
+  const isFav = !!favorites[wkey(w)];
+  return `<span onclick="event.stopPropagation();cmToggleCardFav('${w.word.replace(/'/g,"\\'")}','${w.pos.replace(/'/g,"\\'")}',this)" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:21px;cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};flex-shrink:0;">${isFav?'★':'☆'}</span>`;
+}
+function cmToggleCardFav(word, pos, el) {
+  const k = word + '|' + pos;
+  if (favorites[k]) delete favorites[k]; else favorites[k] = true;
+  saveState();
+  listUpdatePersonalCounts();
+  const isFav = !!favorites[k];
+  el.textContent = isFav ? '★' : '☆';
+  el.style.color = isFav ? '#e0a63c' : 'var(--border2)';
+}
 function toggleFavFromRow(word, pos) {
   const k = word + '|' + pos;
   if (favorites[k]) delete favorites[k]; else favorites[k] = true;
   saveState();
+  listUpdatePersonalCounts();
   if (listMode === 'oxford') renderWordList(listLevel);
   else if (listMode === 'topic') renderTopicWordGrid();
   else if (listMode === 'favorites') renderFavoritesList();
@@ -2808,7 +2881,10 @@ function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 // Tekrar Et'in aynı `progress` verisini kullanır (ortak ilerleme), ama basit
 // iki-butonlu (Biliyorum/Öğreniyorum) bir akışla, ayrı bir tasarımda sunar.
 // Amaç: iki modu da bozmadan yan yana test edebilmek.
-let cmSelectedLevels = new Set(['A1','A2','B1','B2','C1']);
+// Boş küme = "hiçbir seviye hariç tutulmadı" (tümü dahil). Bu sayede
+// varsayılan görünüm Kelime Listem'deki seviye chip'leriyle aynı — hiçbiri
+// dolgu almaz, sadece dokunulan seviye daralır. bkz. cmLevelOk().
+let cmSelectedLevels = new Set();
 let cmSelectedFreq = new Set(['High Frequency','Medium Frequency','Low Frequency']);
 // Oturum büyüklüğü varsayılanı Ayarlar'daki günlük hedeften gelir.
 // Kullanıcı oturum içinde başka bir değer seçerse (cmSizeTouched) o değere
@@ -2844,8 +2920,11 @@ function cmRenderLevels() {
   }).join('');
 }
 
+// Filtre olarak kullanılacağı her yerde: boş küme = tüm seviyeler geçer.
+function cmLevelOk(lv) { return cmSelectedLevels.size === 0 || cmSelectedLevels.has(lv); }
+
 function cmToggleLevel(lv) {
-  if (cmSelectedLevels.has(lv) && cmSelectedLevels.size > 1) cmSelectedLevels.delete(lv);
+  if (cmSelectedLevels.has(lv)) cmSelectedLevels.delete(lv);
   else cmSelectedLevels.add(lv);
   cmRenderLevels();
   cmRenderFreqFilter();
@@ -2855,7 +2934,7 @@ function cmToggleLevel(lv) {
 const CM_FREQ_OPTS = [ ['High Frequency','High'], ['Medium Frequency','Medium'], ['Low Frequency','Low'] ];
 function cmRenderFreqFilter() {
   gbMount('cm-band-filters',
-          () => WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr)),
+          () => WORD_DATA.filter(w => cmLevelOk(w.cefr)),
           () => { cmRenderLevels(); cmRenderFreqFilter(); cmRenderProgress(); });
   if (!document.getElementById('cm-freq-row')) return;   // eski frekans satırı kaldırıldı
   const row = document.getElementById('cm-freq-row');
@@ -2864,11 +2943,11 @@ function cmRenderFreqFilter() {
   // Mevcut seviye seçimiyle hiç eşleşmeyen frekans seçenekleri otomatik pasif olur;
   // seçiliyken pasif hale gelirse (seviye değişince) seçimden de otomatik çıkarılır.
   CM_FREQ_OPTS.forEach(([key]) => {
-    const count = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && w.freq === key).length;
+    const count = WORD_DATA.filter(w => cmLevelOk(w.cefr) && w.freq === key).length;
     if (count === 0 && cmSelectedFreq.has(key) && cmSelectedFreq.size > 1) cmSelectedFreq.delete(key);
   });
   row.innerHTML = CM_FREQ_OPTS.map(([key,label]) => {
-    const count = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && w.freq === key).length;
+    const count = WORD_DATA.filter(w => cmLevelOk(w.cefr) && w.freq === key).length;
     const disabled = count === 0;
     return `<button class="chip${cmSelectedFreq.has(key)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleFreq('${key}')"`}>${label}</button>`;
   }).join('');
@@ -2922,7 +3001,7 @@ function cmSetSizeManual(raw) {
 
 function cmBuildQueue() {
   const today = todayStr();
-  const pool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && gbPasses(w));
+  const pool = WORD_DATA.filter(w => cmLevelOk(w.cefr) && gbPasses(w));
   const due = pool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
   const nw = pool.filter(w => !progress[wkey(w)]).slice(0, Math.max(0, cmSessionSize - due.length));
   const combined = [...due, ...nw].slice(0, cmSessionSize);
@@ -2979,7 +3058,7 @@ async function cmShowCard() {
     // Oturum bitti — bu seviye(ler)de gerçekten başka çalışılacak kelime kalıp
     // kalmadığını kontrol et (tekrar zamanı gelenler + hiç görülmemiş yeniler).
     const today = todayStr();
-    const morePool = WORD_DATA.filter(w => cmSelectedLevels.has(w.cefr) && gbPasses(w));
+    const morePool = WORD_DATA.filter(w => cmLevelOk(w.cefr) && gbPasses(w));
     if (morePool.length === 0) {
       // Filtre kombinasyonunun (seviye+frekans) kendisi hiç kelimeye denk
       // gelmiyor — bu "tebrikler, bitirdin" değil, "bu kombinasyon boş" durumu.
@@ -3061,12 +3140,16 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
   area.innerHTML = `
     ${backToListBtn}
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
-      <button onclick="event.stopPropagation();cmToggleExtra('${targetId}')" class="chip" style="margin-bottom:16px;">+ Ek Anlamlar</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <button onclick="event.stopPropagation();cmToggleExtra('${targetId}')" class="chip">+ Ek Anlamlar</button>
+        ${cardFavStarHtml(w)}
+      </div>
       <div>${ttsButtonHtml(w.word, w.word)}</div>
       <div class="wordfont" style="font-size:26px;margin:10px 0 2px;">${escHtml(w.word)}</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+      <div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:8px;">${w.pos}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
         <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
-        <span style="font-size:13px;color:var(--text3);font-style:italic;">${w.pos}</span>
+        ${lfBadgesHtml(w)}${voaBadgeHtml(w)}
       </div>
       ${catsHtml}
       <div id="${trHiddenId}" style="margin-bottom:22px;">
@@ -3255,7 +3338,8 @@ function cmUndo() {
 // Öğreniyorum/Biliyorum listelerini ayrı, gezinilebilir bir sekmede gösterir.
 // Aynı `progress` verisini kullanır (Tekrar Et + Kart Modu ile ortak).
 let stTab = 'learning';
-let stSelectedLevels = new Set(['A1','A2','B1','B2','C1']);
+// bkz. cmSelectedLevels üstündeki not — aynı mantık: boş = tümü dahil.
+let stSelectedLevels = new Set();
 let stSort = 'az';
 let stAddStatusKnown = false;
 
@@ -3263,7 +3347,7 @@ function stInit() {
   document.getElementById('st-card-area').innerHTML = '';
   document.getElementById('st-list').classList.remove('hidden');
   gbMount('st-band-filters',
-          () => WORD_DATA.filter(w => stSelectedLevels.has(w.cefr)),
+          () => WORD_DATA.filter(w => stLevelOk(w.cefr)),
           () => { stRenderLevels(); stRenderList(); });
   stRenderLevels();
   stRenderSort();
@@ -3287,8 +3371,10 @@ function stRenderLevels() {
   }).join('');
 }
 
+function stLevelOk(lv) { return stSelectedLevels.size === 0 || stSelectedLevels.has(lv); }
+
 function stToggleLevel(lv) {
-  if (stSelectedLevels.has(lv) && stSelectedLevels.size > 1) stSelectedLevels.delete(lv);
+  if (stSelectedLevels.has(lv)) stSelectedLevels.delete(lv);
   else stSelectedLevels.add(lv);
   stRenderLevels();
   stRenderList();
@@ -3296,7 +3382,7 @@ function stToggleLevel(lv) {
 
 function stRenderSort() {
   const row = document.getElementById('st-sort-row');
-  const opts = [['az','A→Z'],['recent','🕐 Son değişen'],['favorite','⭐ Favoriler']];
+  const opts = [['az','A→Z'],['recent',ico('clock')+'Son değişen'],['favorite',ico('star')+'Favoriler']];
   row.innerHTML = opts.map(([v,label]) =>
     `<button class="chip${stSort===v?' on':''}" onclick="stSetSort('${v}')">${label}</button>`
   ).join('');
@@ -3400,6 +3486,7 @@ function modalToggleFavorite() {
   const k = wkey(modalCurrentWord);
   if (favorites[k]) delete favorites[k]; else favorites[k] = true;
   saveState();
+  listUpdatePersonalCounts();
   renderModalFavoriteBtn();
 }
 function renderModalFavoriteBtn() {
@@ -3454,7 +3541,7 @@ function stRenderList() {
   const listEl = document.getElementById('st-list');
   const countEl = document.getElementById('st-count-label');
   let items = WORD_DATA
-    .filter(w => stSelectedLevels.has(w.cefr) && gbPasses(w))
+    .filter(w => stLevelOk(w.cefr) && gbPasses(w))
     .map(w => ({ w, p: progress[wkey(w)] }))
     .filter(x => x.p && (stTab==='known' ? x.p.mastery==='mastered' : x.p.mastery!=='mastered'));
 
@@ -3481,7 +3568,7 @@ function stRenderList() {
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:11.5px;color:var(--text2);white-space:nowrap;">✅${p.totalKnown||0} · 🔁${p.totalLearning||0}</span>
+        <span style="font-size:11.5px;color:var(--text2);white-space:nowrap;display:inline-flex;align-items:center;gap:9px;">${ico('check',12,'#5cb87a',false)}${p.totalKnown||0} ${ico('repeat',12,'#6b9ee0',false)}${p.totalLearning||0}</span>
         <span onclick="stToggleFavorite(${wordArg})" style="font-size:18px;cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};">★</span>
         <span onclick="stRemoveWord(${wordArg})" title="Listeden çıkar" style="font-size:16px;cursor:pointer;color:var(--text3);">✕</span>
       </div>
@@ -3783,11 +3870,11 @@ function renderCustomWordsList() {
   if (!words.length) { el.textContent = 'Henüz kelime eklenmedi.'; return; }
   el.innerHTML = words.map(w => {
     const p = customProgress[w.word];
-    let status = '🆕';
+    let status = ico('upcoming',12,null,false);
     if (p) {
-      if (p.mastery === 'mastered') status = '✅';
-      else if (p.mastery === 'consolidating') status = '📈';
-      else status = '🔄';
+      if (p.mastery === 'mastered') status = ico('award',12,'#5cb87a',false);
+      else if (p.mastery === 'consolidating') status = ico('trend',12,'#c9a548',false);
+      else status = ico('repeat',12,'#6b9ee0',false);
     }
     return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;" data-word="${escAttr(w.word)}" onclick="handleWordClick(this)">${status} ${w.word} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">🔊</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
   }).join('');
@@ -3871,9 +3958,9 @@ async function openWordModal(wordLower) {
   const srEl = document.getElementById('modal-sr-status');
   const prog = isCustom ? customProgress[wordLower] : getWordProgress(wordLower);
   if (prog) {
-    const statusMap = { reviewing: '🔄 Tekrarda', consolidating: '📈 Pekişiyor', mastered: '✅ Tam öğrenildi' };
+    const statusMap = { reviewing: ico('repeat')+'Tekrarda', consolidating: ico('trend')+'Pekişiyor', mastered: ico('award')+'Tam öğrenildi' };
     const nextReview = prog.nextReview || '—';
-    srEl.textContent = `${statusMap[prog.mastery] || '🔄'} · Sonraki tekrar: ${nextReview} · ${prog.repetitions || 0} tekrar yapıldı`;
+    srEl.innerHTML = `${statusMap[prog.mastery] || ico('repeat')} · Sonraki tekrar: ${nextReview} · ${prog.repetitions || 0} tekrar yapıldı`;
     srEl.classList.remove('hidden');
   } else {
     srEl.classList.add('hidden');
@@ -4000,8 +4087,8 @@ function modalAnswer(correct) {
   const prog = isCustom ? customProgress[wordLower] : getWordProgress(wordLower);
   const srEl = document.getElementById('modal-sr-status');
   if (prog) {
-    const statusMap = { reviewing: '🔄 Tekrarda', consolidating: '📈 Pekişiyor', mastered: '✅ Tam öğrenildi' };
-    srEl.textContent = `${statusMap[prog.mastery] || '🔄'} · Sonraki tekrar: ${prog.nextReview} · ${prog.repetitions} tekrar yapıldı`;
+    const statusMap = { reviewing: ico('repeat')+'Tekrarda', consolidating: ico('trend')+'Pekişiyor', mastered: ico('award')+'Tam öğrenildi' };
+    srEl.innerHTML = `${statusMap[prog.mastery] || ico('repeat')} · Sonraki tekrar: ${prog.nextReview} · ${prog.repetitions} tekrar yapıldı`;
     srEl.classList.remove('hidden');
   }
 
@@ -4179,7 +4266,7 @@ function sgRenderTenseFilter() {
 }
 
 let sgSourceFilters = new Set(); // 'learning' | 'favorites' | 'struggle' — boşsa filtre uygulanmaz
-const SG_SOURCE_OPTS = [ ['learning','🔁 Öğreniyorum'], ['favorites','⭐ Favoriler'], ['struggle','😓 Zorlandıklarım'] ];
+const SG_SOURCE_OPTS = [ ['learning',ico('repeat')+'Öğreniyorum'], ['favorites',ico('star')+'Favoriler'], ['struggle',ico('alert')+'Zorlandıklarım'] ];
 function sgRenderSourceFilter() {
   const el = document.getElementById('sg-source-filter');
   el.innerHTML = SG_SOURCE_OPTS.map(([key,label]) =>
