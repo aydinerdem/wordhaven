@@ -1580,6 +1580,11 @@ function ico(name, size, color, inline) {
 }
 
 let progress = {};
+// Ters yön (Türkçe → İngilizce) SRS ilerlemesi — `progress`'ten tamamen
+// ayrı tutulur. Bir kelimeyi EN→TR'de bilmek, TR→EN'de bilmek anlamına
+// gelmez (üretim becerisi tanımadan farklı ve genelde daha zayıf iz bırakır);
+// bu yüzden iki yön birbirini asla ezmez. bkz. cmProgressStore().
+let progressReverse = {};
 // Frekans filtresi ortak mantığı: filtre daraltılmamışsa (tüm seçenekler
 // seçili / boş = "tümü") etiketsiz (freq: "") kelimeler de gösterilir.
 // Kullanıcı belirli bir frekansa daraltınca (örn. sadece "Low") etiketsiz
@@ -2554,7 +2559,7 @@ function endSession() {
 }
 
 function doExport() {
-  const data={progress,contentCache,streak,customProgress,customWords,customCache,srsStore,savedAt:new Date().toISOString()};
+  const data={progress,progressReverse,contentCache,streak,customProgress,customWords,customCache,srsStore,savedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='oxford_progress_'+todayStr()+'.json'; a.click();
@@ -2567,6 +2572,7 @@ function doImport(e){
     try{
       const d=JSON.parse(ev.target.result);
       if(d.progress) progress=d.progress;
+      if(d.progressReverse) progressReverse=d.progressReverse;
       if(d.contentCache) contentCache=d.contentCache;
       if(d.streak) streak=d.streak;
       if(d.customProgress) customProgress=d.customProgress;
@@ -2576,7 +2582,7 @@ function doImport(e){
       saveState();
       updateDashboard();
       renderCustomWordsList();
-      alert(`İlerleme yüklendi! ${Object.keys(progress).length} Oxford + ${Object.keys(customProgress).length} özel kelime kaydı aktarıldı.`);
+      alert(`İlerleme yüklendi! ${Object.keys(progress).length} Oxford + ${Object.keys(progressReverse).length} ters yön + ${Object.keys(customProgress).length} özel kelime kaydı aktarıldı.`);
     } catch{ alert('Dosya okunamadı.'); }
   };
   reader.readAsText(file);
@@ -2742,7 +2748,7 @@ const STORAGE_KEY = 'oxford_flashcards_state_v1';
 
 function saveState() {
   try {
-    const data = { progress, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, savedAt: new Date().toISOString() };
+    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, savedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) { /* localStorage dolu veya erişilemez olabilir — sessizce geç */ }
 }
@@ -2753,6 +2759,7 @@ function loadState() {
     if (!raw) return false;
     const d = JSON.parse(raw);
     if (d.progress) progress = d.progress;
+    if (d.progressReverse) progressReverse = d.progressReverse;
     if (d.contentCache) contentCache = d.contentCache;
     if (d.streak) streak = d.streak;
     if (d.customProgress) customProgress = d.customProgress;
@@ -2898,6 +2905,11 @@ function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 // dolgu almaz, sadece dokunulan seviye daralır. bkz. cmLevelOk().
 let cmSelectedLevels = new Set();
 let cmSelectedFreq = new Set(['High Frequency','Medium Frequency','Low Frequency']);
+// Kart yönü: 'en2tr' (İngilizce göster, Türkçesini hatırla — mevcut/varsayılan
+// davranış) veya 'tr2en' (Türkçe göster, İngilizcesini hatırla — üretim
+// pratiği). Her yönün kendi SRS kaydı vardır, bkz. cmProgressStore().
+let cmDirection = 'en2tr';
+function cmProgressStore(dir) { return dir === 'tr2en' ? progressReverse : progress; }
 // Oturum büyüklüğü varsayılanı Ayarlar'daki günlük hedeften gelir.
 // Kullanıcı oturum içinde başka bir değer seçerse (cmSizeTouched) o değere
 // saygı duyulur; Kart Modu'na tekrar girildiğinde yine hedefe döner.
@@ -2918,7 +2930,23 @@ function cmInit() {
   if (!cmSizeTouched) cmSessionSize = dashGoal();
   cmRenderLevels();
   cmRenderFreqFilter();
+  cmRenderDirection();
   cmRenderSizeRow();
+  cmStart();
+}
+
+const CM_DIR_OPTS = [ ['en2tr', 'İngilizce → Türkçe'], ['tr2en', 'Türkçe → İngilizce'] ];
+function cmRenderDirection() {
+  const row = document.getElementById('cm-dir-row');
+  if (!row) return;
+  row.innerHTML = CM_DIR_OPTS.map(([key, label]) =>
+    `<button class="chip${cmDirection === key ? ' on' : ''}" onclick="cmSetDirection('${key}')">${label}</button>`
+  ).join('');
+}
+function cmSetDirection(dir) {
+  if (cmDirection === dir) return;
+  cmDirection = dir;
+  cmRenderDirection();
   cmStart();
 }
 
@@ -3013,9 +3041,10 @@ function cmSetSizeManual(raw) {
 
 function cmBuildQueue() {
   const today = todayStr();
+  const store = cmProgressStore(cmDirection);
   const pool = WORD_DATA.filter(w => cmLevelOk(w.cefr) && gbPasses(w));
-  const due = pool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
-  const nw = pool.filter(w => !progress[wkey(w)]).slice(0, Math.max(0, cmSessionSize - due.length));
+  const due = pool.filter(w => { const p = store[wkey(w)]; return p && p.nextReview <= today; });
+  const nw = pool.filter(w => !store[wkey(w)]).slice(0, Math.max(0, cmSessionSize - due.length));
   const combined = [...due, ...nw].slice(0, cmSessionSize);
   // Basit karıştırma — hep aynı sıradan başlamasın
   for (let i = combined.length - 1; i > 0; i--) {
@@ -3070,6 +3099,7 @@ async function cmShowCard() {
     // Oturum bitti — bu seviye(ler)de gerçekten başka çalışılacak kelime kalıp
     // kalmadığını kontrol et (tekrar zamanı gelenler + hiç görülmemiş yeniler).
     const today = todayStr();
+    const store = cmProgressStore(cmDirection);
     const morePool = WORD_DATA.filter(w => cmLevelOk(w.cefr) && gbPasses(w));
     if (morePool.length === 0) {
       // Filtre kombinasyonunun (seviye+frekans) kendisi hiç kelimeye denk
@@ -3080,8 +3110,8 @@ async function cmShowCard() {
       </div>`;
       return;
     }
-    const moreDue = morePool.filter(w => { const p = progress[wkey(w)]; return p && p.nextReview <= today; });
-    const moreNew = morePool.filter(w => !progress[wkey(w)]);
+    const moreDue = morePool.filter(w => { const p = store[wkey(w)]; return p && p.nextReview <= today; });
+    const moreNew = morePool.filter(w => !store[wkey(w)]);
     const hasMore = (moreDue.length + moreNew.length) > 0;
     const remaining = moreDue.length + moreNew.length;
     const goal = dashGoal();
@@ -3118,7 +3148,7 @@ async function cmShowCard() {
     </div>`;
     return;
   }
-  cmRenderCard(cmQueue[cmViewIdx], 'cmAnswer', true);
+  cmRenderCard(cmQueue[cmViewIdx], 'cmAnswer', true, undefined, undefined, cmDirection);
 }
 
 function cmOpenFromList(word, pos) {
@@ -3129,9 +3159,10 @@ function cmOpenFromList(word, pos) {
 
 // isQueueCard: sıradaki normal kart mı (geri al / bitiş ekranı geçerli), yoksa
 // listeden açılan tek seferlik bir inceleme mi.
-function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
+function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn, dir) {
   targetId = targetId || 'cm-card-area';
   backFn = backFn || 'cmBackToQueue';
+  dir = dir || 'en2tr';
   const area = document.getElementById(targetId);
   const k = wkey(w);
   const c = BUILTIN_CONTENT[k];
@@ -3149,9 +3180,40 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
   const extraId = targetId + '-cm-extra';
   const trHiddenId = targetId + '-cm-tr-hidden';
   const trShownId = targetId + '-cm-tr-shown';
-  area.innerHTML = `
-    ${backToListBtn}
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
+  const badgesHtml = `<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
+        ${lfBadgesHtml(w)}${freqBadgeHtml(w)}${voaBadgeHtml(w)}
+      </div>`;
+
+  let promptBlock, revealBlock;
+  if (dir === 'tr2en') {
+    // Türkçe önde: İngilizcesini hatırlamaya çalış. Kelimeyi/telaffuzu ve
+    // örnekleri (ki örnekler kelimeyi açık şekilde içerir) reveal'a kadar
+    // tamamen gizli tutuyoruz — aksi halde "+ Ek Anlamlar" cevabı ele verir.
+    promptBlock = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <span style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.3px;">TÜRKÇE → İNGİLİZCE</span>
+        ${cardFavStarHtml(w)}
+      </div>
+      <div style="font-size:22px;font-weight:600;color:var(--accent);margin:8px 0 10px;">${turkish || '—'}</div>
+      ${badgesHtml}
+      ${catsHtml}`;
+    revealBlock = `
+      <div id="${trHiddenId}" style="margin-bottom:22px;">
+        <button onclick="event.stopPropagation();cmRevealTurkish('${targetId}')" class="chip" style="padding:8px 20px;">İngilizcesini gör</button>
+      </div>
+      <div id="${trShownId}" class="hidden" style="margin-bottom:22px;">
+        <div>${ttsButtonHtml(w.word, w.word)}</div>
+        <div class="wordfont" style="font-size:24px;margin:6px 0 2px;">${escHtml(w.word)}</div>
+        <div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:10px;">${w.pos}</div>
+        <button onclick="event.stopPropagation();cmToggleExtra('${targetId}')" class="chip">+ Ek Anlamlar</button>
+      </div>
+      <div id="${extraId}" class="hidden" style="text-align:left;border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:16px;">
+        ${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}
+      </div>`;
+  } else {
+    // Mevcut davranış: İngilizce önde, Türkçesini hatırlamaya çalış.
+    promptBlock = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <button onclick="event.stopPropagation();cmToggleExtra('${targetId}')" class="chip">+ Ek Anlamlar</button>
         ${cardFavStarHtml(w)}
@@ -3159,18 +3221,23 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
       <div>${ttsButtonHtml(w.word, w.word)}</div>
       <div class="wordfont" style="font-size:26px;margin:10px 0 2px;">${escHtml(w.word)}</div>
       <div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:8px;">${w.pos}</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
-        ${lfBadgesHtml(w)}${freqBadgeHtml(w)}${voaBadgeHtml(w)}
-      </div>
-      ${catsHtml}
+      ${badgesHtml}
+      ${catsHtml}`;
+    revealBlock = `
       <div id="${trHiddenId}" style="margin-bottom:22px;">
         <button onclick="event.stopPropagation();cmRevealTurkish('${targetId}')" class="chip" style="padding:8px 20px;">Türkçesini gör</button>
       </div>
       <div id="${trShownId}" class="hidden" style="font-size:20px;color:var(--accent);font-weight:600;margin-bottom:22px;">${turkish || '—'}</div>
       <div id="${extraId}" class="hidden" style="text-align:left;border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:16px;">
         ${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}
-      </div>
+      </div>`;
+  }
+
+  area.innerHTML = `
+    ${backToListBtn}
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
+      ${promptBlock}
+      ${revealBlock}
       <div style="display:flex;gap:10px;">
         <button onclick="${answerCall}false)" style="flex:1;padding:14px;border-radius:var(--rsm);border:none;background:#fff3e0;color:#a05000;font-weight:600;font-size:14px;cursor:pointer;">Öğreniyorum</button>
         <button onclick="${answerCall}true)" style="flex:1;padding:14px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Biliyorum</button>
@@ -3277,13 +3344,14 @@ function cmAnswer(correct) {
   const i = cmViewIdx;
   const w = cmQueue[i], k = wkey(w);
   if (!w) return;
-  const wasNew = !progress[k];
+  const store = cmProgressStore(cmDirection);
+  const wasNew = !store[k];
   const prev = cmAnswers[i];               // daha önce cevaplanmış mıydı?
-  cmHistory.push({ k, prevEntry: progress[k] ? { ...progress[k] } : null, wasNew, wasKnown: correct, idx: i, prevAnswer: prev });
+  cmHistory.push({ k, dir: cmDirection, prevEntry: store[k] ? { ...store[k] } : null, wasNew, wasKnown: correct, idx: i, prevAnswer: prev });
 
-  const cur = progress[k] || {};
+  const cur = store[k] || {};
   const next = getNextReview(cur, correct);
-  progress[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
+  store[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
 
   if (prev === undefined) {
     if (correct) cmDone.known++; else cmDone.learning++;
@@ -3323,8 +3391,9 @@ function cmAnswerAdhoc(word, pos, correct) {
 function cmUndo() {
   if (!cmHistory.length) return;
   const last = cmHistory.pop();
-  if (last.prevEntry) progress[last.k] = last.prevEntry;
-  else delete progress[last.k];
+  const store = cmProgressStore(last.dir || cmDirection);
+  if (last.prevEntry) store[last.k] = last.prevEntry;
+  else delete store[last.k];
 
   if (last.prevAnswer === undefined) {
     if (last.wasKnown) cmDone.known--; else cmDone.learning--;
@@ -3354,6 +3423,10 @@ let stTab = 'learning';
 let stSelectedLevels = new Set();
 let stSort = 'az';
 let stAddStatusKnown = false;
+// Kelime Durumu da Kart Modu'ndaki gibi iki yönü ayrı ayrı gösterebilir —
+// aynı progress/progressReverse çiftini okur, bkz. cmProgressStore().
+let stDirection = 'en2tr';
+function stProgressStore() { return cmProgressStore(stDirection); }
 
 function stInit() {
   document.getElementById('st-card-area').innerHTML = '';
@@ -3362,8 +3435,25 @@ function stInit() {
           () => WORD_DATA.filter(w => stLevelOk(w.cefr)),
           () => { stRenderLevels(); stRenderList(); });
   stRenderLevels();
+  stRenderDirection();
   stRenderSort();
   stSetTab(stTab);
+}
+
+const ST_DIR_OPTS = [ ['en2tr', 'İngilizce → Türkçe'], ['tr2en', 'Türkçe → İngilizce'] ];
+function stRenderDirection() {
+  const row = document.getElementById('st-dir-row');
+  if (!row) return;
+  row.innerHTML = ST_DIR_OPTS.map(([key, label]) =>
+    `<button class="chip${stDirection === key ? ' on' : ''}" onclick="stSetDirection('${key}')">${label}</button>`
+  ).join('');
+}
+function stSetDirection(dir) {
+  if (stDirection === dir) return;
+  stDirection = dir;
+  stRenderDirection();
+  stRenderLevels();
+  stRenderList();
 }
 
 function stSetTab(tab) {
@@ -3378,7 +3468,7 @@ function stRenderLevels() {
   const levels = ['A1','A2','B1','B2','C1'];
   row.innerHTML = levels.map(lv => {
     // Sayaç: o seviyede ortak filtreden geçen ve ilerleme kaydı olan kelimeler
-    const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w) && progress[wkey(w)]).length;
+    const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w) && stProgressStore()[wkey(w)]).length;
     return `<button class="chip lvl-${lv.toLowerCase()}${stSelectedLevels.has(lv)?' on':''}" onclick="stToggleLevel('${lv}')">${lv} <span style="color:var(--text3);">(${count})</span></button>`;
   }).join('');
 }
@@ -3449,7 +3539,7 @@ function stAddWord() {
   }
   matches.forEach(w => {
     const k = wkey(w);
-    progress[k] = stAddStatusKnown
+    stProgressStore()[k] = stAddStatusKnown
       ? { interval:21, easeFactor:2.5, repetitions:4, mastery:'mastered', learned:true, totalKnown:0, totalLearning:0, nextReview:getNextDate(21), lastSeen:todayStr() }
       : { interval:0, easeFactor:2.5, repetitions:0, mastery:'reviewing', learned:false, totalKnown:0, totalLearning:0, nextReview:todayStr(), lastSeen:todayStr() };
   });
@@ -3464,7 +3554,7 @@ function stAddWord() {
   const stem = word.length >= 5 ? word.slice(0, 5) : word;
   const related = WORD_DATA.filter(w => {
     const wl = w.word.toLowerCase();
-    return wl !== word && wl.startsWith(stem) && !progress[wkey(w)];
+    return wl !== word && wl.startsWith(stem) && !stProgressStore()[wkey(w)];
   });
   if (related.length) {
     const list = related.map(w => `${w.word} (${w.pos})`).join(', ');
@@ -3472,7 +3562,7 @@ function stAddWord() {
     if (confirm(`"${word}" eklendi. Aynı kökten gelen başka kelimeler de var: ${list}.\n\nBunları da "${status}" olarak eklemek ister misin?`)) {
       related.forEach(w => {
         const k = wkey(w);
-        progress[k] = stAddStatusKnown
+        stProgressStore()[k] = stAddStatusKnown
           ? { interval:21, easeFactor:2.5, repetitions:4, mastery:'mastered', learned:true, totalKnown:0, totalLearning:0, nextReview:getNextDate(21), lastSeen:todayStr() }
           : { interval:0, easeFactor:2.5, repetitions:0, mastery:'reviewing', learned:false, totalKnown:0, totalLearning:0, nextReview:todayStr(), lastSeen:todayStr() };
       });
@@ -3554,7 +3644,7 @@ function stRenderList() {
   const countEl = document.getElementById('st-count-label');
   let items = WORD_DATA
     .filter(w => stLevelOk(w.cefr) && gbPasses(w))
-    .map(w => ({ w, p: progress[wkey(w)] }))
+    .map(w => ({ w, p: stProgressStore()[wkey(w)] }))
     .filter(x => x.p && (stTab==='known' ? x.p.mastery==='mastered' : x.p.mastery!=='mastered'));
 
   if (stSort==='az') items.sort((a,b) => a.w.word.localeCompare(b.w.word));
@@ -3595,7 +3685,7 @@ function stRemoveWord(word, pos) {
   const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
   if (!w) return;
   if (!confirm(`"${word}" kelimesini Öğreniyorum/Biliyorum listesinden çıkarmak istediğine emin misin?`)) return;
-  delete progress[wkey(w)];
+  delete stProgressStore()[wkey(w)];
   saveState();
   stRenderList();
   updateDashboard();
@@ -3605,7 +3695,7 @@ function stOpenWord(word, pos) {
   const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
   if (!w) return;
   document.getElementById('st-list').classList.add('hidden');
-  cmRenderCard(w, 'stAnswerWord', false, 'st-card-area', 'stBackToList');
+  cmRenderCard(w, 'stAnswerWord', false, 'st-card-area', 'stBackToList', stDirection);
 }
 
 function stBackToList() {
@@ -3618,9 +3708,9 @@ function stAnswerWord(word, pos, correct) {
   const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
   if (!w) return;
   const k = wkey(w);
-  const cur = progress[k] || {};
+  const cur = stProgressStore()[k] || {};
   const next = getNextReview(cur, correct);
-  progress[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
+  stProgressStore()[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
   saveState();
   stBackToList();
 }
