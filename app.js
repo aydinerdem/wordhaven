@@ -867,11 +867,23 @@ function lfBadgesHtml(w) {
   if (w && w.writing)  h += `<span class="badge b-${w.writing.toLowerCase()}" title="Yazı sıklığı ${w.writing}">${w.writing}</span>`;
   return h;
 }
-// Kelime satırının ikinci satırı: sıklık rozetleri (Longman S/W + VOA) +
-// hoparlör + favori + temas noktaları. Kelime uzunluğundan ve rozet sayısından
-// bağımsız, tüm Kelime Listem alt sekmelerinde aynı hizada başlar.
+// Longman genel frekans rozeti (High/Medium/Low) — S/W'den ayrı bir sinyal:
+// konuşma/yazı bandı değil, kelimenin Longman derlemindeki genel sıklığı.
+const FREQ_BADGE_MAP = { 'High Frequency': ['High','b-high'], 'Medium Frequency': ['Medium','b-medium'], 'Low Frequency': ['Low','b-low'] };
+function freqBadgeHtml(w) {
+  const m = w && w.freq && FREQ_BADGE_MAP[w.freq];
+  return m ? `<span class="badge ${m[1]}" title="Genel frekans: ${m[0]}">${m[0]}</span>` : '';
+}
+// Kelime satırının alt kısmı: iki ayrı satır. Üstteki bilgi rozetleri
+// (Longman S/W + genel frekans + VOA — dokunulamaz), alttaki dokunulabilir
+// eylemler (hoparlör/favori/temas noktaları). İkisini karıştırmamak hem
+// görsel netlik hem de "buraya dokununca bir şey mi olacak?" belirsizliğini
+// önlemek için. Kelime uzunluğundan ve rozet sayısından bağımsız, tüm
+// Kelime Listem alt sekmelerinde aynı hizada başlar.
 function wordRowLine2Html(w) {
-  return `<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;">${lfBadgesHtml(w)}${voaBadgeHtml(w)}${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</div>`;
+  const badges = `${lfBadgesHtml(w)}${freqBadgeHtml(w)}${voaBadgeHtml(w)}`;
+  const badgesRow = badges ? `<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">${badges}</div>` : '';
+  return `${badgesRow}<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">${ttsButtonHtml(w.word, w.word)}${favStarHtml(w)}${contactDotsHtml(w)}</div>`;
 }
 
 // ── Kelime Listem → Oxford paneli bant filtreleri ──────────────────────────
@@ -3149,7 +3161,7 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn) {
       <div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:8px;">${w.pos}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
         <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
-        ${lfBadgesHtml(w)}${voaBadgeHtml(w)}
+        ${lfBadgesHtml(w)}${freqBadgeHtml(w)}${voaBadgeHtml(w)}
       </div>
       ${catsHtml}
       <div id="${trHiddenId}" style="margin-bottom:22px;">
