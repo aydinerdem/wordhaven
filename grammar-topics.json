@@ -18612,4 +18612,1898 @@
    ]
   },
   {
-   "topicId": "future-present-co
+   "topicId": "future-present-continuous-for-future-use",
+   "title": "Planlarını ve Geleceği Konuşma",
+   "ref": "Present Continuous For Future Use",
+   "summary": "Bu konu, önceden ayarlanmış gelecek planlarından ('I'm meeting her tomorrow') bahsetmeyi, gelecekle ilgili soru sormayı ve 'as soon as' ile başlayan zaman cümlelerinde gelecek zaman yerine şimdiki zaman kullanmayı öğretir.",
+   "category": "FUTURE",
+   "icon": "🕐",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "use-future-arrangements",
+     "guideword": "USE: FUTURE ARRANGEMENTS",
+     "title": "Planlanmış Etkinlikleri Söyleme",
+     "en": "We use the present continuous to talk about things we have already planned or arranged for the future, often with another person.",
+     "tr": "Gelecekte yapmayı önceden planladığımız ve genellikle başka biriyle ayarladığımız şeyleri anlatmak için present continuous kullanırız.",
+     "ex": [
+      {
+       "w": "I <b>am meeting</b> my dentist tomorrow morning.",
+       "tr": "Yarın sabah dişçimle görüşüyorum."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, sadece niyet değil, gerçekten randevu alınmış, biletle onaylanmış ya da birisiyle sözleşilmiş planları göstermek için kullanılır.",
+      "mistakes": "Öğrenciler bu yapıyı 'will' ile karıştırıp her gelecek planı için 'will' kullanma eğilimindedir; ancak kesin ayarlanmış planlarda present continuous daha doğaldır, örneğin 'I will meet him tomorrow' yerine 'I am meeting him tomorrow' demek daha uygun olur.",
+      "confusion": "'Be going to' ile karıştırılır; 'going to' genel niyet ifade eder (I'm going to travel someday), present continuous ise zaman ve detay belirli somut bir düzenlemeyi ifade eder (I'm traveling to Paris next Monday)."
+     },
+     "quiz": {
+      "q": "She ___ her sister at the airport at 6 pm tomorrow.",
+      "opts": [
+       "is meeting",
+       "meets"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "use-questions-about-the-future",
+     "guideword": "USE: QUESTIONS ABOUT THE FUTURE",
+     "title": "Gelecek Planları Hakkında Soru Sorma",
+     "en": "We can use the present continuous in questions to ask someone about their future plans or arrangements.",
+     "tr": "Birinin gelecekteki planlarını veya ayarlamalarını sormak için present continuous soru yapısını kullanabiliriz.",
+     "ex": [
+      {
+       "w": "What time <b>are you leaving</b> for the airport?",
+       "tr": "Havaalanına saat kaçta gidiyorsun?"
+      }
+     ],
+     "nuance": {
+      "why": "Bu soru yapısı, karşıdaki kişinin zaten yapmış olduğu kesin bir plan hakkında bilgi almak için kullanılır, genel bir tahmin sormaz.",
+      "mistakes": "Türkçe konuşanlar bazen soru kurarken yardımcı fiili unutur ve 'You are meeting who tomorrow?' gibi yanlış sıralama yapar; doğru sıralama 'Who are you meeting tomorrow?' şeklindedir.",
+      "confusion": "'Will you...?' soru kalıbıyla karıştırılır; 'Will you help me?' bir istek veya tahmin sorarken, 'Are you helping me tomorrow?' zaten var olan bir planı doğrulamak için sorulur."
+     },
+     "quiz": {
+      "q": "___ you doing anything special this weekend?",
+      "opts": [
+       "Are",
+       "Do"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-with-as-soon-as",
+     "guideword": "FORM: WITH 'AS SOON AS'",
+     "title": "'As Soon As' ile Gelecek Planı Kurma",
+     "en": "After 'as soon as', we usually use the present simple, not the present continuous, even though the whole sentence talks about the future.",
+     "tr": "'As soon as' kelimesinden sonra, cümle gelecekten bahsetse bile genellikle present simple kullanılır, present continuous kullanılmaz.",
+     "ex": [
+      {
+       "w": "I will call you <b>as soon as I arrive</b> at the station.",
+       "tr": "İstasyona varır varmaz seni arayacağım."
+      }
+     ],
+     "nuance": {
+      "why": "İngilizcede zaman cümlecikleri (as soon as, when, before) gelecekten bahsetse de bu cümleciklerde present simple kullanılır çünkü gelecek zaman genelde ana cümlede zaten belirtilmiştir.",
+      "mistakes": "Öğrenciler genelde 'as soon as' sonrasında 'will' kullanma hatası yapar, örneğin 'I will call you as soon as I will arrive' yanlıştır; doğrusu 'I will call you as soon as I arrive' şeklindedir.",
+      "confusion": "Bu kural 'when', 'before', 'after' gibi diğer zaman bağlaçlarıyla da aynıdır; hepsinde de gelecek zaman ana cümlede kalır, bağlaç cümleciğinde present simple kullanılır, örneğin 'I'll text you when I get home.'"
+     },
+     "quiz": {
+      "q": "She will start dinner as soon as he ___ home.",
+      "opts": [
+       "gets",
+       "will get"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "modality-used-to",
+   "title": "Artık Öyle Olmayan Alışkanlıklar",
+   "ref": "Used to",
+   "summary": "Geçmişte doğru olup şimdi geçerli olmayan durumları anlatmak için 'used to' yapısını olumlu ve olumsuz cümlelerde nasıl kullanacağını öğrenirsin.",
+   "category": "MODALITY",
+   "icon": "🔑",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-affirmative",
+     "guideword": "FORM: AFFIRMATIVE",
+     "title": "Geçmiş Alışkanlıkları Anlatma",
+     "en": "We use 'used to + base verb' to talk about past habits or situations that are not true anymore.",
+     "tr": "Geçmişte sürekli yaptığımız ama artık yapmadığımız şeyleri anlatmak için 'used to + fiil' kalıbını kullanırız.",
+     "ex": [
+      {
+       "w": "I <b>used to play</b> football every weekend.",
+       "tr": "Eskiden her hafta sonu futbol oynardım."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, geçmişteki tekrar eden alışkanlıkları veya durumları şimdiki zamanla karşılaştırarak anlatmak için kullanılır.",
+      "mistakes": "Türkçe öğrenciler genellikle 'used to' dan sonra fiile '-ing' ekler, örneğin yanlış şekilde 'I used to playing' derler; doğrusu 'I used to play' şeklindedir.",
+      "confusion": "'Used to' yapısı 'be used to' (bir şeye alışkın olmak) ile karıştırılır; 'I used to live in Ankara' geçmiş alışkanlığı, 'I am used to living in Ankara' ise şu anki alışkanlığı anlatır."
+     },
+     "quiz": {
+      "q": "She ___ to a small village when she was a child.",
+      "opts": [
+       "used to live",
+       "used to living"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-negative",
+     "guideword": "FORM: NEGATIVE",
+     "title": "Eskiden Yapmadığımı Söyleme",
+     "en": "To make the negative form, we use 'didn't use to + base verb' to say something was not true or did not happen in the past.",
+     "tr": "Olumsuz cümle kurmak için 'didn't use to + fiil' kalıbını kullanırız; bu, geçmişte bir şeyin doğru olmadığını veya yapılmadığını anlatır.",
+     "ex": [
+      {
+       "w": "He <b>didn't use to like</b> coffee.",
+       "tr": "Eskiden kahveyi sevmezdi."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, geçmişte belirli bir alışkanlığın veya durumun olmadığını vurgulamak için kullanılır.",
+      "mistakes": "Öğrenciler sık sık 'didn't used to' şeklinde fazladan 'd' harfi ekler; doğru kullanım 'didn't use to' şeklindedir, çünkü 'did' zaten geçmiş zamanı gösterir.",
+      "confusion": "'Didn't use to' ile 'never used to' karıştırılabilir; ikisi de benzer anlam taşır ama 'never used to' daha vurgulu bir olumsuzluk ifade eder, örneğin 'She never used to smoke.'"
+     },
+     "quiz": {
+      "q": "They ___ to eat fast food when they were young.",
+      "opts": [
+       "didn't use to",
+       "didn't used to"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "use-no-longer-true",
+     "guideword": "USE: NO LONGER TRUE",
+     "title": "Artık Doğru Olmayan Durumlar",
+     "en": "We use 'used to' to show that something was true in the past but is not true now.",
+     "tr": "'Used to' yapısını, geçmişte doğru olan ama artık doğru olmayan bir durumu belirtmek için kullanırız.",
+     "ex": [
+      {
+       "w": "There <b>used to be</b> a cinema on this street.",
+       "tr": "Bu sokakta eskiden bir sinema vardı."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kullanım, geçmiş ile şimdiki durum arasındaki değişimi vurgulamak için tercih edilir.",
+      "mistakes": "Öğrenciler bu yapıyı sadece alışkanlıklar için kullanılabilir sanır, ama aynı zamanda geçmişteki kalıcı durumları (bir yerin var olması, bir şeyin sahibi olmak gibi) anlatmak için de kullanılabilir; örneğin 'I used to have long hair.'",
+      "confusion": "'Used to' ile basit geçmiş zaman (Past Simple) karıştırılabilir; 'I lived in Izmir for two years' sadece bir olguyu anlatırken, 'I used to live in Izmir' geçmişteki durumun artık değiştiğini vurgular."
+     },
+     "quiz": {
+      "q": "This building ___ a school, but now it's an office.",
+      "opts": [
+       "used to be",
+       "was used to be"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "modality-adverbs",
+   "title": "Belki, Kesinlikle: Modal Zarflarla İnceltme",
+   "ref": "Adverbs",
+   "summary": "Bu konu, 'possibly', 'definitely', 'probably' gibi zarfları modal fiillerle (may, might, must, could) birlikte kullanarak bir şeyin ne kadar kesin olduğunu ifade etmeyi ve nazik, dolaylı bir dil kurmayı öğretir.",
+   "category": "MODALITY",
+   "icon": "🔑",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-use-emphasis",
+     "guideword": "FORM/USE: EMPHASIS",
+     "title": "Bir Şeyi Güçlü Şekilde Vurgulama",
+     "en": "We can use adverbs like 'really', 'definitely', or 'certainly' before a verb to make our statement stronger and more confident.",
+     "tr": "Bir cümleyi daha güçlü ve daha kesin hale getirmek için fiilden önce 'really', 'definitely' veya 'certainly' gibi zarflar kullanabiliriz.",
+     "ex": [
+      {
+       "w": "She <b>definitely</b> knows the answer.",
+       "tr": "O, cevabı kesinlikle biliyor."
+      }
+     ],
+     "nuance": {
+      "why": "Konuşmacının bir konudaki güvenini veya kesinliğini göstermek için kullanılır.",
+      "mistakes": "Türk öğrenciler bu zarfları genellikle cümle sonuna koyar, ama İngilizcede genelde fiilden önce gelir; 'She knows definitely the answer' yerine 'She definitely knows the answer' denir.",
+      "confusion": "Bu yapı 'very' ile karıştırılabilir; ama 'very' sıfat/zarfı güçlendirirken, 'definitely' gibi kelimeler bütün bir eylemi ya da düşünceyi vurgular."
+     },
+     "quiz": {
+      "q": "He ___ deserves this award.",
+      "opts": [
+       "certainly",
+       "certain"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-use-modal-verb-modal-adverb-hedging-or-emphasis",
+     "guideword": "FORM/USE: MODAL VERB + MODAL ADVERB, HEDGING OR EMPHASIS",
+     "title": "Modal Fiil + Zarfla Fikri Yumuşatma veya Güçlendirme",
+     "en": "We can combine a modal verb with an adverb like 'probably', 'definitely', or 'certainly' to show how sure we are about something.",
+     "tr": "Bir konuda ne kadar emin olduğumuzu göstermek için modal fiilleri 'probably', 'definitely' veya 'certainly' gibi zarflarla birlikte kullanabiliriz.",
+     "ex": [
+      {
+       "w": "It <b>will probably</b> rain later.",
+       "tr": "Daha sonra muhtemelen yağmur yağacak."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, kesinlik derecesini ayarlayarak konuşmayı daha doğal ve gerçekçi hale getirir.",
+      "mistakes": "Öğrenciler zarfı modal fiilden önce koyma eğiliminde olabilir; doğru kullanım 'will probably' şeklindedir, 'probably will' değil (bazı bağlamlarda kullanılsa da öğrenme aşamasında ilkini önceliklendirmek daha güvenlidir).",
+      "confusion": "Bu yapı sade modal kullanımıyla (sadece 'will', 'might') karıştırılabilir; zarf eklenince cümleye ekstra bir kesinlik ya da belirsizlik derecesi katılır, örneğin 'might' zaten belirsizdir ama 'will definitely' yüksek kesinlik taşır."
+     },
+     "quiz": {
+      "q": "She ___ finish the project by Friday.",
+      "opts": [
+       "will definitely",
+       "definitely will not"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-use-possibly-politeness",
+     "guideword": "FORM/USE, 'POSSIBLY', POLITENESS",
+     "title": "Nazikçe Öneri veya İstek Sunma",
+     "en": "We use 'possibly' with modal verbs like 'could' to make a request or suggestion sound softer and more polite.",
+     "tr": "Bir istek veya öneriyi daha yumuşak ve kibar hale getirmek için 'possibly' kelimesini 'could' gibi modal fiillerle birlikte kullanırız.",
+     "ex": [
+      {
+       "w": "Could you <b>possibly</b> help me with this?",
+       "tr": "Bana bununla yardım edebilir misin acaba?"
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, özellikle resmi ya da tanımadık kişilerle konuşurken talebi daha kibar ve az baskıcı hale getirir.",
+      "mistakes": "Türk öğrenciler bazen 'possibly' kelimesini cümlenin başına koyar; doğru kullanım modal fiil ile ana fiil arasındadır, örneğin 'Possibly could you help' yanlış, 'Could you possibly help' doğrudur.",
+      "confusion": "Bu yapı 'maybe' ile karıştırılabilir; 'maybe' cümlenin başında bağımsız bir olasılık belirtirken, 'possibly' modal fiille birlikte kullanıldığında rica cümlesine kibarlık ekler."
+     },
+     "quiz": {
+      "q": "Could you ___ send me the file?",
+      "opts": [
+       "possibly",
+       "maybe"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "past-past-perfect-continuous",
+   "title": "Past Continuous",
+   "ref": "Past Perfect Continuous",
+   "summary": "Geçmişte belirli bir anda devam etmekte olan olayları ve bir olay sırasında arka planda süregelen başka bir eylemi anlatmayı öğretir.",
+   "category": "PAST",
+   "icon": "🕐",
+   "verifyType": "sentencekur",
+   "subs": [
+    {
+     "id": "form-affirmative",
+     "guideword": "FORM: AFFIRMATIVE",
+     "title": "Geçmişte Süren Eylemi Kurma",
+     "en": "We form the past perfect continuous with 'had been' plus the '-ing' form of the verb. This shows an action that was going on before another point in the past.",
+     "tr": "Past Perfect Continuous, 'had been' ile fiilin '-ing' hali kullanılarak oluşturulur. Bu yapı, geçmişteki başka bir andan önce devam etmekte olan bir eylemi anlatır.",
+     "ex": [
+      {
+       "w": "She <b>had been working</b> at that company for five years before it closed.",
+       "tr": "Şirket kapanmadan önce orada beş yıldır çalışıyordu."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, geçmişteki bir olaydan önce ne kadar süredir devam eden bir eylem olduğunu vurgulamak için kullanılır.",
+      "mistakes": "Öğrenciler genellikle 'had' yerine 'has' kullanır ya da fiile '-ing' eklemeyi unutur; örneğin 'She has been working' yerine 'She had been working' doğrudur.",
+      "confusion": "Past Perfect (had + past participle) ile karıştırılır; Past Perfect Continuous eylemin süresine odaklanırken, Past Perfect eylemin tamamlanmasına odaklanır, örneğin 'had finished' (bitmiş) ile 'had been finishing' (bitirme sürecinde) farklıdır."
+     }
+    },
+    {
+     "id": "use-background-events",
+     "guideword": "USE: BACKGROUND EVENTS",
+     "title": "Bir Olayın Arka Planını Anlatma",
+     "en": "We use the past perfect continuous to explain the background or reason behind another past event. It tells us what was happening before something else occurred.",
+     "tr": "Past Perfect Continuous, geçmişteki başka bir olayın arka planını veya nedenini açıklamak için kullanılır. Başka bir şey olmadan önce neyin gerçekleştiğini anlatır.",
+     "ex": [
+      {
+       "w": "He was tired because he <b>had been studying</b> all night.",
+       "tr": "Yorgundu çünkü bütün gece ders çalışmıştı."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kullanım, bir sonucun ya da durumun nedenini geçmişte süregelen bir eylemle açıklamak için kullanılır.",
+      "mistakes": "Öğrenciler bu neden-sonuç ilişkisini kurarken genellikle Simple Past kullanır, örneğin 'He was tired because he studied all night' yerine 'had been studying' kullanmak daha doğal ve doğrudur.",
+      "confusion": "Past Continuous ile karıştırılabilir; Past Continuous belirli bir anda süren eylemi anlatırken, Past Perfect Continuous o andan ÖNCE süregelen eylemi anlatır, örneğin 'was studying' (o sırada) ile 'had been studying' (ondan önce) arasındaki fark önemlidir."
+     }
+    },
+    {
+     "id": "use-continuing-events-in-the-past",
+     "guideword": "USE: CONTINUING EVENTS IN THE PAST",
+     "title": "Süregelen Bir Durumu Vurgulama",
+     "en": "We use the past perfect continuous to show that an action continued for a period of time up until a certain moment in the past. It often focuses on the duration of the action.",
+     "tr": "Past Perfect Continuous, bir eylemin geçmişteki belirli bir ana kadar bir süre boyunca devam ettiğini göstermek için kullanılır. Genellikle eylemin süresine odaklanır.",
+     "ex": [
+      {
+       "w": "They <b>had been living</b> in Paris for ten years when they decided to move.",
+       "tr": "Taşınmaya karar verdiklerinde on yıldır Paris'te yaşıyorlardı."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kullanım, geçmişteki bir andan önce ne kadar süre devam ettiği önemli olan eylemleri anlatmak için tercih edilir.",
+      "mistakes": "Öğrenciler süre belirtirken 'since' ve 'for' kullanımını karıştırabilir; 'for ten years' (bir süre) ile 'since 2010' (bir başlangıç noktası) arasındaki farkı doğru kurmak gerekir.",
+      "confusion": "Present Perfect Continuous ile karıştırılır; Present Perfect Continuous şu ana kadar süren eylemi anlatırken, Past Perfect Continuous geçmişteki bir ana kadar süren eylemi anlatır, örneğin 'has been living' (şimdiye kadar) ile 'had been living' (o zamana kadar) farklıdır."
+     }
+    }
+   ],
+   "tense": "Past Perfect Continuous"
+  },
+  {
+   "topicId": "present-present-continuous",
+   "title": "Present Continuous",
+   "ref": "Present Continuous",
+   "summary": "Bu konuda, şu anda geçici olarak tekrarlanan davranışları, an içinde devam eden olayları ve geçici durumları anlatmak için 'am/is/are + -ing' yapısının nasıl kullanıldığını öğreneceksin.",
+   "category": "PRESENT",
+   "icon": "🕐",
+   "verifyType": "sentencekur",
+   "subs": [
+    {
+     "id": "use-temporary-repeated-actions",
+     "guideword": "USE: TEMPORARY REPEATED ACTIONS",
+     "title": "Geçici Olarak Tekrarlanan Alışkanlıklar",
+     "en": "We use the present continuous with words like 'these days' or 'lately' to talk about actions that are repeated during a temporary period, not forever.",
+     "tr": "'These days' veya 'lately' gibi kelimelerle present continuous kullanarak, sonsuza kadar değil, geçici bir süre boyunca tekrarlanan eylemlerden bahsederiz.",
+     "ex": [
+      {
+       "w": "She <b>is going</b> to the gym every morning these days.",
+       "tr": "Bu günlerde her sabah spor salonuna gidiyor."
+      }
+     ],
+     "nuance": {
+      "why": "Bir alışkanlığın kalıcı değil, geçici bir dönemde geçerli olduğunu vurgulamak için kullanılır.",
+      "mistakes": "Öğrenciler bu kullanımı fark etmeyip her tekrarlanan eylem için otomatik olarak present simple kullanır; ama 'these days' gibi zaman ifadeleri varsa continuous daha doğaldır. Örneğin 'She goes to the gym these days' yerine 'She is going to the gym these days' demek daha uygundur.",
+      "confusion": "Present simple ile karıştırılır çünkü ikisi de tekrarlanan eylemleri anlatır; ama present simple kalıcı alışkanlıkları, present continuous ise geçici dönemdeki alışkanlıkları anlatır. 'I drink coffee every day' kalıcı bir alışkanlıktır, 'I'm drinking coffee every day this week' ise geçicidir."
+     }
+    },
+    {
+     "id": "use-events-in-progress",
+     "guideword": "USE: EVENTS IN PROGRESS",
+     "title": "Şu An Devam Eden Olaylar",
+     "en": "We use the present continuous to describe an action that is happening right now, at the exact moment of speaking.",
+     "tr": "Konuşma anında, tam olarak şu anda gerçekleşmekte olan bir eylemi anlatmak için present continuous kullanırız.",
+     "ex": [
+      {
+       "w": "Look, it <b>is raining</b> outside!",
+       "tr": "Bak, dışarıda yağmur yağıyor!"
+      }
+     ],
+     "nuance": {
+      "why": "Konuşulan anda gözümüzün önünde gerçekleşen bir eylemi canlı bir şekilde ifade etmek için kullanılır.",
+      "mistakes": "Türkçedeki '-yor' ekinin hem şu anki eylemi hem de genel alışkanlıkları karşılaması, öğrencilerin present simple ile present continuous'u karıştırmasına yol açar. 'I eat now' demek yerine 'I am eating now' demek gerekir.",
+      "confusion": "Present simple ile karıştırılır; present simple genel gerçekleri ve alışkanlıkları anlatırken present continuous sadece o anda olan bir şeyi anlatır. 'The sun rises in the east' genel bir gerçektir, 'The sun is rising now' ise şu anda gözlemlenen bir olaydır."
+     }
+    },
+    {
+     "id": "use-temporary-situations",
+     "guideword": "USE: TEMPORARY SITUATIONS",
+     "title": "Geçici Durumları Anlatma",
+     "en": "We use the present continuous to talk about a situation that is true now but is not permanent, and will probably change in the future.",
+     "tr": "Şu anda doğru olan ama kalıcı olmayan, gelecekte değişmesi muhtemel bir durumdan bahsetmek için present continuous kullanırız.",
+     "ex": [
+      {
+       "w": "I <b>am staying</b> at my friend's house this week.",
+       "tr": "Bu hafta arkadaşımın evinde kalıyorum."
+      }
+     ],
+     "nuance": {
+      "why": "Bir durumun sürekli değil, sadece belirli bir süre için geçerli olduğunu belirtmek amacıyla kullanılır.",
+      "mistakes": "Öğrenciler 'live', 'work' gibi fiilleri her zaman present simple ile kullanmaya çalışır; ama durum geçiciyse continuous form daha doğrudur. 'I live with my parents this month' yerine 'I am living with my parents this month' demek gerekir.",
+      "confusion": "Kalıcı durumları anlatan present simple ile karıştırılır. 'I live in Istanbul' kalıcı bir durumu, 'I am living in Ankara for a few months' ise geçici bir durumu ifade eder."
+     }
+    }
+   ],
+   "tense": "Present Continuous"
+  },
+  {
+   "topicId": "pronouns-indefinite-thing-one-body-etc",
+   "title": "Vurgu İçin 'Myself, Yourself' Kullanımı",
+   "ref": "Indefinite - Thing, -one, -body Etc",
+   "summary": "Bu konu, 'myself', 'yourself', 'himself' gibi dönüşlü zamirlerin özne, nesne ve tümleç olarak kullanımını, ayrıca bir ismi veya eylemi vurgulamak için nasıl kullanıldığını öğretir.",
+   "category": "PRONOUNS",
+   "icon": "👤",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-subject",
+     "guideword": "FORM: SUBJECT",
+     "title": "Belirsiz Kişi/Şey Öznesi Kurma",
+     "en": "Words like 'someone', 'something', 'everybody', and 'nothing' can be the subject of a sentence when we don't know or don't need to say exactly who or what we mean. These words always take a singular verb.",
+     "tr": "'Someone', 'something', 'everybody', 'nothing' gibi kelimeler, kim veya neyi kastettiğimizi tam olarak bilmediğimizde veya söylemek gerekmediğinde cümlenin öznesi olabilir. Bu kelimeler her zaman tekil fiil alır.",
+     "ex": [
+      {
+       "w": "<b>Somebody</b> left the door open.",
+       "tr": "Biri kapıyı açık bırakmış."
+      }
+     ],
+     "nuance": {
+      "why": "Kim ya da ne olduğu belli olmayan ya da önemli olmayan durumları anlatmak için kullanılır.",
+      "mistakes": "Türk öğrenciler bu öznelerle fiili çoğul çekimler; 'Somebody are calling you' yerine 'Somebody is calling you' denmelidir çünkü özne tekil kabul edilir.",
+      "confusion": "'Somebody' ile 'anybody' karıştırılır; olumlu cümlede belirli birinden bahsedince 'somebody', soru veya olumsuzda genel bir kişiden bahsedince 'anybody' kullanılır: 'Is anybody home?'"
+     },
+     "quiz": {
+      "q": "___ is knocking on the door.",
+      "opts": [
+       "Someone",
+       "Some people are"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-object-or-complement",
+     "guideword": "FORM: OBJECT OR COMPLEMENT",
+     "title": "Belirsiz Kişi/Şey Nesnesi Kullanma",
+     "en": "We can also use words like 'someone', 'anything', 'everybody', and 'nothing' as the object of a verb or after a preposition, to talk about an unspecified person or thing.",
+     "tr": "'Someone', 'anything', 'everybody', 'nothing' gibi kelimeleri, belirsiz bir kişi veya şeyden bahsetmek için fiilin nesnesi olarak veya bir edattan sonra da kullanabiliriz.",
+     "ex": [
+      {
+       "w": "I can't see <b>anything</b> in this fog.",
+       "tr": "Bu sisin içinde hiçbir şey göremiyorum."
+      }
+     ],
+     "nuance": {
+      "why": "Neyi ya da kimi kastettiğimizi belirtmeden bir eylemin etkisini veya konusunu anlatmak için kullanılır.",
+      "mistakes": "Öğrenciler olumsuz cümlede 'something' kullanma hatasına düşer; 'I don't want something' yerine 'I don't want anything' denmelidir çünkü olumsuzda 'any-' formu tercih edilir.",
+      "confusion": "'Nothing' ile 'not anything' karıştırılabilir; 'nothing' zaten olumsuzluk içerir, ikisini birlikte kullanmamak gerekir: 'I saw nothing' = 'I didn't see anything', ama 'I didn't see nothing' yanlıştır."
+     },
+     "quiz": {
+      "q": "She didn't tell ___ about the accident.",
+      "opts": [
+       "anybody",
+       "somebody"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-use-premodifiers-intensifying",
+     "guideword": "FORM/USE: PREMODIFIERS, INTENSIFYING",
+     "title": "Bu Kelimeleri Sıfatla veya 'Else' ile Güçlendirme",
+     "en": "We can add an adjective right after 'someone', 'something', 'anybody', etc. to describe them more, and we can add 'else' to mean 'a different person or thing'.",
+     "tr": "'Someone', 'something', 'anybody' gibi kelimelerin hemen sonrasına bir sıfat ekleyerek onları daha ayrıntılı tanımlayabiliriz; 'else' eklersek 'farklı bir kişi veya şey' anlamı veririz.",
+     "ex": [
+      {
+       "w": "Let's talk about <b>something else</b>.",
+       "tr": "Başka bir şey hakkında konuşalım."
+      }
+     ],
+     "nuance": {
+      "why": "Belirsiz bir kişi veya şeyi daha spesifik hale getirmek veya farklı bir seçeneğe işaret etmek için kullanılır.",
+      "mistakes": "Öğrenciler sıfatı kelimeden önce koymaya çalışır; 'nice someone' yerine 'someone nice' denmelidir çünkü bu kelimelerde sıfat her zaman sonra gelir.",
+      "confusion": "'Something else' ile 'another thing' karıştırılır; 'else' zaten önceden bahsedilenden farklı bir şeyi ima eder, tekrar 'another' eklemeye gerek yoktur: 'anything else?' yeterlidir."
+     },
+     "quiz": {
+      "q": "I need to talk to ___ about this problem.",
+      "opts": [
+       "someone important",
+       "important someone"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "verbs-phrasal",
+   "title": "Phrasal Verb Kullanımı",
+   "ref": "Phrasal",
+   "summary": "Bu konu, 'give up', 'look after' gibi fiil + edat yapılarını nesne olmadan, nesneyle ve zamirle birlikte doğru sırayla kullanmayı öğretir.",
+   "category": "VERBS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-no-object",
+     "guideword": "FORM: NO OBJECT",
+     "title": "Nesnesiz Phrasal Verb Kullanımı",
+     "en": "Some phrasal verbs don't need an object because the action is complete by itself. For example, 'wake up' or 'give up' can stand alone in a sentence.",
+     "tr": "Bazı phrasal verb'ler nesneye ihtiyaç duymaz çünkü eylem kendi başına tamamlanmıştır. Örneğin 'wake up' veya 'give up' cümlede tek başına kullanılabilir.",
+     "ex": [
+      {
+       "w": "I usually <b>wake up</b> at seven.",
+       "tr": "Genellikle saat yedide uyanırım."
+      }
+     ],
+     "nuance": {
+      "why": "Bu tür phrasal verb'ler bir hareketi ya da durumu anlatır, birine veya bir şeye etki etmez, bu yüzden nesne almaz.",
+      "mistakes": "Öğrenciler bazen bu yapıya zorla bir nesne eklemeye çalışır, örneğin 'I wake up myself' gibi gereksiz ve doğal olmayan cümleler kurar.",
+      "confusion": "Nesne alan phrasal verb'lerle (örneğin 'turn off the light') karıştırılabilir; farkı anlamak için fiilin anlamının tam olup olmadığına bakmak gerekir."
+     },
+     "quiz": {
+      "q": "Every morning, I ___ early.",
+      "opts": [
+       "wake up",
+       "wake up it"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-verb-particle-object",
+     "guideword": "FORM: VERB + PARTICLE + OBJECT",
+     "title": "Nesneyi Parçacıktan Sonra Kullanma",
+     "en": "When the object is a noun, we usually put it after the particle in a phrasal verb, like 'turn off the TV'.",
+     "tr": "Nesne bir isim olduğunda, phrasal verb'de genellikle onu parçacıktan (particle) sonra kullanırız, örneğin 'turn off the TV' gibi.",
+     "ex": [
+      {
+       "w": "Can you <b>turn off the light</b> before you leave?",
+       "tr": "Çıkmadan önce ışığı kapatabilir misin?"
+      }
+     ],
+     "nuance": {
+      "why": "Bu sıralama, isim nesnelerle kullanıldığında daha doğal ve yaygın olan yapıdır.",
+      "mistakes": "Türkçe cümle yapısının etkisiyle öğrenciler bazen nesneyi fiilden hemen sonra, parçacıktan önce koymayı unutur ya da parçacığı tamamen atlar, örneğin 'turn the light' gibi yanlış kullanır.",
+      "confusion": "Bu yapı, nesnenin zamir olduğu durumla karıştırılabilir; isimlerle esneklik varken zamirlerle sadece 'verb + pronoun + particle' sırası doğru kabul edilir."
+     },
+     "quiz": {
+      "q": "Please ___ before the movie starts.",
+      "opts": [
+       "turn off your phone",
+       "turn your phone off it"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-verb-pronoun-particle",
+     "guideword": "FORM: VERB + PRONOUN + PARTICLE",
+     "title": "Zamiri Fiil ile Parçacık Arasına Koyma",
+     "en": "When the object is a pronoun like 'it' or 'them', it must go between the verb and the particle, not after it.",
+     "tr": "Nesne 'it' veya 'them' gibi bir zamir olduğunda, bu zamir fiil ile parçacığın arasına gelmelidir, parçacıktan sonra değil.",
+     "ex": [
+      {
+       "w": "The light is on — can you <b>turn it off</b>?",
+       "tr": "Işık açık, kapatabilir misin?"
+      }
+     ],
+     "nuance": {
+      "why": "Zamirler kısa ve bilgi açısından önceden belirli olduğu için fiille parçacık arasına yerleştirilir, bu İngilizcede sabit bir kuraldır.",
+      "mistakes": "Türk öğrenciler sıkça 'turn off it' gibi yanlış bir sıralama kurar çünkü isimlerle kullanılan yapıyı zamirlere de uygulamaya çalışırlar.",
+      "confusion": "İsim nesnelerle olan esnek sıralama ('turn off the light' / 'turn the light off') ile karıştırılır; ama zamirlerde esneklik yoktur, sadece 'turn it off' doğrudur."
+     },
+     "quiz": {
+      "q": "I don't need this book anymore. You can ___.",
+      "opts": [
+       "take it back",
+       "take back it"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "clauses-phrases-exclamations",
+   "title": "How ile Derece Sorma",
+   "ref": "Phrases/exclamations",
+   "summary": "Bu konu, 'how tall', 'how far' gibi yapılarla bir şeyin derecesini veya miktarını sormayı ve bu yapıları cümle içinde kullanmayı öğretir.",
+   "category": "CLAUSES",
+   "icon": "🔗",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-how-adjective",
+     "guideword": "FORM: 'HOW' + ADJECTIVE",
+     "title": "Şaşkınlığı Kısa Cümleyle Anlatma",
+     "en": "We use 'how' + an adjective to show strong feelings like surprise, joy, or shock about something. This short phrase doesn't need a subject or verb.",
+     "tr": "Bir şey hakkında şaşkınlık, sevinç veya hayret gibi güçlü duyguları göstermek için 'how' + sıfat kalıbını kullanırız. Bu kısa ifadede özne veya fiile gerek yoktur.",
+     "ex": [
+      {
+       "w": "<b>How wonderful!</b> You got the job!",
+       "tr": "Ne harika! İşi almışsın!"
+      }
+     ],
+     "nuance": {
+      "why": "Bu kalıp, tam bir cümle kurmadan anlık bir duyguyu hızlıca ifade etmek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'How is nice!' gibi araya fiil koyar, ama doğrusu sadece 'How nice!' şeklindedir, fiil kullanılmaz.",
+      "confusion": "'What' + isim kalıbıyla karıştırılır: 'How nice!' sıfat içindir, 'What a nice day!' ise isim içerdiği için 'what' kullanılır."
+     },
+     "quiz": {
+      "q": "___ amazing! I can't believe it.",
+      "opts": [
+       "How",
+       "What"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-how-adjective-clause",
+     "guideword": "FORM: 'HOW' + ADJECTIVE + CLAUSE",
+     "title": "Duyguyu Sebebiyle Birlikte Söyleme",
+     "en": "We can add a clause after 'how' + adjective to explain exactly what surprises or impresses us. This gives more detail than the short exclamation alone.",
+     "tr": "'How' + sıfat kalıbının sonuna bir cümlecik ekleyerek bizi tam olarak neyin şaşırttığını veya etkilediğini açıklayabiliriz. Bu, tek başına kısa ünlemden daha fazla ayrıntı verir.",
+     "ex": [
+      {
+       "w": "<b>How strange it is</b> that he never called back.",
+       "tr": "Onun hiç geri aramaması ne kadar tuhaf."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, duygunun sebebini ya da bağlamını netleştirmek için kullanılır, sadece 'How strange!' demekten daha açıklayıcıdır.",
+      "mistakes": "Öğrenciler cümlecik eklerken 'How strange that he never called back' derken 'it' öznesini unutur; doğrusu 'how strange it is that...' şeklinde tam bir cümle kurmaktır.",
+      "confusion": "Kısa ünlem biçimi 'How strange!' ile karıştırılır; eğer devamında sebep açıklayan bir cümle varsa 'it is' gibi bir özne-fiil eklemek gerekir."
+     },
+     "quiz": {
+      "q": "How lucky ___ that we found a parking spot!",
+      "opts": [
+       "it is",
+       "is it"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "determiners-possessives",
+   "title": "Sahiplik: 'Their' ve Çoğul İsimler",
+   "ref": "Possessives",
+   "summary": "Bu konu, 'their' kelimesiyle bir gruba ait olma durumunu ve 'children's', 'men's' gibi düzensiz çoğul isimlerde sahiplik ekinin nasıl kullanıldığını öğretir.",
+   "category": "DETERMINERS",
+   "icon": "🔎",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-their",
+     "guideword": "FORM: 'THEIR'",
+     "title": "Onlara Ait Olanı Söyleme (their)",
+     "en": "We use 'their' before a noun to show that something belongs to more than one person or thing. It does not change, no matter what noun follows it.",
+     "tr": "'Their' kelimesini bir isimden önce kullanarak bir şeyin birden fazla kişiye veya şeye ait olduğunu belirtiriz. Kendisinden sonra hangi isim gelirse gelsin şekli değişmez.",
+     "ex": [
+      {
+       "w": "The students left <b>their</b> books on the desk.",
+       "tr": "Öğrenciler kitaplarını masada bıraktılar."
+      }
+     ],
+     "nuance": {
+      "why": "'Their' bir grubun veya birden fazla kişinin sahipliğini tek kelimeyle göstermek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'their' ile 'there' ve 'they're' kelimelerini yazarken karıştırır; örneğin 'Their going home' yerine 'They're going home' yazılmalıdır.",
+      "confusion": "'Their' (onların), 'there' (orada) ve 'they're' (they are'in kısaltması) telaffuzda aynı ama anlamda tamamen farklıdır; cümlede isim geliyorsa 'their' kullanılır."
+     },
+     "quiz": {
+      "q": "The children forgot ___ homework at home.",
+      "opts": [
+       "their",
+       "there"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-irregular-plural-noun-s",
+     "guideword": "FORM: IRREGULAR PLURAL NOUN + ''S'",
+     "title": "Düzensiz Çoğul İsimlerde Sahiplik (men's, children's)",
+     "en": "For plural nouns that do not end in '-s' (like 'children' or 'men'), we add apostrophe + s ('s) to show possession, just like we do with singular nouns.",
+     "tr": "'-s' ile bitmeyen düzensiz çoğul isimlerde (örneğin 'children' veya 'men') sahiplik göstermek için, tekil isimlerde yaptığımız gibi kesme işareti + s (''s) ekleriz.",
+     "ex": [
+      {
+       "w": "The <b>children's</b> toys were all over the floor.",
+       "tr": "Çocukların oyuncakları yerdeydi."
+      }
+     ],
+     "nuance": {
+      "why": "Düzensiz çoğul isimler zaten '-s' ile bitmediği için, normal çoğul kuralı (sadece kesme işareti eklemek) burada işe yaramaz, bu yüzden 's eklenir.",
+      "mistakes": "Öğrenciler genellikle düzensiz çoğullarda da normal çoğul kuralını uygulayıp 'childrens' toys' gibi yanlış bir kesme işareti kullanımı yapar; doğrusu 'children's toys'tur.",
+      "confusion": "Bu yapı, düzenli çoğul isimlerdeki sahiplik biçimiyle (sadece kesme işareti, örneğin 'the students' books') karıştırılır; düzenli çoğullarda 's eklenmez, sadece kesme işareti kullanılır."
+     },
+     "quiz": {
+      "q": "We need to buy new shoes for the ___ football team.",
+      "opts": [
+       "men's",
+       "mens'"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "future-future-continuous",
+   "title": "Future Simple (Will)",
+   "ref": "Future Continuous",
+   "summary": "Bu konuda 'will' kullanarak gelecekle ilgili olumlu ve olumsuz cümleler kurmayı öğrenirsin.",
+   "category": "FUTURE",
+   "icon": "🕐",
+   "verifyType": "sentencekur",
+   "subs": [
+    {
+     "id": "form-affirmative",
+     "guideword": "FORM: AFFIRMATIVE",
+     "title": "Gelecekte Devam Eden Eylemler",
+     "en": "We use 'will be' + verb-ing to talk about an action that will be in progress at a specific time in the future.",
+     "tr": "Gelecekte belirli bir anda devam ediyor olacak bir eylemden bahsetmek için 'will be' + fiil-ing kullanırız.",
+     "ex": [
+      {
+       "w": "This time tomorrow, I <b>will be flying</b> to London.",
+       "tr": "Yarın bu saatlerde Londra'ya uçuyor olacağım."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, gelecekteki bir zaman noktasında bir eylemin tam olarak sürmekte olacağını göstermek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'be' fiilini unutup direkt 'will flying' gibi yanlış bir yapı kurar; doğru kullanım 'will be flying' şeklindedir.",
+      "confusion": "Future Continuous, 'will' ile kurulan basit gelecek zamanla karıştırılır; 'I will go' sadece eylemi belirtirken, 'I will be going' o an eylemin sürmekte olduğunu vurgular."
+     }
+    },
+    {
+     "id": "form-negative-with-will",
+     "guideword": "FORM: NEGATIVE WITH 'WILL'",
+     "title": "Gelecekte Devam Etmeyecek Eylemler",
+     "en": "To make the negative form, we add 'not' after 'will': will not (won't) be + verb-ing. This shows that an action will not be happening at a certain time in the future.",
+     "tr": "Olumsuz cümle kurmak için 'will'den sonra 'not' ekleriz: will not (won't) be + fiil-ing. Bu, gelecekte belirli bir zamanda bir eylemin sürmeyeceğini gösterir.",
+     "ex": [
+      {
+       "w": "Don't call at 9 am, I <b>won't be sleeping</b> then.",
+       "tr": "Sabah 9'da arama, o sırada uyumuyor olacağım."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, gelecekteki bir anda bir eylemin gerçekleşmeyeceğini net bir şekilde belirtmek için kullanılır.",
+      "mistakes": "Öğrenciler sıklıkla 'be' fiilini atlayıp 'won't sleeping' gibi hatalı bir yapı kurar; doğru şekli 'won't be sleeping' olmalıdır.",
+      "confusion": "Bu yapı, basit gelecek zamanın olumsuzu olan 'won't' ile karıştırılabilir; 'I won't sleep' sadece eylemin olmayacağını belirtirken, 'I won't be sleeping' belirli bir zamanda eylemin sürmeyeceğini vurgular."
+     }
+    }
+   ],
+   "tense": "Future Continuous"
+  },
+  {
+   "topicId": "future-future-in-the-past",
+   "title": "Planları ve Niyetleri Anlatma",
+   "ref": "Future In the Past",
+   "summary": "Bu konu, 'be going to' ile önceden planlanmış niyetleri ve 'would' ile geçmişte hayal edilen ya da varsayımsal gelecek durumları ifade etmeyi öğretir.",
+   "category": "FUTURE",
+   "icon": "🕐",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "use-be-going-to",
+     "guideword": "USE: 'BE GOING TO'",
+     "title": "Geçmişte Planlanan Bir Niyeti Anlatma",
+     "en": "We use 'was/were going to' to talk about a plan or intention someone had in the past, often one that did not happen.",
+     "tr": "Geçmişte birinin sahip olduğu bir plan veya niyeti anlatmak için 'was/were going to' kullanırız; bu genelde gerçekleşmemiş bir plandır.",
+     "ex": [
+      {
+       "w": "I <b>was going to</b> call you, but I forgot.",
+       "tr": "Seni arayacaktım ama unuttum."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, geçmişte var olan bir niyetin sonradan gerçekleşip gerçekleşmediğini vurgulamak için kullanılır.",
+      "mistakes": "Öğrenciler genellikle 'was going to' yerine sadece geçmiş zaman kullanır; örneğin 'I called you' yerine 'I was going to call you' demeyi unutabilirler, bu da niyet anlamını kaybettirir.",
+      "confusion": "Bu yapı genellikle basit geçmiş zamanla karıştırılır; 'I went' sadece yapılan bir eylemi anlatırken, 'I was going to go' planlanan ama muhtemelen gerçekleşmemiş bir eylemi anlatır."
+     },
+     "quiz": {
+      "q": "She ___ study abroad, but she changed her mind.",
+      "opts": [
+       "was going to",
+       "went to"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "use-would",
+     "guideword": "USE: 'WOULD'",
+     "title": "Geçmişten Bakarak Gelecekten Bahsetme",
+     "en": "We use 'would' to talk about something that was in the future at a certain point in the past, especially in storytelling.",
+     "tr": "Geçmişteki belirli bir andan bakıldığında gelecekte olacak bir şeyden bahsetmek için 'would' kullanırız, özellikle hikaye anlatırken.",
+     "ex": [
+      {
+       "w": "He didn't know that he <b>would</b> become famous one day.",
+       "tr": "Bir gün ünlü olacağını bilmiyordu."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kullanım, geçmişte anlatılan bir hikayenin içinde, o andan sonra gerçekleşecek bir olayı belirtmek için kullanılır.",
+      "mistakes": "Öğrenciler 'would' yerine genellikle 'will' kullanma hatası yapar; örneğin 'He said he will come' yerine 'He said he would come' denmelidir.",
+      "confusion": "Bu yapı, geçmişteki alışkanlıkları anlatan 'would' (örneğin 'We would play outside every day') ile karıştırılır; burada ise gelecekte olacak bir olay anlatılır, alışkanlık değil."
+     },
+     "quiz": {
+      "q": "She promised that she ___ write to him every week.",
+      "opts": [
+       "would",
+       "will"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "modality-have-got-to",
+   "title": "Dürüstçe Kabul Etmek: I Have to Admit",
+   "ref": "Have (got) to",
+   "summary": "Bir gerçeği ya da hoşumuza gitmeyen bir durumu kabul ederken 'I have to admit' kalıbını ve ardından gelen fiilin mastar (infinitive) formunu nasıl kullanacağını öğretir.",
+   "category": "MODALITY",
+   "icon": "🔑",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-use-i-have-to-admit",
+     "guideword": "FORM/USE: 'I HAVE TO ADMIT'",
+     "title": "Söze 'İtiraf Etmeliyim ki' Diye Başlama",
+     "en": "We use the fixed phrase 'I have to admit' to introduce something true, even if it feels surprising or a little embarrassing to say.",
+     "tr": "'I have to admit' (itiraf etmeliyim ki) kalıbını, biraz şaşırtıcı ya da söylemesi hafif utandırıcı olsa bile doğru olan bir şeyi söylemeye başlarken kullanırız.",
+     "ex": [
+      {
+       "w": "I <b>have to admit</b>, your English has really improved.",
+       "tr": "İtiraf etmeliyim ki, İngilizcen gerçekten gelişti."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kalıp, konuşmacının dürüst bir görüş ya da gerçeği yumuşak bir şekilde açıklamasını sağlar.",
+      "mistakes": "Öğrenciler bunu 'I must admit' ile karıştırıp genellikle 'admit' fiilinden sonra 'that' bağlacını unutmadan da kullanabileceklerini bilmezler; ikisi de doğrudur ama 'have to admit' günlük konuşmada daha yaygındır.",
+      "confusion": "'I confess' ile karıştırılabilir; 'confess' genellikle bir suç ya da hata itirafı için daha resmi ve ağır bir anlam taşırken, 'I have to admit' günlük, hafif bir itiraf için kullanılır."
+     }
+    },
+    {
+     "id": "form-infinitive",
+     "guideword": "FORM: INFINITIVE",
+     "title": "Have to'dan Sonra Fiilin Yalın Hali",
+     "en": "After 'have to', we always use the base form of the verb (the infinitive without 'to' is wrong here — we keep 'to' before the verb).",
+     "tr": "'Have to' ifadesinden sonra fiilin yalın halini (mastar formunu) kullanırız; yani 'to' + fiil şeklinde devam eder.",
+     "ex": [
+      {
+       "w": "She <b>has to finish</b> her homework before dinner.",
+       "tr": "Akşam yemeğinden önce ödevini bitirmesi gerekiyor."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı bir zorunluluğu ifade ederken fiilin doğru şekilde kullanılmasını sağlar.",
+      "mistakes": "Öğrenciler genellikle 'has to' ile fiile '-s' takısı ekleyerek 'she has to finishes' gibi yanlış cümleler kurar; fiil her zaman yalın kalmalıdır.",
+      "confusion": "'Must' ile karıştırılabilir; 'must' sonrasında 'to' kullanılmaz ('must go', 'have to go' değil 'must to go'), bu yüzden iki modal'ın yapısı farklı hatırlanmalıdır."
+     },
+     "quiz": {
+      "q": "He ___ to leave early tomorrow.",
+      "opts": [
+       "has",
+       "have"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "modality-ought",
+   "title": "Should ile Tavsiye Verme",
+   "ref": "Ought",
+   "summary": "Bu konu, 'should' kullanarak birine olumlu şekilde tavsiye veya öneride bulunmayı öğretir.",
+   "category": "MODALITY",
+   "icon": "🔑",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-affirmative",
+     "guideword": "FORM: AFFIRMATIVE",
+     "title": "Ought To Kalıbını Kurma",
+     "en": "We use 'ought to' with the base form of the verb to say what is the right or sensible thing to do. The structure is: subject + ought to + verb.",
+     "tr": "'Ought to' yapısını, doğru veya mantıklı olan şeyin ne olduğunu söylemek için fiilin yalın haliyle kullanırız. Yapı şöyledir: özne + ought to + fiil.",
+     "ex": [
+      {
+       "w": "You <b>ought to</b> apologize to her.",
+       "tr": "Ondan özür dilemelisin."
+      }
+     ],
+     "nuance": {
+      "why": "'Ought to' yapısı, 'should' ile aynı anlamda ama biraz daha resmi bir tavsiye vermek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'ought' kelimesinden sonra 'to'yu unutur ve 'You ought study' gibi hatalı cümleler kurar; doğrusu 'You ought to study' şeklindedir.",
+      "confusion": "'Ought to' genellikle 'should' ile karıştırılır; ikisi de tavsiye anlamı taşır ama 'ought to' konuşma dilinde daha az kullanılır ve daha resmi bir hava verir, örneğin 'You should call him' yerine 'You ought to call him' denebilir."
+     },
+     "quiz": {
+      "q": "She ___ to finish her homework before dinner.",
+      "opts": [
+       "ought",
+       "should to"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "use-advice",
+     "guideword": "USE: ADVICE",
+     "title": "Tavsiye Vermek İçin Ought To",
+     "en": "We use 'ought to' to give advice or say what is the best or most sensible action in a situation.",
+     "tr": "'Ought to' yapısını, bir durumda yapılması gereken en iyi veya en mantıklı şeyi söylemek, yani tavsiye vermek için kullanırız.",
+     "ex": [
+      {
+       "w": "You <b>ought to</b> see a doctor about that cough.",
+       "tr": "O öksürük için bir doktora görünmelisin."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, karşıdaki kişiye zorlayıcı olmadan, mantıklı ve iyi niyetli bir öneri sunmak için kullanılır.",
+      "mistakes": "Türk öğrenciler bu yapıyı 'must' ile aynı güçte bir zorunluluk gibi kullanma hatası yapabilir; oysa 'ought to' bir emir değil, sadece bir öneridir, örneğin 'You ought to must go' gibi hatalı birleşimler kurulmamalıdır.",
+      "confusion": "'Ought to', 'have to' ile karıştırılabilir; 'have to' kesin bir zorunluluğu ifade ederken, 'ought to' sadece tavsiye niteliğindedir, örneğin 'You have to pay taxes' (zorunluluk) ile 'You ought to save some money' (tavsiye) arasındaki fark böyledir."
+     },
+     "quiz": {
+      "q": "He ___ to apologize for being late.",
+      "opts": [
+       "ought",
+       "must to"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "modality-shall",
+   "title": "Planlarını Anlatma ve Tavsiye İsteme",
+   "ref": "Shall",
+   "summary": "Bu konuda 'be going to' ve 'will' gibi yapılarla geleceğe dair plan ve niyetlerini ifade etmeyi, ayrıca 'should I' veya 'what should I do' gibi kalıplarla başkalarından tavsiye istemeyi öğrenirsin.",
+   "category": "MODALITY",
+   "icon": "🔑",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "use-plans-and-intentions",
+     "guideword": "USE: PLANS AND INTENTIONS",
+     "title": "Gelecek Planlarını Söyleme",
+     "en": "We use 'shall' with 'I' and 'we' to talk about future plans or intentions, usually in a formal or old-fashioned way.",
+     "tr": "'Shall' kelimesini 'I' ve 'we' ile birlikte, gelecekteki plan veya niyetlerden bahsederken kullanırız; bu kullanım genellikle daha resmi veya eski usul bir tarzdır.",
+     "ex": [
+      {
+       "w": "I <b>shall</b> call you tomorrow morning.",
+       "tr": "Seni yarın sabah arayacağım."
+      }
+     ],
+     "nuance": {
+      "why": "'Shall' burada bir kararı veya gelecekteki niyeti ifade etmek için kullanılır, günlük konuşmada 'will' ile aynı işi görür.",
+      "mistakes": "Türk öğrenciler genellikle 'shall' kullanımını tamamen unutup her durumda 'will' kullanır; bu yanlış değildir ama 'shall' kullanıldığında bunu sadece 'I' ve 'we' ile kullanmayı unutup 'She shall come' gibi hatalı cümleler kurabilirler.",
+      "confusion": "'Will' ile karıştırılır; ikisi de gelecek niyeti anlatabilir ama 'shall' daha resmi, İngiliz İngilizcesinde daha yaygın ve sadece 'I/we' ile kullanılır."
+     },
+     "quiz": {
+      "q": "We ___ visit our grandparents next weekend.",
+      "opts": [
+       "shall",
+       "shalls"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "use-seeking-advice",
+     "guideword": "USE: SEEKING ADVICE",
+     "title": "Öneri veya Fikir Sorma",
+     "en": "We use 'shall I' or 'shall we' to ask someone for advice or to suggest doing something together.",
+     "tr": "Birinden tavsiye almak veya birlikte bir şey yapmayı önermek için 'shall I' veya 'shall we' kalıbını kullanırız.",
+     "ex": [
+      {
+       "w": "<b>Shall we</b> order some pizza tonight?",
+       "tr": "Bu akşam pizza sipariş edelim mi?"
+      }
+     ],
+     "nuance": {
+      "why": "Bu kalıp, karşı tarafın fikrini almak ya da ortak bir öneri sunmak için kullanılır ve genellikle nazik bir teklif havası taşır.",
+      "mistakes": "Öğrenciler bu soru kalıbını 'Do we shall' veya 'We shall order, yes?' gibi yanlış yapılarla kurmaya çalışır; doğru kullanım doğrudan 'Shall we + fiil' şeklindedir.",
+      "confusion": "'Should' ile karıştırılır; 'should' tavsiye verirken kullanılır (You should rest), 'shall I/we' ise soru sorarak tavsiye ya da öneri talep eder (Shall I help you?)."
+     },
+     "quiz": {
+      "q": "___ I open the window? It's a bit hot in here.",
+      "opts": [
+       "Shall",
+       "Should"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "modality-will",
+   "title": "Kesin Planlar ve Gelecek Tahminleri",
+   "ref": "Will",
+   "summary": "Bu konu, 'will' ve şimdiki zamanı kullanarak kesinleşmiş planlardan bahsetmeyi ve gelecekle ilgili tahminlerde bulunmayı öğretir.",
+   "category": "MODALITY",
+   "icon": "🔑",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "use-fixed-plans",
+     "guideword": "USE: FIXED PLANS",
+     "title": "Kararları Anında Alma",
+     "en": "We use 'will' when we decide something at the exact moment we are speaking, without any earlier plan. It shows a quick decision made right now.",
+     "tr": "Bir konuşma anında, önceden hiçbir plan yapmadan aniden verilen kararları ifade etmek için 'will' kullanırız. Bu, o an alınan hızlı bir kararı gösterir.",
+     "ex": [
+      {
+       "w": "It's cold in here, I <b>will close</b> the window.",
+       "tr": "Burası soğuk, pencereyi kapatacağım."
+      }
+     ],
+     "nuance": {
+      "why": "Konuşma anında düşünmeden, anlık verilen kararları ifade etmek için kullanılır.",
+      "mistakes": "Türk öğrenciler bu kullanımı 'going to' ile karıştırıp önceden planlanmış işler için de 'will' kullanabilir; oysa önceden düşünülmüş bir plan varsa 'going to' daha doğrudur. Örneğin 'I will visit my grandmother next week' önceden planlandıysa yanlıştır, doğrusu 'I'm going to visit'tir.",
+      "confusion": "'Going to' ile karıştırılır: 'going to' önceden yapılmış planlar için, 'will' ise o anda alınan kararlar içindir. Örnek: 'I'm going to study medicine' (önceden planlanmış) vs 'I'll help you with that' (şimdi karar verildi)."
+     },
+     "quiz": {
+      "q": "Okay, I ___ carry your bag for you.",
+      "opts": [
+       "will",
+       "am going to"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "use-predictions",
+     "guideword": "USE: PREDICTIONS",
+     "title": "Gelecek Hakkında Tahminde Bulunma",
+     "en": "We use 'will' to talk about what we think or believe will happen in the future, based on our opinion rather than clear evidence now.",
+     "tr": "Gelecekte ne olacağına dair düşüncelerimizi veya inançlarımızı belirtmek için 'will' kullanırız; bu, şu anki kesin kanıtlara değil kişisel görüşe dayanır.",
+     "ex": [
+      {
+       "w": "I think it <b>will rain</b> tomorrow.",
+       "tr": "Sanırım yarın yağmur yağacak."
+      }
+     ],
+     "nuance": {
+      "why": "Kişisel görüşe, tahmine veya genel inanışa dayalı gelecek öngörülerini anlatmak için kullanılır.",
+      "mistakes": "Türk öğrenciler 'I think' gibi ifadelerle birlikte yanlışlıkla 'going to' kullanabilir; oysa görüşe dayalı tahminlerde 'will' daha doğaldır. Ayrıca 'will' sonrası fiili unutup sadece isim kullanmak da sık görülen bir hatadır.",
+      "confusion": "Şu anki somut kanıta dayanan tahminlerde kullanılan 'going to' ile karıştırılır. Örnek: 'Look at those clouds, it's going to rain' (şimdi kanıt var) vs 'I think it will rain next week' (sadece tahmin, kanıt yok)."
+     },
+     "quiz": {
+      "q": "In my opinion, the new phone ___ be very popular.",
+      "opts": [
+       "will",
+       "is"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "nouns-uncountable",
+   "title": "Sayılamayan İsimlerle Miktar Belirtme",
+   "ref": "Uncountable",
+   "summary": "Bu konu, 'water', 'money', 'information' gibi sayılamayan isimlerin nasıl kullanıldığını ve 'some', 'much', 'a lot of' gibi belirteçlerle miktarlarının nasıl ifade edildiğini öğretir.",
+   "category": "NOUNS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-uncountable-nouns",
+     "guideword": "FORM: UNCOUNTABLE NOUNS",
+     "title": "Sayılamayan İsimleri Tanıma",
+     "en": "Uncountable nouns are things we cannot count one by one, like water, money, or advice. They have no plural form and use a singular verb.",
+     "tr": "Sayılamayan isimler, tek tek sayamadığımız şeylerdir; su, para veya tavsiye gibi. Bunların çoğul hali yoktur ve tekil fiil alırlar.",
+     "ex": [
+      {
+       "w": "The <b>information</b> on the website is very useful.",
+       "tr": "Web sitesindeki bilgi çok faydalı."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kural, bir şeyin parçalara bölünemeyen veya tek tek sayılamayan bir bütün olarak düşünülmesini sağlar.",
+      "mistakes": "Türkçede 'bilgiler', 'para birimleri' gibi çoğul kullanımlar olduğu için öğrenciler 'informations' veya 'moneys' gibi yanlış çoğul formlar üretir; doğrusu 'information' ve 'money' şeklindedir.",
+      "confusion": "Sayılabilen isimlerle karıştırılır; örneğin 'advice' sayılamaz ama 'suggestion' sayılabilir, bu yüzden 'an advice' değil 'some advice' veya 'a piece of advice' denir."
+     },
+     "quiz": {
+      "q": "She gave me some useful ___.",
+      "opts": [
+       "advice",
+       "advices"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-with-determiners-quantity",
+     "guideword": "FORM: WITH DETERMINERS, QUANTITY",
+     "title": "Miktar Belirten Kelimelerle Kullanma",
+     "en": "We use words like 'some', 'much', 'a little', or 'a lot of' before uncountable nouns to talk about quantity, but we never use 'a' or numbers directly with them.",
+     "tr": "Sayılamayan isimlerden önce miktar belirtmek için 'some', 'much', 'a little' veya 'a lot of' gibi kelimeler kullanırız, ancak bunlarla asla 'a' ya da sayılar doğrudan kullanılmaz.",
+     "ex": [
+      {
+       "w": "There isn't <b>much</b> time left before the exam.",
+       "tr": "Sınavdan önce fazla zaman kalmadı."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, sayılamayan bir şeyin miktarını belirtmemizi sağlar çünkü onu doğrudan sayılarla ifade edemeyiz.",
+      "mistakes": "Öğrenciler genellikle 'many' kelimesini sayılamayan isimlerle kullanır, örneğin 'many information' yerine 'much information' denmelidir.",
+      "confusion": "'Much' ve 'many' sıkça karıştırılır; 'much' sayılamayan isimlerle (much money), 'many' ise sayılabilen çoğul isimlerle (many books) kullanılır."
+     },
+     "quiz": {
+      "q": "I don't have ___ money with me right now.",
+      "opts": [
+       "much",
+       "many"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "pronouns-quantity",
+   "title": "Gruplardan Bahsetme: Both, A Few, Another",
+   "ref": "Quantity",
+   "summary": "Bu konu, kişileri belirtmek için özne ve nesne zamirlerini ('I/me', 'they/them' gibi), 'of' ile birlikte nesne zamiri kullanımını ('both of us', 'a few of them' gibi) ve 'both', 'a few', 'another' gibi kelimelerle bir grup veya miktardan bahsetmeyi öğretir.",
+   "category": "PRONOUNS",
+   "icon": "👤",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-subject-and-object-pronouns-both-a-few-another",
+     "guideword": "FORM: SUBJECT AND OBJECT PRONOUNS, 'BOTH', 'A FEW', 'ANOTHER'",
+     "title": "Miktar Belirten Kelimeler (both, a few, another)",
+     "en": "We use words like 'both', 'a few', and 'another' with nouns or pronouns to talk about quantity. 'Both' means two things together, 'a few' means a small number, and 'another' means one more.",
+     "tr": "'Both', 'a few' ve 'another' gibi kelimeleri, miktar hakkında konuşmak için isimlerle veya zamirlerle birlikte kullanırız. 'Both' iki şeyin ikisini birden, 'a few' az bir sayıyı, 'another' ise bir tane daha anlamına gelir.",
+     "ex": [
+      {
+       "w": "I have <b>a few</b> friends coming to the party tonight.",
+       "tr": "Bu akşam partiye gelecek birkaç arkadaşım var."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kelimeler, tam bir sayı vermeden miktarı genel olarak ifade etmek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'a few' ile 'few' arasındaki farkı karıştırır; 'a few' olumlu bir azlığı ('birkaç var') ifade ederken, 'few' yetersizliği ('çok az, yeterli değil') vurgular. Örneğin 'I have a few friends' güven verirken, 'I have few friends' üzücü bir durumu anlatır.",
+      "confusion": "'Another' ile 'other' karıştırılabilir; 'another' tekil bir isimle ('another book'), 'other' çoğul isimle ('other books') kullanılır."
+     },
+     "quiz": {
+      "q": "Can I have ___ cup of coffee, please?",
+      "opts": [
+       "another",
+       "other"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-with-of-object-pronoun",
+     "guideword": "FORM: WITH 'OF' + OBJECT PRONOUN",
+     "title": "Gruptan Bahsetme (both of us, a few of them)",
+     "en": "We use 'of' followed by an object pronoun (like 'us', 'them', 'you') after quantity words to talk about part of a specific group. For example, 'both of us' means two people from a group we already know.",
+     "tr": "Belirli bir gruptan bahsederken, miktar belirten kelimelerden sonra 'of' ve ardından bir nesne zamiri ('us', 'them', 'you' gibi) kullanırız. Örneğin 'both of us' önceden bilinen bir gruptaki iki kişiyi ifade eder.",
+     "ex": [
+      {
+       "w": "<b>Both of us</b> are going to the concert this weekend.",
+       "tr": "İkimiz de bu hafta sonu konsere gidiyoruz."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, genel bir miktardan değil, belirli ve bilinen bir grubun bir kısmından bahsetmek için kullanılır.",
+      "mistakes": "Türk öğrenciler sıklıkla 'of' kelimesini unutur ve 'both us' gibi yanlış bir yapı kurar; doğru kullanım 'both of us' şeklindedir. Ayrıca özne zamiri yerine nesne zamiri kullanılması gerektiğini unutup 'both of we' gibi hatalar yapabilirler.",
+      "confusion": "'Both of us' ile sadece 'both' arasındaki fark, 'both' genel bir ifade iken 'both of us' belirli bir gruba (biz) işaret eder. Örneğin 'Both students passed' (genel) ile 'Both of the students passed' (belirli grup) farklıdır."
+     },
+     "quiz": {
+      "q": "___ them were late to the meeting yesterday.",
+      "opts": [
+       "A few of",
+       "A few"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "verbs-patterns-that-clauses",
+   "title": "Başkalarının Sözünü Aktarma",
+   "ref": "Patterns That Clauses",
+   "summary": "Bu konu, 'that' bağlacı kullanarak birinin söylediklerini veya inandığı şeyleri (örneğin she said that... ya da she informed me that... gibi) nasıl aktaracağını öğretir.",
+   "category": "VERBS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-reporting-verbs-direct-object-that-clause",
+     "guideword": "FORM: REPORTING VERBS + DIRECT OBJECT 'THAT'-CLAUSE",
+     "title": "Birine Söyleneni Aktarma",
+     "en": "Some verbs like 'tell' or 'promise' need a person (object) before the 'that'-clause, so you say who you are talking to.",
+     "tr": "'Tell' veya 'promise' gibi bazı fiiller, 'that' cümleciğinden önce bir kişi (nesne) ister; böylece kime konuştuğunu belirtirsin.",
+     "ex": [
+      {
+       "w": "She <b>told me that</b> she was moving to Istanbul.",
+       "tr": "Bana İstanbul'a taşınacağını söyledi."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, birine söylenen bir şeyi başka birine aktarırken kullanılır ve kime söylendiğini açıkça belirtir.",
+      "mistakes": "Türk öğrenciler genellikle nesneyi (kişiyi) atlayıp direkt 'She told that...' der, ama 'tell' fiili mutlaka bir kişi ister; doğrusu 'She told me that...' şeklindedir.",
+      "confusion": "'Say' fiili ile karıştırılır çünkü ikisi de 'söylemek' anlamına gelir, ama 'say' nesne almaz: 'She said that...' doğru, 'She said me that...' yanlıştır."
+     },
+     "quiz": {
+      "q": "He ___ that the meeting was cancelled.",
+      "opts": [
+       "told us",
+       "said us"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-verbs-prepositional-phrase-that-clause",
+     "guideword": "FORM: VERBS + PREPOSITIONAL PHRASE + 'THAT'-CLAUSE",
+     "title": "Araya Edat Koyarak Anlatma",
+     "en": "Some verbs like 'complain' or 'explain' use a preposition (like 'to') before the person, and then add the 'that'-clause after.",
+     "tr": "'Complain' veya 'explain' gibi bazı fiiller, kişiden önce bir edat (örneğin 'to') kullanır ve sonra 'that' cümleciğini ekler.",
+     "ex": [
+      {
+       "w": "He <b>explained to us that</b> the flight was delayed.",
+       "tr": "Bize uçuşun geciktiğini açıkladı."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, bir fiilin doğrudan nesne almadığı ama kime konuşulduğunu belirtmek gerektiği durumlarda kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle edatı unutup 'He explained us that...' der, ama doğrusu 'He explained to us that...' şeklindedir çünkü 'explain' doğrudan nesne almaz.",
+      "confusion": "'Tell' gibi doğrudan nesne alan fiillerle karıştırılır; 'tell' edatsız kullanılır (tell someone that), ama 'explain' edat ister (explain to someone that)."
+     },
+     "quiz": {
+      "q": "She complained ___ that the room was too noisy.",
+      "opts": [
+       "to the manager",
+       "the manager"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "verbs-there-is-are",
+   "title": "Olasılık İhtimallerini Olumsuz Anlatma",
+   "ref": "There Is/are",
+   "summary": "Bu konu, 'there mustn't be', 'there can't be', 'there won't be' gibi yapılarla bir şeyin olmadığından veya olmayacağından emin olduğumuzu ya da bunun mümkün olmadığını nasıl ifade edeceğimizi öğretir.",
+   "category": "VERBS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-negative",
+     "guideword": "FORM: NEGATIVE",
+     "title": "Bir Şeyin Olmadığını Söyleme",
+     "en": "To say that something does not exist, use 'there isn't' for singular nouns and 'there aren't' for plural nouns.",
+     "tr": "Bir şeyin var olmadığını söylemek için tekil isimlerle 'there isn't', çoğul isimlerle 'there aren't' kullanılır.",
+     "ex": [
+      {
+       "w": "There <b>isn't</b> any milk in the fridge.",
+       "tr": "Buzdolabında hiç süt yok."
+      }
+     ],
+     "nuance": {
+      "why": "Bir yerde ya da durumda bir şeyin bulunmadığını belirtmek için kullanılır.",
+      "mistakes": "Öğrenciler genellikle 'there not is' gibi kelime sırasını karıştırır veya çoğul isimde 'there isn't' kullanır, doğru kullanım 'there aren't any books' şeklindedir.",
+      "confusion": "'There isn't/aren't' ile 'it isn't' karıştırılabilir; 'it' belirli bir nesneyi işaret ederken 'there' bir şeyin varlığından bahseder, örneğin 'It isn't here' (belirli bir şey burada değil) ile 'There isn't any here' (hiç yok) farklıdır."
+     },
+     "quiz": {
+      "q": "There ___ any chairs in this room.",
+      "opts": [
+       "isn't",
+       "aren't"
+      ],
+      "correct": 1
+     }
+    },
+    {
+     "id": "form-there-modal-verbs",
+     "guideword": "FORM: 'THERE' + MODAL VERBS",
+     "title": "Olasılık veya Zorunluluk Belirtme",
+     "en": "You can use modal verbs like 'will', 'might', 'could', or 'must' with 'there' to talk about future possibilities, obligations, or guesses.",
+     "tr": "Gelecekteki olasılıklar, zorunluluklar ya da tahminler hakkında konuşmak için 'there' ile birlikte 'will', 'might', 'could' veya 'must' gibi modal fiiller kullanılabilir.",
+     "ex": [
+      {
+       "w": "There <b>might be</b> a problem with the internet connection.",
+       "tr": "İnternet bağlantısıyla ilgili bir sorun olabilir."
+      }
+     ],
+     "nuance": {
+      "why": "Bir şeyin var olma ihtimalini, kesinliğini veya zorunluluğunu ifade etmek için kullanılır.",
+      "mistakes": "Öğrenciler modal fiilden sonra 'be' fiilini unutup 'there might a problem' gibi yanlış cümleler kurar; doğru hali 'there might be a problem' şeklindedir.",
+      "confusion": "'There will be' ile 'there is going to be' benzer anlam taşır ama 'there will be' daha genel tahminlerde, 'there is going to be' ise şu anki kanıtlara dayalı yakın gelecek tahminlerinde tercih edilir, örneğin 'There is going to be a storm' (bulutlara bakarak söylenir)."
+     },
+     "quiz": {
+      "q": "There ___ be enough time to finish the project.",
+      "opts": [
+       "must",
+       "musts"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "focus-focus",
+   "title": "Vurgu İçin Cümle Başını Değiştirme",
+   "ref": "Focus",
+   "summary": "Bu konu, önemli bir bilgiyi vurgulamak için zarfları veya diğer öğeleri cümlenin başına getirmeyi ve 'It is... that' kalıbıyla vurgu yapmayı öğretir.",
+   "category": "FOCUS",
+   "icon": "🎯",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-use-fronting-adverbs",
+     "guideword": "FORM/USE: FRONTING, ADVERBS",
+     "title": "Zarfı Öne Alarak Vurgu Yapma",
+     "en": "You can put certain adverbs at the very beginning of a sentence to give them more importance or to create a dramatic effect. When you do this, the word order after the adverb sometimes changes.",
+     "tr": "Bazı zarfları cümlenin en başına koyarak onlara daha fazla önem verebilir veya dramatik bir etki yaratabilirsin. Bunu yaptığında, zarftan sonraki kelime sırası bazen değişir.",
+     "ex": [
+      {
+       "w": "<b>Never</b> have I seen such a beautiful sunset.",
+       "tr": "Hiç bu kadar güzel bir gün batımı görmedim."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, konuşmacının bir durumu normalden daha çarpıcı, şaşırtıcı ya da güçlü göstermek istediğinde kullanılır.",
+      "mistakes": "Türk öğrenciler zarfı öne aldıktan sonra kelime sırasını değiştirmeyi unutur; örneğin 'Never I have seen' gibi yanlış bir sıralama yaparlar, doğrusu 'Never have I seen' şeklindedir.",
+      "confusion": "Bu yapı normal zarf kullanımıyla karıştırılır; 'I have never seen this' cümlesinde vurgu yoktur ama 'Never have I seen this' cümlesinde özel bir vurgu ve devrik yapı vardır."
+     },
+     "quiz": {
+      "q": "___ has she felt so proud of herself.",
+      "opts": [
+       "Never before",
+       "She never before"
+      ],
+      "correct": 0
+     }
+    },
+    {
+     "id": "form-use-it-be-adjective-that-clause",
+     "guideword": "FORM/USE: 'IT' + 'BE' ADJECTIVE + 'THAT' CLAUSE",
+     "title": "'It is... that...' ile Görüş Bildirme",
+     "en": "You can start a sentence with 'It is' plus an adjective to give your opinion or judgment about something, followed by a 'that' clause explaining what you mean. This structure puts the focus on the adjective rather than the subject.",
+     "tr": "Bir şey hakkındaki görüşünü veya değerlendirmeni belirtmek için cümleye 'It is' ve bir sıfatla başlayabilir, ardından ne anlatmak istediğini açıklayan bir 'that' cümlesi ekleyebilirsin. Bu yapı, vurguyu özneden çok sıfata verir.",
+     "ex": [
+      {
+       "w": "<b>It is strange that</b> he hasn't called us yet.",
+       "tr": "Onun bizi hâlâ aramamış olması gerçekten tuhaf."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, bir durum hakkında kişisel bir yorum ya da değerlendirme yaparken cümlenin en başında bunu belirtmek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'that' bağlacını unutur ya da yanlış yere koyar; örneğin 'It is strange he hasn't called' yerine daha doğal olan 'It is strange that he hasn't called' kullanılmalıdır, ikisi de kabul edilebilir ama 'that' eklemek anlamı daha açık kılar.",
+      "confusion": "Bu yapı 'It is + adjective + to + verb' kalıbıyla karıştırılır; 'It is important that you come' cümlesinde bir durum yorumlanırken, 'It is important to come' cümlesinde genel bir tavsiye verilir."
+     },
+     "quiz": {
+      "q": "___ amazing that she finished the marathon in three hours.",
+      "opts": [
+       "It is",
+       "It has"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "adverbs-adverb-phrases-form",
+   "title": "Zarfları Zarfla Güçlendirme",
+   "ref": "Adverb Phrases - Form",
+   "summary": "Bir zarfı 'really quickly' veya 'fairly well' gibi başka bir zarfla güçlendirerek veya yumuşatarak daha kesin ifadeler kurmayı öğretir.",
+   "category": "ADVERBS",
+   "icon": "⚡",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-adverb-adverb",
+     "guideword": "FORM: ADVERB + ADVERB",
+     "title": "İki Zarfı Yan Yana Kullanma",
+     "en": "Sometimes we put two adverbs together. The first adverb makes the second adverb stronger or gives more detail about it.",
+     "tr": "Bazen iki zarfı yan yana kullanırız. Bu durumda ilk zarf, ikinci zarfı güçlendirir ya da onun hakkında daha fazla bilgi verir.",
+     "ex": [
+      {
+       "w": "She sings <b>really beautifully</b>.",
+       "tr": "O gerçekten güzel şarkı söylüyor."
+      }
+     ],
+     "nuance": {
+      "why": "Bir eylemin nasıl yapıldığını daha güçlü veya daha kesin biçimde anlatmak için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle iki zarfı sıfat gibi kullanmaya çalışır; örneğin 'very good' demek isterken 'very well' yerine yanlışlıkla 'very good' kullanırlar çünkü Türkçede bu ayrım net değildir.",
+      "confusion": "Zarf + zarf yapısı, zarf + sıfat yapısıyla karıştırılabilir; 'really good' (sıfatı güçlendirir) ile 'really well' (zarfı güçlendirir) arasındaki farka dikkat edilmelidir."
+     },
+     "quiz": {
+      "q": "He explained the topic ___.",
+      "opts": [
+       "really clearly",
+       "really clear"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "clauses-declarative",
+   "title": "Vurgu İçin 'Do' Kullanımı",
+   "ref": "Declarative",
+   "summary": "Bir eylemi vurgulamak veya karşıt bir durumu güçlü şekilde ifade etmek için 'do', 'does', 'did' yardımcı fiillerinin cümlede nasıl kullanıldığını öğretir.",
+   "category": "CLAUSES",
+   "icon": "🔗",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-use-auxiliary-do-for-emphasis",
+     "guideword": "FORM/USE: AUXILIARY 'DO', FOR EMPHASIS",
+     "title": "Vurgu Yapmak İçin 'do' Kullanma",
+     "en": "We can use 'do', 'does', or 'did' before the main verb to add strong emphasis to a positive sentence, especially to show contrast or insist on something.",
+     "tr": "Olumlu bir cümleye güçlü bir vurgu katmak, özellikle bir zıtlığı göstermek ya da bir konuda ısrar etmek için ana fiilden önce 'do', 'does' ya da 'did' kullanabiliriz.",
+     "ex": [
+      {
+       "w": "I <b>did</b> send you the email yesterday.",
+       "tr": "Sana e-postayı dün gerçekten gönderdim."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, birinin şüphesini ya da yanlış bir düşüncesini düzeltmek için cümleye 'gerçekten', 'kesinlikle' anlamı katmak amacıyla kullanılır.",
+      "mistakes": "Öğrenciler genelte bu vurguyu Türkçedeki gibi sadece kelime tonuyla vermeye çalışıp 'do/does/did' eklemeyi unuturlar; ayrıca ekledikten sonra fiile de üçüncü tekil şahıs eki koyma hatası yaparlar, örneğin yanlış: 'She does likes it.' doğrusu: 'She does like it.'",
+      "confusion": "Soru ve olumsuz cümlelerdeki yardımcı fiil 'do' ile karıştırılabilir; burada cümle olumludur ve amaç soru sormak değil, vurgu yapmaktır: 'Do you like it?' (soru) ile 'I do like it!' (vurgu) farklıdır."
+     },
+     "quiz": {
+      "q": "She said I never call her, but I ___ call her every week!",
+      "opts": [
+       "do",
+       "am"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "conjunctions-subordinating",
+   "title": "Basit Bağlaçlarla Cümle Kurma",
+   "ref": "Subordinating",
+   "summary": "Because, so, when, if gibi temel bağlaçları kullanarak iki fikri tek bir cümlede basitçe birleştirmeyi öğretir.",
+   "category": "CONJUNCTIONS",
+   "icon": "➕",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-simple",
+     "guideword": "FORM: SIMPLE",
+     "title": "İki Cümleyi Bağlama (because/although/if)",
+     "en": "We use words like 'because', 'although', 'when', and 'if' to connect a main idea with an extra idea that explains, contrasts, or gives a condition. The connected part cannot stand alone as a full sentence.",
+     "tr": "Bir ana düşünceyi, onu açıklayan, ona zıt olan veya ona bir koşul ekleyen ek bir düşünceyle bağlamak için 'because', 'although', 'when', 'if' gibi kelimeler kullanırız. Bağlanan bu kısım tek başına tam bir cümle olamaz.",
+     "ex": [
+      {
+       "w": "I stayed home <b>because</b> it was raining.",
+       "tr": "Yağmur yağdığı için evde kaldım."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, iki fikir arasındaki sebep-sonuç, zıtlık veya koşul ilişkisini tek cümlede net biçimde göstermek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle bu bağlaçtan sonraki kısmı ayrı bir cümle gibi yazıp nokta koyar, örneğin 'I stayed home. Because it was raining.' yanlıştır; bu iki kısım tek cümle olmalıdır.",
+      "confusion": "Bu yapı 'and/but/or' gibi eşit iki cümleyi bağlayan bağlaçlarla karıştırılır; oysa 'because/although/if' bir cümleyi diğerine bağımlı kılar, yani biri diğerinden daha 'küçük' bir parça olur."
+     },
+     "quiz": {
+      "q": "She passed the exam ___ she studied every day.",
+      "opts": [
+       "because",
+       "but"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "determiners-demonstratives",
+   "title": "Geçmişten Bahsederken 'This'",
+   "ref": "Demonstratives",
+   "summary": "Geçmişte yaşanan bir olayı anlatırken 'this' kelimesinin zaman ve yer belirtmek için nasıl kullanıldığını öğretir.",
+   "category": "DETERMINERS",
+   "icon": "🔎",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "use-this-past",
+     "guideword": "USE: 'THIS', PAST",
+     "title": "Geçmişte Anlatılan Bir Anı İşaret Etme",
+     "en": "We can use 'this' to talk about a person, place, or situation in a story about the past, especially when telling someone about an experience.",
+     "tr": "'This' kelimesini, geçmişte yaşanan bir olayı anlatırken bir kişiyi, yeri veya durumu canlı bir şekilde işaret etmek için kullanabiliriz; özellikle bir deneyimi birine anlatırken.",
+     "ex": [
+      {
+       "w": "I was walking home and I saw <b>this</b> strange man standing near my door.",
+       "tr": "Eve doğru yürüyordum ve kapımın yanında duran şu tuhaf adamı gördüm."
+      }
+     ],
+     "nuance": {
+      "why": "Bu kullanım, geçmişte yaşanan bir olayı dinleyiciye daha canlı ve ilgi çekici anlatmak için kullanılır, sanki o an oradaymış gibi hissettirir.",
+      "mistakes": "Türk öğrenciler genellikle bu durumlarda 'a' veya 'the' kullanır, çünkü Türkçede böyle bir anlatım kalıbı yoktur. Örneğin 'I saw a strange man' yerine hikaye anlatırken 'I saw this strange man' demek daha doğaldır ve konuşma diline özgüdür.",
+      "confusion": "Bu kullanım, nesneyi göstermek için kullanılan normal 'this' ile karıştırılabilir. Burada 'this' bir şeyi fiziksel olarak göstermez, sadece hikayeye bir karakter veya nesne sokar; örneğin 'This guy came up to me' cümlesinde konuşmacı kimseyi işaret etmiyor, sadece anlatıyor."
+     },
+     "quiz": {
+      "q": "Yesterday, I met ___ really funny guy at the party.",
+      "opts": [
+       "this",
+       "the"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "nouns-types",
+   "title": "Somut ve Soyut İsimleri Kullanma",
+   "ref": "Types",
+   "summary": "İnsan, hayvan, nesne, yer ve kavramları adlandıran somut ve soyut isimleri tanıyıp cümle içinde doğru kullanmayı öğretir.",
+   "category": "NOUNS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-common-nouns",
+     "guideword": "FORM: COMMON NOUNS",
+     "title": "Genel Nesneleri ve Kavramları Adlandırma",
+     "en": "A common noun names a general person, place, thing, or idea, not a specific one. We write common nouns with a small letter, unless they start a sentence.",
+     "tr": "Common noun (cins isim), belirli olmayan genel bir kişiyi, yeri, nesneyi veya kavramı adlandırır. Cümle başında olmadıkça küçük harfle yazılır.",
+     "ex": [
+      {
+       "w": "I saw a <b>dog</b> in the park this morning.",
+       "tr": "Bu sabah parkta bir köpek gördüm."
+      }
+     ],
+     "nuance": {
+      "why": "Common noun'lar, belirli bir isim vermeden genel varlıkları veya kavramları ifade etmek için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle common noun'ları büyük harfle yazma hatası yapar; örneğin 'I have a Cat' yerine 'I have a cat' yazılmalıdır.",
+      "confusion": "Proper noun (özel isim) ile karıştırılır; proper noun'lar belirli, tek bir varlığı adlandırır ve her zaman büyük harfle başlar, örneğin 'London' bir proper noun'dur ama 'city' bir common noun'dur."
+     },
+     "quiz": {
+      "q": "She works in a big ___.",
+      "opts": [
+       "city",
+       "London"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "nouns-plural",
+   "title": "Grup Belirten İsimler",
+   "ref": "Plural",
+   "summary": "Bu konu, 'family', 'team' veya 'police' gibi bir grubu tek bir birim olarak ifade eden isimleri ve bunları cümlede doğru şekilde kullanmayı öğretir.",
+   "category": "NOUNS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-collective-nouns",
+     "guideword": "FORM: COLLECTIVE NOUNS",
+     "title": "Grup İsimlerini Kullanma",
+     "en": "Collective nouns like 'family', 'team', or 'police' refer to a group of people or things. In British English, they can be followed by either a singular or plural verb, depending on whether you see the group as one unit or as many individuals.",
+     "tr": "'Family', 'team', 'police' gibi grup isimleri bir insan veya nesne topluluğunu ifade eder. İngiliz İngilizcesinde, grubu tek bir bütün olarak mı yoksa üyeleri ayrı ayrı olarak mı gördüğünüze bağlı olarak bu isimlerden sonra tekil veya çoğul fiil kullanılabilir.",
+     "ex": [
+      {
+       "w": "My <b>family is</b> very supportive, but my <b>family are</b> all doctors.",
+       "tr": "Ailem çok destekleyici, ama ailemin hepsi doktor."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, bir grubu bazen tek bir birim, bazen de grubun içindeki bireyler olarak anlatmak için kullanılır.",
+      "mistakes": "Türkçede grup isimleri hep tekil kabul edildiği için öğrenciler 'the team is' derken bile çoğulluk anlamı katmakta zorlanır ya da 'police is coming' gibi hatalar yapar; 'police' her zaman çoğul fiil alır: 'The police are coming.'",
+      "confusion": "Sayılabilen çoğul isimlerle (two teams, three families) karıştırılmamalı; collective noun tek bir grubu (the team) ifade eder, çoğul isim ise birden fazla grubu (the teams) ifade eder."
+     },
+     "quiz": {
+      "q": "The team ___ playing really well this season.",
+      "opts": [
+       "is",
+       "am"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "passives-get-and-have",
+   "title": "Get ile Başıma Gelenler",
+   "ref": "Get and Have",
+   "summary": "Bu konu, 'get married', 'get hurt' gibi kalıplarda 'get' fiilini '-ed' ile kullanarak günlük hayatta başımıza gelen değişimleri ve durumları anlatmayı öğretir.",
+   "category": "PASSIVES",
+   "icon": "🔄",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-get-ed",
+     "guideword": "FORM: 'GET' + '-ED'",
+     "title": "Başımıza Gelen Şeyleri Anlatma",
+     "en": "We can use 'get' + past participle instead of 'be' + past participle to talk about things that happen to us, especially sudden or unplanned events. This form is more informal and common in everyday spoken English.",
+     "tr": "Başımıza gelen, özellikle ani veya beklenmedik olayları anlatmak için 'be' + geçmiş zaman ortacı yerine 'get' + geçmiş zaman ortacı kullanabiliriz. Bu yapı daha günlük ve konuşma dilinde sık kullanılır.",
+     "ex": [
+      {
+       "w": "My phone <b>got stolen</b> on the bus yesterday.",
+       "tr": "Telefonum dün otobüste çalındı."
+      }
+     ],
+     "nuance": {
+      "why": "'Get' + '-ed' yapısı, olayın beklenmedik veya ani gerçekleştiğini vurgulamak için, özellikle günlük konuşmalarda kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'get' fiilini çekimlemeyi unutup 'I get stolen' gibi zaman uyumsuz cümleler kurar; doğrusu geçmiş olay için 'got stolen' olmalıdır. Ayrıca bazen fiilin ortaç formunu değil düz halini kullanırlar, örneğin 'get steal' yerine 'get stolen' denmelidir.",
+      "confusion": "Bu yapı 'be' + past participle ile karıştırılır; ikisi de pasif anlam taşır ama 'get' formu daha resmi olmayan, ani ve bazen olumsuz durumları anlatırken kullanılır, örneğin 'The window was broken' (resmi bilgi) ile 'The window got broken' (beklenmedik olay) arasındaki fark gibi."
+     },
+     "quiz": {
+      "q": "Our car ___ damaged in the storm last night.",
+      "opts": [
+       "got",
+       "was getting"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "pronouns-subject-object",
+   "title": "It ile Konuşmaya Başlama",
+   "ref": "Subject/ Object",
+   "summary": "Hava durumu, saat, uzaklık veya genel durumlar hakkında konuşurken cümleyi 'it' ile başlatmayı öğretir.",
+   "category": "PRONOUNS",
+   "icon": "👤",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-subject-using-it-to-introduce",
+     "guideword": "FORM: (SUBJECT) USING 'IT' TO INTRODUCE",
+     "title": "'It' ile Cümleye Başlama",
+     "en": "We use 'it' at the beginning of a sentence to talk about time, weather, distance, or to give an opinion about something. This 'it' doesn't refer to a specific noun; it just helps us start the sentence.",
+     "tr": "Saat, hava durumu, mesafe hakkında konuşurken veya bir şey hakkında fikir bildirirken cümleye 'it' ile başlarız. Buradaki 'it' belirli bir ismi işaret etmez, sadece cümleyi başlatmamıza yardımcı olur.",
+     "ex": [
+      {
+       "w": "<b>It</b> is raining outside, so take an umbrella.",
+       "tr": "Dışarıda yağmur yağıyor, o yüzden şemsiye al."
+      }
+     ],
+     "nuance": {
+      "why": "İngilizcede her cümlenin bir öznesi olmak zorundadır, bu yüzden gerçek bir özne olmadığında 'it' kullanılarak cümle tamamlanır.",
+      "mistakes": "Türkçe öğrenciler genelde bu 'it'i cümleden tamamen atlar, çünkü Türkçede 'Yağmur yağıyor' derken özneye gerek yoktur; doğrusu 'It is raining' demektir, sadece 'Is raining' yanlıştır.",
+      "confusion": "Bu yapı, bir nesneye işaret eden gerçek 'it' zamiriyle karıştırılır; örneğin 'I bought a book. It is interesting.' cümlesindeki 'it' kitabı işaret ederken, 'It is late.' cümlesindeki 'it' hiçbir şeyi işaret etmez."
+     },
+     "quiz": {
+      "q": "___ is very cold today.",
+      "opts": [
+       "It",
+       "This"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "pronouns-generic-use",
+   "title": "Genel İnsanlardan 'One' ile Bahsetme",
+   "ref": "Generic Use",
+   "summary": "Belirli bir kişiyi değil, genel olarak insanları kastederken resmi konuşma ve yazıda 'one' zamirinin nasıl kullanıldığını öğretir.",
+   "category": "PRONOUNS",
+   "icon": "👤",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "use-one-general-formal",
+     "guideword": "USE: 'ONE', GENERAL, FORMAL",
+     "title": "Genel İnsanları Anlatma (one)",
+     "en": "We use 'one' to talk about people in general, including the speaker, in a formal way. It means 'any person' rather than a specific person.",
+     "tr": "'One' kelimesini, konuşan kişi de dahil olmak üzere insanları genel olarak anlatmak için resmi bir şekilde kullanırız. Belirli bir kişiyi değil, 'herhangi bir insanı' ifade eder.",
+     "ex": [
+      {
+       "w": "One should always be honest with others.",
+       "tr": "İnsan her zaman başkalarına karşı dürüst olmalıdır."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, kişisel değil genel geçerliliği olan kurallar veya görüşler ifade edilirken kullanılır, konuşmayı daha resmi ve tarafsız yapar.",
+      "mistakes": "Türk öğrenciler genellikle 'insan' kelimesini doğrudan çevirip 'a person' veya 'people' kullanır; ancak formal bağlamda 'one' daha uygun bir seçimdir. Ayrıca 'one' kullanıldıktan sonra cümlede 'you' ile karıştırıp tutarsız kullanmak yaygın bir hatadır, örneğin 'One should be careful, or you might get hurt' yanlış, 'One should be careful, or one might get hurt' doğrudur.",
+      "confusion": "'One' genellikle günlük konuşmada kullanılan 'you' (genel sen) ile karıştırılır; 'you' daha samimi ve gündelik, 'one' ise daha resmi ve yazılı dile uygundur. Örneğin, 'You should be polite' günlük konuşma, 'One should be polite' ise resmi yazıdır."
+     },
+     "quiz": {
+      "q": "___ must respect the rules of society.",
+      "opts": [
+       "One",
+       "You"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "pronouns-reciprocal",
+   "title": "Birbirini/Birbirlerini İfade Etme",
+   "ref": "Reciprocal",
+   "summary": "Bu konu, iki veya daha fazla kişi arasındaki karşılıklı eylemleri anlatmak için 'each other' ifadesinin nasıl kullanıldığını öğretir.",
+   "category": "PRONOUNS",
+   "icon": "👤",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-each-other",
+     "guideword": "FORM: 'EACH OTHER'",
+     "title": "Karşılıklı Eylemleri İfade Etme",
+     "en": "We use 'each other' when two or more people do the same action to one another. It shows that the action goes both ways, not just one direction.",
+     "tr": "İki veya daha fazla kişi birbirine aynı eylemi yaptığında 'each other' kullanırız. Bu, eylemin tek yönlü değil, karşılıklı olduğunu gösterir.",
+     "ex": [
+      {
+       "w": "Maria and Tom love <b>each other</b> very much.",
+       "tr": "Maria ve Tom birbirlerini çok seviyor."
+      }
+     ],
+     "nuance": {
+      "why": "'Each other' bir eylemin iki taraf arasında karşılıklı gerçekleştiğini net bir şekilde göstermek için kullanılır.",
+      "mistakes": "Türk öğrenciler genelde 'each other' yerine 'together' kullanır, çünkü Türkçedeki 'birbirlerine' anlamını 'birlikte' ile karıştırır. Örneğin 'They help together' yanlıştır, doğrusu 'They help each other'dır.",
+      "confusion": "'Each other' genellikle 'themselves' ile karıştırılır. 'Each other' karşılıklı eylemi (biri diğerine), 'themselves' ise kişinin kendi kendine yaptığı eylemi anlatır: 'They hurt each other' (birbirlerini incittiler) ile 'They hurt themselves' (kendilerini incittiler) farklı anlamlar taşır."
+     },
+     "quiz": {
+      "q": "The two neighbors always help ___ when there is a problem.",
+      "opts": [
+       "each other",
+       "themselves"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "questions-wh",
+   "title": "Olumsuz Modal Sorular Sorma",
+   "ref": "Wh-",
+   "summary": "'Shouldn't', 'Couldn't', 'Wouldn't' gibi modal fiillerle olumsuz soru kurarak şaşkınlık, öneri veya nazik istek ifade etmeyi öğretir.",
+   "category": "QUESTIONS",
+   "icon": "❓",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-negative-questions-with-modals",
+     "guideword": "FORM: NEGATIVE QUESTIONS WITH MODALS",
+     "title": "Modal ile Olumsuz Soru Sorma",
+     "en": "To make a negative question with a modal verb, use a wh- word, then the modal, then 'not' (or the short form), then the subject and the main verb. We often use these questions to sound surprised or to make a suggestion.",
+     "tr": "Modal fiille olumsuz soru yapmak için önce wh- kelimesi, sonra modal fiil, sonra 'not' (veya kısa hâli), sonra özne ve ana fiil kullanılır. Bu soruları genellikle şaşkınlık ifade etmek veya öneri sunmak için kullanırız.",
+     "ex": [
+      {
+       "w": "Why <b>shouldn't</b> we ask him for help?",
+       "tr": "Neden ondan yardım istememeliyiz?"
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, birine öneride bulunurken veya bir durumu sorgularken şaşkınlık ya da eleştiri tonu katmak için kullanılır.",
+      "mistakes": "Türk öğrenciler genellikle 'not' kelimesini yanlış yere koyar; 'Why not can we go?' yerine 'Why can't we go?' demek gerekir. Ayrıca modal fiili unutup 'Why don't should we go?' gibi çift yardımcı fiil kullanma hatası da sık görülür.",
+      "confusion": "Bu yapı, normal olumsuz sorularla (do/does kullanan) karıştırılabilir. 'Why doesn't she come?' cümlesinde normal fiil vardır, ama 'Why shouldn't she come?' cümlesinde modal fiil kullanılır, bu yüzden 'does' eklenmez."
+     },
+     "quiz": {
+      "q": "Why ___ we tell her the truth?",
+      "opts": [
+       "shouldn't",
+       "doesn't should"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "verbs-phrasal-prepositional",
+   "title": "Üç Parçalı Fiiller (Phrasal Verb + Edat)",
+   "ref": "Phrasal-prepositional",
+   "summary": "'get away with', 'put up with' gibi hem parçacık hem edat içeren fiilleri nesneyle birlikte doğru sırayla kullanmayı öğretir.",
+   "category": "VERBS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "verb-particle-preposition-object",
+     "guideword": "VERB + PARTICLE + PREPOSITION + OBJECT",
+     "title": "Üç Parçalı Fiilleri Kullanma",
+     "en": "Some verbs are made of three parts: a verb, a particle (like 'up' or 'out'), and a preposition (like 'to' or 'with'), followed by an object. The meaning of these verbs is often different from the meaning of each separate word.",
+     "tr": "Bazı fiiller üç parçadan oluşur: bir fiil, bir parçacık ('up' veya 'out' gibi) ve bir edat ('to' veya 'with' gibi), ardından bir nesne gelir. Bu fiillerin anlamı genellikle kelimelerin tek tek anlamlarından farklıdır.",
+     "ex": [
+      {
+       "w": "I'm really looking forward to the weekend.",
+       "tr": "Hafta sonunu gerçekten iple çekiyorum."
+      }
+     ],
+     "nuance": {
+      "why": "Bu yapı, günlük İngilizce'de doğal ve akıcı konuşmak için çok sık kullanılır; tek kelimelik fiillerle aynı anlamı vermek çoğu zaman mümkün değildir.",
+      "mistakes": "Türkçe konuşanlar genellikle parçacık ile edatın sırasını karıştırır veya ikisinden birini unutur; örneğin 'look forward the weekend' demek yanlıştır, doğrusu 'look forward to the weekend' şeklindedir.",
+      "confusion": "Bu yapı, sadece fiil + edattan oluşan ikili phrasal verb'lerle (örneğin 'look at') karıştırılır; üç parçalı yapıda hem parçacık hem edat birlikte bulunur, örneğin 'look forward to' üç parçadan oluşur, 'look at' ise ikiden."
+     },
+     "quiz": {
+      "q": "She always looks ___ to seeing her family.",
+      "opts": [
+       "forward",
+       "up"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "verbs-prepositional",
+   "title": "Fiilden Sonra Doğru Edatı Kullanma",
+   "ref": "Prepositional",
+   "summary": "Bazı fiillerin belirli edatlarla birlikte kullanıldığını (örneğin 'listen to', 'look at', 'wait for') ve bunları nesnelerle doğru şekilde nasıl birleştireceğini öğretir.",
+   "category": "VERBS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-verb-preposition-object",
+     "guideword": "FORM: VERB + PREPOSITION + OBJECT",
+     "title": "Fiil + Edat + Nesne Kullanımı",
+     "en": "Some verbs need a specific preposition before the object. The pattern is: verb + preposition + object, like 'listen to music' or 'wait for you'.",
+     "tr": "Bazı fiiller nesneden önce belirli bir edat gerektirir. Kalıp şöyledir: fiil + edat + nesne, örneğin 'listen to music' veya 'wait for you' gibi.",
+     "ex": [
+      {
+       "w": "I am waiting <b>for</b> the bus.",
+       "tr": "Otobüsü bekliyorum."
+      }
+     ],
+     "nuance": {
+      "why": "İngilizcede bazı fiiller nesneyle doğrudan değil, belirli bir edat aracılığıyla bağlanır; bu yüzden fiil-edat çiftini birlikte ezberlemek gerekir.",
+      "mistakes": "Türkçe konuşanlar genelde edatı atlayarak 'wait the bus' gibi yanlış cümleler kurar, çünkü Türkçede 'beklemek' fiili doğrudan nesne alır ve edata ihtiyaç duymaz.",
+      "confusion": "Bu yapı, phrasal verb'lerle (örneğin 'look up') karıştırılabilir; ancak burada edat anlamı değiştirmez, sadece fiili nesneye bağlar, phrasal verb'lerde ise anlam tamamen değişir."
+     },
+     "quiz": {
+      "q": "She is listening ___ the radio.",
+      "opts": [
+       "to",
+       "at"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  },
+  {
+   "topicId": "verbs-types",
+   "title": "Geçmiş Alışkanlıklar ve Tavsiyeler",
+   "ref": "Types",
+   "summary": "Bu konu, 'used to' ile geçmişteki alışkanlıkları anlatmayı ve 'ought to' ile tavsiye vermeyi öğretir.",
+   "category": "VERBS",
+   "icon": "📦",
+   "verifyType": "quiz",
+   "subs": [
+    {
+     "id": "form-semi-modal-auxiliary-verbs-used-to-ought-to",
+     "guideword": "FORM: SEMI-MODAL AUXILIARY VERBS, 'USED TO', 'OUGHT TO'",
+     "title": "Yarı Yardımcı Fiiller: used to, ought to",
+     "en": "We use 'used to' + base verb to talk about past habits or states that are not true anymore. We use 'ought to' + base verb to give advice, similar to 'should'.",
+     "tr": "'used to' + fiil (yalın hâl) yapısını geçmişte alışkanlık olan ama artık doğru olmayan durumlar için kullanırız. 'ought to' + fiil (yalın hâl) yapısını ise 'should' gibi tavsiye vermek için kullanırız.",
+     "ex": [
+      {
+       "w": "I <b>used to</b> play football every weekend when I was young.",
+       "tr": "Gençken her hafta sonu futbol oynardım."
+      }
+     ],
+     "nuance": {
+      "why": "'used to' geçmişteki bir alışkanlığın artık devam etmediğini vurgulamak için, 'ought to' ise nazik bir tavsiye veya beklenti belirtmek için kullanılır.",
+      "mistakes": "Türk öğrenciler genelde 'used to' yerine sadece geçmiş zaman kullanır ya da 'I am used to' ile 'I used to' yapısını karıştırır; örneğin 'I used to work here' yerine yanlışlıkla 'I am used to work here' der.",
+      "confusion": "'used to' (alışkanlık) ile 'be used to' (bir şeye alışkın olmak) karıştırılır; 'I used to smoke' (eskiden sigara içerdim) ile 'I am used to smoking' (sigaraya alıştım) farklı anlamlar taşır."
+     },
+     "quiz": {
+      "q": "You ___ apologize to her for what you said.",
+      "opts": [
+       "ought to",
+       "used to"
+      ],
+      "correct": 0
+     }
+    }
+   ]
+  }
+ ],
+ "B2": [],
+ "C1": [],
+ "C2": []
+}
