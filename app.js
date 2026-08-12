@@ -5405,6 +5405,14 @@ function grRenderVerify(t, j) {
     return;
   }
   if (t.verifyType === 'quiz') {
+    if (!s.quiz || !s.quiz.opts || s.quiz.opts.length < 2) {
+      // İçerik üretiminde bu alt madde için quiz gelmemiş — kendin işaretle
+      el.innerHTML = `<div class="gr-verify-box">
+        <p style="font-size:12px;color:var(--text3);margin-bottom:8px;">Bu alt madde için otomatik kontrol henüz yok.</p>
+        <button class="gr-tr-toggle" onclick="grMarkLearned('${t.topicId}','${s.id}');grRenderVerify(grTopicsFor('${grLevel}')[${grTopicIdx}],${j});document.getElementById('gr-dot-${j}').classList.add('done');grMarkAccDone(${j});">Anladım, işaretle →</button>
+      </div>`;
+      return;
+    }
     el.innerHTML = `<div class="gr-verify-box">
       <div class="gr-verify-label">Kontrol et</div>
       <div class="gr-quiz-q">${s.quiz.q}</div>
