@@ -1567,7 +1567,21 @@ const ICO = {
   award: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.3 12 6.7l3.8.6-2.7 2.7.6 3.8L10 12.1l-3.7 1.7.6-3.8-2.7-2.7 3.8-.6z"/><path d="M7.3 10.2 9 12l3.7-4"/></svg>',
   upcoming: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4v5.2M13.5 6.6l-3.8 2.8-3.8-2.8"/><rect x="4" y="9.6" width="12" height="6.4" rx="1.4"/></svg>',
   star: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.3 12 6.7l3.8.6-2.7 2.7.6 3.8L10 12.1l-3.7 1.7.6-3.8-2.7-2.7 3.8-.6z"/></svg>',
-  clock: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 6.5V10l2.6 1.6"/></svg>'
+  clock: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 6.5V10l2.6 1.6"/></svg>',
+  plus: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4.5v11M4.5 10h11"/></svg>',
+  search: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.7" cy="8.7" r="5"/><path d="M15.5 15.5l-3.6-3.6"/></svg>',
+  key: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="13" r="3.2"/><path d="M9.2 10.8 15.5 4.5M13 7l1.8 1.8M15.3 4.7l1.8 1.8"/></svg>',
+  user: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.8" r="3.2"/><path d="M4 16.2c0-3.3 2.7-5.2 6-5.2s6 1.9 6 5.2"/></svg>',
+  link: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 11.5 11.5 8.5"/><path d="M11 6.3l1.3-1.3a3 3 0 1 1 4.2 4.2L15.2 10.5"/><path d="M9 13.7 7.7 15a3 3 0 1 1-4.2-4.2L4.8 9.5"/></svg>',
+  ban: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><path d="M5.6 5.6l8.8 8.8"/></svg>',
+  swap: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10.5M11.5 4l3 3-3 3"/><path d="M16 13H5.5M8.5 10l-3 3 3 3"/></svg>',
+  palette: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.3a6.7 6.7 0 1 0 0 13.4c1 0 1.5-.6 1.5-1.4 0-.4-.2-.7-.2-1.1 0-.7.6-1.2 1.3-1.2H14a3 3 0 0 0 3-3c0-3.7-3.1-6.7-7-6.7z"/><circle cx="7.2" cy="8.4" r=".5" fill="currentColor"/><circle cx="10.4" cy="6.8" r=".5" fill="currentColor"/><circle cx="13.2" cy="8.6" r=".5" fill="currentColor"/></svg>',
+  bolt: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3 5.5 11.2h3.8L9 17l6-8.6H10.8z"/></svg>',
+  pin: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17s5-4.6 5-8.3A5 5 0 0 0 5 8.7C5 12.4 10 17 10 17z"/><circle cx="10" cy="8.5" r="1.8"/></svg>',
+  target: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".4" fill="currentColor"/></svg>',
+  box: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5 10 3l6.5 3.5v7L10 17l-6.5-3.5z"/><path d="M3.5 6.5 10 10l6.5-3.5M10 10v7"/></svg>',
+  play: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.3v11.4l9-5.7z" fill="currentColor" stroke="currentColor"/></svg>',
+  question: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 7.6a2.5 2.5 0 1 1 3.6 2.3c-.9.5-1.1 1-1.1 1.9"/><circle cx="10" cy="14.6" r=".15" fill="currentColor" stroke-width="2.4"/></svg>'
 };
 // name: ICO anahtarı. size: px. color: opsiyonel currentColor override. inline:
 // true ise metinle aynı satırda hizalanacak margin-right taşır (etiket önü),
@@ -5226,6 +5240,63 @@ let grLevel = 'A1', grTopicIdx = 0;
 
 function grTopicsFor(lv) { return (window.GRAMMAR_TOPICS && window.GRAMMAR_TOPICS[lv]) || []; }
 
+// Canlı/doygun renk paleti — kategoriye göre otomatik atanır. Her giriş
+// hafif gradyanlı (iki ton). Bilinen 17 EGP kategorisi için ÇAKIŞMASIZ elle
+// atama var (hash'e bırakılsaydı 8 renk / 17 kategori çakışırdı); tanınmayan
+// yeni bir kategori gelirse hash fallback devreye girer.
+const GR_VIVID_GRADIENTS = [
+  ['#8b5cf6', '#6d28d9'],  // 0 mor
+  ['#3b82f6', '#1d4ed8'],  // 1 mavi
+  ['#10b981', '#047857'],  // 2 zümrüt
+  ['#f59e0b', '#c2660a'],  // 3 amber
+  ['#f43f5e', '#be123c'],  // 4 gül
+  ['#06b6d4', '#0891b2'],  // 5 camgöbeği
+  ['#d946ef', '#a21caf'],  // 6 fuşya
+  ['#84cc16', '#4d7c0f'],  // 7 lime
+  ['#6366f1', '#4338ca'],  // 8 indigo
+  ['#ec4899', '#be185d'],  // 9 pembe
+  ['#14b8a6', '#0f766e'],  // 10 teal
+  ['#eab308', '#a16207'],  // 11 sarı
+];
+const GR_CATEGORY_STYLE = {
+  // A1'de aynı ekranda birlikte görünen 9 kategori — hepsi benzersiz renk.
+  CONJUNCTIONS: { grad: 0, icon: 'plus' },
+  PRESENT:      { grad: 1, icon: 'clock' },
+  PAST:         { grad: 2, icon: 'clock' },
+  FUTURE:       { grad: 3, icon: 'clock' },
+  DETERMINERS:  { grad: 4, icon: 'search' },
+  PRONOUNS:     { grad: 5, icon: 'user' },
+  CLAUSES:      { grad: 6, icon: 'link' },
+  NOUNS:        { grad: 7, icon: 'box' },
+  MODALITY:     { grad: 8, icon: 'key' },
+  VERBS:        { grad: 9, icon: 'play' },
+  ADVERBS:      { grad: 10, icon: 'bolt' },
+  ADJECTIVES:   { grad: 11, icon: 'palette' },
+  // Daha üst seviyelerde görülen, A1 setiyle aynı anda ekrana gelmesi
+  // düşük ihtimalli kategoriler — mevcut renklerden tekrar kullanılıyor.
+  NEGATION:     { grad: 2, icon: 'ban' },
+  PASSIVES:     { grad: 3, icon: 'swap' },
+  PREPOSITIONS: { grad: 6, icon: 'pin' },
+  FOCUS:        { grad: 0, icon: 'target' },
+  QUESTIONS:    { grad: 8, icon: 'question' },
+};
+function grCategoryStyle(category) {
+  if (GR_CATEGORY_STYLE[category]) return GR_CATEGORY_STYLE[category];
+  let hash = 0;
+  for (let i = 0; i < category.length; i++) hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
+  return { grad: hash % GR_VIVID_GRADIENTS.length, icon: 'box' };
+}
+function grCategoryGradient(category) {
+  const [c1, c2] = GR_VIVID_GRADIENTS[grCategoryStyle(category).grad];
+  return `linear-gradient(135deg, ${c1}, ${c2})`;
+}
+function grCategoryColor(category) {
+  return GR_VIVID_GRADIENTS[grCategoryStyle(category).grad][0];
+}
+function grCategoryIcon(category) {
+  return grCategoryStyle(category).icon;
+}
+
 function grSrsKey(topicId, subId) { return 'gr:' + topicId + ':' + subId; }
 function grIsLearned(topicId, subId) {
   const st = srsStore[grSrsKey(topicId, subId)];
@@ -5282,18 +5353,20 @@ function grShowTopics(lv) {
     el.innerHTML = list.map((t, i) => {
       const m = grTopicMeta(t);
       const allDone = m.learnedCount === t.subs.length;
+      const color = grCategoryColor(t.category);
+      const gradient = grCategoryGradient(t.category);
       return `
-      <div class="gr-topic-card">
+      <div class="gr-topic-card" style="border-left:4px solid ${color};">
         <div class="gr-topic-row" onclick="grOpenTopic(${i})">
-          <div class="gr-topic-icon ${allDone?'done':''}">${t.icon}</div>
+          <div class="gr-topic-icon ${allDone?'done':''}" style="background:${gradient};color:#fff;box-shadow:0 3px 10px -1px ${color}99;">${ico(grCategoryIcon(t.category), 19, '#fff', false)}</div>
           <div class="gr-topic-main">
             <div class="gr-topic-name">${t.title}</div>
-            <div class="gr-topic-meta"><b>Grammar, ${lv}</b> · ${t.category.charAt(0)+t.category.slice(1).toLowerCase()}</div>
-            <div class="gr-topic-meta">Grammar · ${m.dur} · ${m.learnedCount}/${t.subs.length} öğrenildi</div>
+            <div class="gr-topic-meta"><b style="color:${color};">${t.category.charAt(0)+t.category.slice(1).toLowerCase()}</b> · Grammar, ${lv}</div>
+            <div class="gr-topic-meta">${m.dur} · ${m.learnedCount}/${t.subs.length} öğrenildi</div>
           </div>
           <span class="gr-topic-chevron">&#8250;</span>
         </div>
-        <div class="gr-progress-wrap"><div class="gr-progress-fill ${allDone?'full':''}" style="width:${m.pct}%"></div></div>
+        <div class="gr-progress-wrap"><div class="gr-progress-fill ${allDone?'full':''}" style="width:${m.pct}%;${allDone?'':`background:${gradient};`}"></div></div>
       </div>`;
     }).join('');
   }

@@ -363,9 +363,9 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-lvl-title{font-size:19px;font-weight:600;margin-bottom:12px;}
 .gr-lvl-meta{font-size:11.5px;opacity:.75;}
 .gr-lvl-badge{position:absolute;right:18px;top:18px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px dashed currentColor;opacity:.85;}
-.gr-topic-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.gr-topic-card{background:linear-gradient(rgba(255,255,255,.035),rgba(255,255,255,.035)),var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.18);}
 .gr-topic-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;}
-.gr-topic-icon{flex-shrink:0;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;background:var(--a1bg);color:var(--a1);}
+.gr-topic-icon{flex-shrink:0;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;}
 .gr-topic-icon.done::after{content:'✓';position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--success);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
 .gr-topic-main{flex:1;min-width:0;}
 .gr-topic-name{font-size:14.5px;font-weight:600;line-height:1.3;}
@@ -1058,7 +1058,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608121955';
+    s.src = 'app.js?v=202608122130';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
