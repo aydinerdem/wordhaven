@@ -1671,7 +1671,7 @@ function selectAll(group) {
 }
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz' };
+const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -1690,7 +1690,7 @@ function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
   document.getElementById('nav-study').classList.toggle('active', v==='filter'||v==='study');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
@@ -1702,6 +1702,7 @@ function showView(v) {
   document.getElementById('nav-status').classList.toggle('active', v==='status');
   document.getElementById('nav-settings').classList.toggle('active', v==='settings');
   document.getElementById('nav-writing').classList.toggle('active', v==='writing');
+  document.getElementById('nav-grammar').classList.toggle('active', v==='grammar');
   if (v==='dash') updateDashboard();
   if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
@@ -1710,6 +1711,7 @@ function showView(v) {
   if (v==='status') stInit();
   if (v==='writing') wrInit();
   if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); }
+  if (v==='grammar') grInit();
 }
 
 // ── WORD LIST (2-column, toggle accordion) ──────────────────────────────────
@@ -5210,6 +5212,266 @@ function hgLoadStats() {
     else if (st.nextReview && st.nextReview <= today) due++;
   });
   el.textContent = `${keys.length} kelime takipte · ${mastered} öğrenildi · ${due} tekrar bekliyor`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GRAMMAR MODÜLÜ — kaynak: English Grammar Profile (seviye/konu iskeleti),
+// veri grammar-topics.json'dan fetch ediliyor (window.GRAMMAR_TOPICS).
+// Doğrulama hibrit: tense'e bağlı konular Cümle Kur'un SENTENCE_EXERCISES
+// havuzundan pratik çeker; bağımsız konular (Coordinating, Articles vb.)
+// kendi mini-testini kullanır. İlerleme aynı srsStore'a 'gr:' önekiyle
+// yazılır — ayrı bir depo/dosya değil, saveState() ile birlikte kaydedilir.
+// ═══════════════════════════════════════════════════════════════════════════
+let grLevel = 'A1', grTopicIdx = 0;
+
+function grTopicsFor(lv) { return (window.GRAMMAR_TOPICS && window.GRAMMAR_TOPICS[lv]) || []; }
+
+function grSrsKey(topicId, subId) { return 'gr:' + topicId + ':' + subId; }
+function grIsLearned(topicId, subId) {
+  const st = srsStore[grSrsKey(topicId, subId)];
+  return !!(st && st.learned);
+}
+function grMarkLearned(topicId, subId) {
+  srsStore[grSrsKey(topicId, subId)] = { learned: true, learnedAt: todayStr() };
+  saveState();
+}
+
+function grInit() {
+  const el = document.getElementById('gr-level-list');
+  const levels = ['A1','A2','B1','B2','C1','C2'];
+  el.innerHTML = levels.map(lv => {
+    const topics = grTopicsFor(lv);
+    const subCount = topics.reduce((s,t) => s + t.subs.length, 0);
+    const learnedCount = topics.reduce((s,t) => s + t.subs.filter(sub => grIsLearned(t.topicId, sub.id)).length, 0);
+    const metaText = topics.length === 0 ? 'yakında' : `${topics.length} konu · ${subCount} alt madde · ${learnedCount}/${subCount} öğrenildi`;
+    return `
+    <div class="gr-lvl-card h-${lv.toLowerCase()}" onclick="grShowTopics('${lv}')">
+      <div class="gr-lvl-title">Grammar for ${lv==='A1'?'beginners':lv}</div>
+      <div class="gr-lvl-meta">${metaText}</div>
+      <div class="gr-lvl-badge">${lv}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('gr-levels-view').classList.remove('hidden');
+  document.getElementById('gr-topics-view').classList.add('hidden');
+  document.getElementById('gr-detail-view').classList.add('hidden');
+}
+
+function grEstSeconds(text) {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(20, Math.round(words / 200 * 60));
+}
+function grFmtDur(totalSec) {
+  const m = Math.floor(totalSec/60), s = totalSec%60;
+  return m > 0 ? `${m}min ${s}sec` : `${s}sec`;
+}
+function grTopicMeta(t) {
+  const totalWords = t.subs.reduce((sum, s) => sum + s.en.split(/\s+/).length + s.ex.map(e=>e.w.replace(/<[^>]+>/g,'')).join(' ').split(/\s+/).length, 0);
+  const sec = grEstSeconds(Array(totalWords).fill('x').join(' '));
+  const learnedCount = t.subs.filter(s => grIsLearned(t.topicId, s.id)).length;
+  return { dur: grFmtDur(sec), learnedCount, pct: Math.round(learnedCount / t.subs.length * 100) };
+}
+
+function grShowTopics(lv) {
+  grLevel = lv;
+  const list = grTopicsFor(lv);
+  document.getElementById('gr-topics-title').textContent = lv + ' — Konular (' + list.length + ')';
+  const el = document.getElementById('gr-topic-list');
+  if (list.length === 0) {
+    el.innerHTML = '<p style="font-size:12.5px;color:var(--text3);">Bu seviye için içerik henüz üretilmedi.</p>';
+  } else {
+    el.innerHTML = list.map((t, i) => {
+      const m = grTopicMeta(t);
+      const allDone = m.learnedCount === t.subs.length;
+      return `
+      <div class="gr-topic-card">
+        <div class="gr-topic-row" onclick="grOpenTopic(${i})">
+          <div class="gr-topic-icon ${allDone?'done':''}">${t.icon}</div>
+          <div class="gr-topic-main">
+            <div class="gr-topic-name">${t.title}</div>
+            <div class="gr-topic-meta"><b>Grammar, ${lv}</b> · ${t.category.charAt(0)+t.category.slice(1).toLowerCase()}</div>
+            <div class="gr-topic-meta">Grammar · ${m.dur} · ${m.learnedCount}/${t.subs.length} öğrenildi</div>
+          </div>
+          <span class="gr-topic-chevron">&#8250;</span>
+        </div>
+        <div class="gr-progress-wrap"><div class="gr-progress-fill ${allDone?'full':''}" style="width:${m.pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('gr-levels-view').classList.add('hidden');
+  document.getElementById('gr-topics-view').classList.remove('hidden');
+  document.getElementById('gr-detail-view').classList.add('hidden');
+}
+function grBackToLevels() { grInit(); }
+
+function grOpenTopic(i) {
+  grTopicIdx = i;
+  const t = grTopicsFor(grLevel)[i];
+  document.getElementById('gr-detail-title').textContent = t.title + ' — ' + grLevel;
+  grRenderSummaryCard(t);
+  grRenderPills(t);
+  document.getElementById('gr-sections').innerHTML = t.subs.map((s, j) => {
+    const nuanceHtml = s.nuance ? `
+      <div class="c-section">
+        <div class="c-section-label">Nüans</div>
+        <div class="gr-nuance-block"><div class="gr-nuance-title">Neden kullanılır</div><div class="gr-nuance-text">${s.nuance.why}</div></div>
+        <div class="gr-nuance-block"><div class="gr-nuance-title">Sık yapılan hatalar</div><div class="gr-nuance-text">${s.nuance.mistakes}</div></div>
+        <div class="gr-nuance-block"><div class="gr-nuance-title">Karıştırılan yapılar</div><div class="gr-nuance-text">${s.nuance.confusion}</div></div>
+      </div>` : '';
+    return `
+    <div class="gr-acc" id="gr-sec-${j}">
+      <div class="gr-acc-head" onclick="grToggleAcc(${j})">
+        <span class="gr-acc-num">${j+1}/${t.subs.length}</span>
+        <span class="gr-acc-title">${s.title}</span>
+        ${grIsLearned(t.topicId,s.id) ? '<span class="gr-acc-done">✓</span>' : ''}
+        <span class="gr-acc-chevron">&#8250;</span>
+      </div>
+      <div class="gr-acc-body" id="gr-body-${j}">
+        <div class="gr-acc-ref">EGP referansı: ${s.guideword}</div>
+        <div class="gr-expl">${s.en}</div>
+        ${s.ex.map(e => `<div class="gr-ex">${e.w}</div>`).join('')}
+        <button class="gr-tr-toggle" onclick="grToggleTr(this)">Türkçesini göster</button>
+        <div class="gr-tr-text">${s.tr}<br><br>${s.ex.map(e => e.tr).join('<br>')}</div>
+        ${nuanceHtml}
+        <div id="gr-verify-${j}"></div>
+      </div>
+    </div>`;
+  }).join('');
+  t.subs.forEach((s, j) => grRenderVerify(t, j));
+  document.getElementById('gr-levels-view').classList.add('hidden');
+  document.getElementById('gr-topics-view').classList.add('hidden');
+  document.getElementById('gr-detail-view').classList.remove('hidden');
+}
+function grBackToTopics() { grShowTopics(grLevel); }
+
+function grRenderSummaryCard(t) {
+  const el = document.getElementById('gr-summary-card');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="ts-card">
+      <div class="ts-row"><div class="ts-label">Konu</div><div class="ts-value">${t.title}<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:2px;">EGP: ${t.ref || t.title}</div></div></div>
+      <div class="ts-row"><div class="ts-label">Kategori</div><div class="ts-value">${t.category}</div></div>
+      <div class="ts-row"><div class="ts-label">Seviye</div><div class="ts-value"><span class="ts-level-badge">${grLevel}</span></div></div>
+      <div class="ts-row"><div class="ts-label">Açıklama</div><div class="ts-value">${t.summary || ''}</div></div>
+    </div>`;
+}
+
+function grToggleAcc(j, forceOpen) {
+  const acc = document.getElementById('gr-sec-'+j);
+  const body = document.getElementById('gr-body-'+j);
+  const shouldOpen = forceOpen !== undefined ? forceOpen : !body.classList.contains('open');
+  body.classList.toggle('open', shouldOpen);
+  acc.classList.toggle('open', shouldOpen);
+}
+
+function grJumpTo(j) {
+  grToggleAcc(j, true);
+  const acc = document.getElementById('gr-sec-'+j);
+  acc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  acc.classList.add('flash');
+  setTimeout(() => acc.classList.remove('flash'), 900);
+}
+
+function grRenderPills(t) {
+  document.getElementById('gr-sub-nav').innerHTML = t.subs.map((s, j) =>
+    `<button class="gr-sub-pill" onclick="grJumpTo(${j})"><span class="dot ${grIsLearned(t.topicId,s.id)?'done':''}" id="gr-dot-${j}"></span>${s.guideword}</button>`
+  ).join('');
+}
+
+function grMarkAccDone(j) {
+  const head = document.querySelector('#gr-sec-'+j+' .gr-acc-head');
+  if (head && !head.querySelector('.gr-acc-done')) {
+    const chevron = head.querySelector('.gr-acc-chevron');
+    const done = document.createElement('span');
+    done.className = 'gr-acc-done';
+    done.textContent = '✓';
+    head.insertBefore(done, chevron);
+  }
+}
+
+function grRenderVerify(t, j) {
+  const s = t.subs[j];
+  const el = document.getElementById('gr-verify-'+j);
+  if (grIsLearned(t.topicId, s.id)) {
+    el.innerHTML = `<div class="gr-verify-box"><div class="gr-mark-done">✓ Öğrenildi</div></div>`;
+    return;
+  }
+  if (t.verifyType === 'quiz') {
+    el.innerHTML = `<div class="gr-verify-box">
+      <div class="gr-verify-label">Kontrol et</div>
+      <div class="gr-quiz-q">${s.quiz.q}</div>
+      <div class="gr-quiz-opts">
+        ${s.quiz.opts.map((o, k) => `<button class="gr-quiz-opt" onclick="grAnswerQuiz(${j}, ${k===s.quiz.correct})">${o}</button>`).join('')}
+      </div>
+    </div>`;
+  } else if (t.verifyType === 'sentencekur') {
+    // Cümle Kur'un kendi havuzundan (SENTENCE_EXERCISES), aynı tense'e filtrelenmiş,
+    // sayfa içi gömülü pratik. Yeni içerik üretmiyoruz, mevcut havuzu ödünç alıyoruz.
+    const pool = (window.SENTENCE_EXERCISES || []).filter(ex => ex.tense === t.tense);
+    s._pool = s._pool || pool;
+    s._progress = s._progress || 0;
+    const target = Math.min(5, s._pool.length || 5);
+    if (s._pool.length === 0) {
+      el.innerHTML = `<div class="gr-verify-box"><p style="font-size:12px;color:var(--text3);">Bu tense için Cümle Kur havuzunda örnek bulunamadı.</p></div>`;
+      return;
+    }
+    const ex = s._pool[s._progress % s._pool.length];
+    const sentence = ex.root.join(' ') + (ex.chunks[0] ? ' ' + ex.chunks[0].text : '');
+    el.innerHTML = `<div class="gr-verify-box">
+      <div class="gr-verify-label"><span>Pratik yap (Cümle Kur havuzundan)</span><span class="gr-verify-counter">${s._progress}/${target} doğru</span></div>
+      <div class="gr-quiz-q">"${sentence}" — bu cümle ${ex.tense} yapısını doğru kullanıyor mu?</div>
+      <div class="gr-quiz-opts">
+        <button class="gr-quiz-opt" onclick="grAnswerPractice(${j}, true, ${target})">Evet, doğru</button>
+        <button class="gr-quiz-opt" onclick="grAnswerPractice(${j}, false, ${target})">Hayır, yanlış</button>
+      </div>
+      <div class="gr-p-dots">${Array.from({length:target}).map((_,k)=>`<span class="gr-p-dot ${k<s._progress?'filled':''}"></span>`).join('')}</div>
+      <div class="sg-grammar-card">
+        <div class="sg-grammar-title">${ex.tenseInfo.name}</div>
+        <div class="sg-grammar-formula">${ex.tenseInfo.formula}</div>
+      </div>
+    </div>`;
+  }
+}
+
+function grAnswerQuiz(j, isCorrect) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const wrap = document.getElementById('gr-verify-'+j);
+  wrap.querySelectorAll('.gr-quiz-opt').forEach(o => o.disabled = true);
+  event.target.classList.add(isCorrect ? 'correct' : 'wrong');
+  const s = t.subs[j];
+  const rolesNote = `<div class="gr-tr-text show" style="margin-top:10px;">Doğru cevap: <b>${s.quiz.opts[s.quiz.correct]}</b></div>`;
+  wrap.insertAdjacentHTML('beforeend', rolesNote +
+    `<button class="gr-tr-toggle" onclick="grMarkLearned('${t.topicId}','${s.id}');grRenderVerify(grTopicsFor('${grLevel}')[${grTopicIdx}],${j});document.getElementById('gr-dot-${j}').classList.add('done');grMarkAccDone(${j});">Devam et →</button>`);
+}
+
+function grAnswerPractice(j, userSaidCorrect, target) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  const wrap = document.getElementById('gr-verify-'+j);
+  wrap.querySelectorAll('.gr-quiz-opt').forEach(o => o.disabled = true);
+  // Bu havuzdaki örnek cümleler zaten doğru üretildiği için "Evet" doğru kabul edilir.
+  const wasRight = userSaidCorrect === true;
+  event.target.classList.add(wasRight ? 'correct' : 'wrong');
+  wrap.insertAdjacentHTML('beforeend',
+    `<button class="gr-tr-toggle" style="margin-top:10px;" onclick="grAdvancePractice(${j}, ${wasRight}, ${target})">Sonraki →</button>`);
+}
+function grAdvancePractice(j, wasRight, target) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  if (wasRight) s._progress++;
+  if (s._progress >= target) {
+    grMarkLearned(t.topicId, s.id);
+    grRenderVerify(t, j);
+    document.getElementById('gr-dot-'+j).classList.add('done');
+    grMarkAccDone(j);
+  } else {
+    grRenderVerify(t, j);
+  }
+}
+
+function grToggleTr(btn) {
+  const box = btn.nextElementSibling;
+  const showing = box.classList.toggle('show');
+  btn.textContent = showing ? 'Türkçesini gizle' : 'Türkçesini göster';
 }
 
 hgRenderLevels();

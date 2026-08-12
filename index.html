@@ -352,6 +352,85 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .tts-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;font-size:13px;vertical-align:middle;margin-left:6px;flex-shrink:0;line-height:1;}
 .tts-btn:hover{background:var(--surface2);}
 .tts-btn:disabled{opacity:.45;cursor:wait;}
+/* ── GRAMMAR MODÜLÜ ── */
+.gr-lvl-card{border-radius:var(--r);padding:20px;margin-bottom:12px;cursor:pointer;position:relative;overflow:hidden;}
+.gr-lvl-card.h-a1{background:#ffe0a8;color:#2a1c00;}
+.gr-lvl-card.h-a2{background:var(--a2bg);color:var(--a2);}
+.gr-lvl-card.h-b1{background:var(--b1bg);color:var(--b1);}
+.gr-lvl-card.h-b2{background:var(--b2bg);color:var(--b2);}
+.gr-lvl-card.h-c1{background:var(--dangerbg,#fff0f0);color:var(--danger,#8b0000);}
+.gr-lvl-card.h-c2{background:var(--surface2);color:var(--text2);}
+.gr-lvl-title{font-size:19px;font-weight:600;margin-bottom:12px;}
+.gr-lvl-meta{font-size:11.5px;opacity:.75;}
+.gr-lvl-badge{position:absolute;right:18px;top:18px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px dashed currentColor;opacity:.85;}
+.gr-topic-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.gr-topic-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;}
+.gr-topic-icon{flex-shrink:0;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;background:var(--a1bg);color:var(--a1);}
+.gr-topic-icon.done::after{content:'✓';position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--success);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
+.gr-topic-main{flex:1;min-width:0;}
+.gr-topic-name{font-size:14.5px;font-weight:600;line-height:1.3;}
+.gr-topic-meta{font-size:11.5px;color:var(--text3);margin-top:2px;}
+.gr-topic-meta b{color:var(--text2);font-weight:500;}
+.gr-topic-chevron{flex-shrink:0;color:var(--text3);font-size:15px;opacity:.6;}
+.gr-progress-wrap{height:3px;background:var(--surface2);margin:0 14px 12px;border-radius:2px;overflow:hidden;}
+.gr-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
+.gr-progress-fill.full{background:var(--success);}
+.gr-sub-pill{flex-shrink:0;font-size:11.5px;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);color:var(--text2);white-space:nowrap;text-decoration:none;display:flex;align-items:center;gap:4px;}
+.gr-sub-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--border2);}
+.gr-sub-pill .dot.done{background:var(--success);}
+.gr-section{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:18px;margin-bottom:14px;scroll-margin-top:14px;}
+.gr-step{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.gr-heading{font-size:15.5px;font-weight:600;margin-bottom:8px;}
+.gr-expl{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:12px;}
+.gr-ex{background:var(--surface2);border-radius:var(--rsm,8px);padding:10px 12px;font-size:13.5px;margin-bottom:6px;}
+.gr-ex b{color:var(--accent);}
+.gr-tr-toggle{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:8px 0 0;font-weight:500;}
+.gr-tr-text{display:none;font-size:13px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:0.5px dashed var(--border2);}
+.gr-tr-text.show{display:block;}
+.gr-verify-box{margin-top:14px;padding-top:14px;border-top:0.5px solid var(--border);}
+.gr-verify-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.gr-verify-counter{font-size:11px;color:var(--accent);font-weight:600;}
+.gr-quiz-q{font-size:13.5px;margin-bottom:10px;}
+.gr-quiz-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:2px;}
+.gr-quiz-opt{text-align:left;padding:9px 12px;border-radius:var(--rsm,8px);border:0.5px solid var(--border2);background:none;font-size:13px;color:var(--text);cursor:pointer;}
+.gr-quiz-opt.correct{background:var(--successbg);border-color:var(--success);color:var(--success);font-weight:600;}
+.gr-quiz-opt.wrong{background:var(--warnbg);border-color:var(--warn);color:var(--warn);}
+.gr-mark-done{margin-top:10px;font-size:12.5px;color:var(--success);font-weight:600;display:flex;align-items:center;gap:5px;}
+.gr-p-dots{display:flex;gap:4px;margin-top:8px;}
+.gr-p-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);}
+.gr-p-dot.filled{background:var(--accent);}
+
+/* Konu özet kartı — Element/Category/Level tablo düzeni */
+.ts-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+.ts-row{display:flex;align-items:flex-start;padding:13px 16px;border-bottom:0.5px solid var(--border);}
+.ts-row:last-child{border-bottom:none;}
+.ts-label{width:108px;flex-shrink:0;font-weight:700;font-size:12.5px;color:var(--text);}
+.ts-value{font-size:13.5px;color:var(--text2);line-height:1.5;}
+.ts-level-badge{display:inline-block;background:var(--a1);color:#fff;font-weight:700;font-size:12px;padding:3px 12px;border-radius:6px;}
+
+/* gr-sub-pill artık <button>, .sub-pill'e benzer ama chip'e basınca JS ile scroll+açma yapıyor */
+.gr-sub-pill{flex-shrink:0;font-size:11.5px;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:none;color:var(--text2);white-space:nowrap;display:flex;align-items:center;gap:4px;cursor:pointer;}
+.gr-sub-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--border2);}
+.gr-sub-pill .dot.done{background:var(--success);}
+
+/* Alt madde accordion — gerçek .acc-item deseninden türetildi, varsayılan kapalı */
+.gr-acc{border:0.5px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s;scroll-margin-top:14px;}
+.gr-acc.flash{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentbg);}
+.gr-acc-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--surface);}
+.gr-acc-num{font-size:11px;color:var(--text3);flex-shrink:0;width:32px;}
+.gr-acc-title{flex:1;font-size:14.5px;font-weight:600;}
+.gr-acc-done{color:var(--success);font-size:13px;flex-shrink:0;}
+.gr-acc-chevron{color:var(--text3);font-size:13px;transition:transform .2s;flex-shrink:0;}
+.gr-acc.open .gr-acc-chevron{transform:rotate(90deg);}
+.gr-acc-body{display:none;padding:0 16px 18px;background:var(--surface);}
+.gr-acc-body.open{display:block;}
+.gr-acc-ref{font-size:11px;color:var(--text3);margin-bottom:10px;font-style:italic;}
+
+/* Nüans bölümü — kelime sayfasındaki .c-section-label ile aynı desen */
+.gr-nuance-block{margin-bottom:10px;}
+.gr-nuance-block:last-child{margin-bottom:0;}
+.gr-nuance-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.gr-nuance-text{font-size:13px;line-height:1.6;color:var(--text2);}
 </style>
 </head>
 <body>
@@ -386,6 +465,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <button class="nav-btn main-nav-btn" id="nav-writing" onclick="showView('writing')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.1 2.9a1.7 1.7 0 0 1 2.4 2.4L7.6 14.2l-3.3.9.9-3.3z"/><path d="M12.4 4.6 15.4 7.6"/></svg></span>Cümle Yaz<span class="nav-chevron">›</span></button>
       <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span>Asmaca<span class="nav-chevron">›</span></button>
       <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10.2a6 6 0 1 1-2-4.6"/><path d="M16 3v4.2h-4.2"/></svg></span>Tekrar Et <span style="font-size:10px;color:var(--text3);font-weight:400;">(eski)</span><span class="nav-chevron">›</span></button>
+      <button class="nav-btn main-nav-btn" id="nav-grammar" onclick="showView('grammar')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg></span>Grammar <span style="font-size:9px;color:#fff;background:var(--accent);border-radius:8px;padding:1px 6px;font-weight:600;">yeni</span><span class="nav-chevron">›</span></button>
     </div>
 
     <div class="menu-group-label">Sistem</div>
@@ -744,6 +824,35 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div id="hg-content"></div>
   </div>
 
+  <!-- GRAMMAR VIEW (yeni modül) -->
+  <div id="view-grammar" class="hidden">
+    <div id="gr-levels-view">
+      <div class="filter-panel" style="margin-bottom:14px;">
+        <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0;">
+          Konu iskeleti <b>English Grammar Profile</b>'dan (Cambridge, CEFR bazlı araştırma
+          verisi). Açıklama, örnek ve pratik soruları WordHaven için orijinal üretildi.
+        </p>
+      </div>
+      <div id="gr-level-list"></div>
+    </div>
+    <div id="gr-topics-view" class="hidden">
+      <div class="sg-tense-row-label" style="display:flex;align-items:center;gap:8px;">
+        <button class="sg-skip-btn" onclick="grBackToLevels()" style="padding:0;">&#8592; Seviyeler</button>
+        <span id="gr-topics-title"></span>
+      </div>
+      <div id="gr-topic-list" style="margin-top:10px;"></div>
+    </div>
+    <div id="gr-detail-view" class="hidden">
+      <div class="sg-tense-row-label" style="display:flex;align-items:center;gap:8px;">
+        <button class="sg-skip-btn" onclick="grBackToTopics()" style="padding:0;">&#8592; Konular</button>
+        <span id="gr-detail-title"></span>
+      </div>
+      <div id="gr-summary-card" style="margin-top:12px;"></div>
+      <div id="gr-sub-nav" style="display:flex;gap:6px;overflow-x:auto;margin:10px 0 14px;-webkit-overflow-scrolling:touch;"></div>
+      <div id="gr-sections"></div>
+    </div>
+  </div>
+
   <!-- KART MODU (deneysel, Tekrar Et'e alternatif — aynı ilerleme verisini paylaşır) -->
   <div id="view-cardmode" class="hidden">
     <div class="filter-panel">
@@ -935,19 +1044,21 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     fetch('topic-words.json').then(function(r){ if(!r.ok) throw new Error('topic-words.json (' + r.status + ')'); return r.json(); }),
     fetch('builtin-content.json').then(function(r){ if(!r.ok) throw new Error('builtin-content.json (' + r.status + ')'); return r.json(); }),
     fetch('sentence-exercises.json').then(function(r){ if(!r.ok) throw new Error('sentence-exercises.json (' + r.status + ')'); return r.json(); }),
-    fetch('extra-words.json').then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; })
+    fetch('extra-words.json').then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+    fetch('grammar-topics.json').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
   ]).then(function(results){
     window.WORD_DATA = results[0];
     window.TOPIC_WORDS = results[1];
     window.BUILTIN_CONTENT = results[2];
     window.SENTENCE_EXERCISES = results[3];
     window.EXTRA_WORDS = results[4] || [];
+    window.GRAMMAR_TOPICS = results[5] || {};
     setStatus('Uygulama başlatılıyor…');
     var s = document.createElement('script');
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608101201';
+    s.src = 'app.js?v=202608111420';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();

@@ -1,0 +1,167 @@
+{
+  "A1": [
+    {
+      "topicId": "conj-coord",
+      "title": "And, But, Or ile Bağlama",
+      "ref": "Coordinating",
+      "summary": "Tek kelimeleri, öbekleri, cümlecikleri ve cümleleri 'and', 'but', 'or' ile bağlamayı öğretir.",
+      "category": "CONJUNCTIONS",
+      "icon": "➕",
+      "verifyType": "quiz",
+      "subs": [
+        {
+          "id": "word-word",
+          "guideword": "Word + word",
+          "title": "Kelimeleri Bağlama (and / but / or)",
+          "en": "Join two single words (nouns, adjectives) with 'and', 'but' or 'or'.",
+          "tr": "'And', 'but' veya 'or' ile iki tekil kelime (isim, sıfat) bağlanır.",
+          "ex": [{ "w": "I like tea <b>and</b> coffee.", "tr": "Çay ve kahve severim." }],
+          "nuance": {
+            "why": "İngilizce'de iki öğeyi tek bir fikirde birleştirmek için ayrı ayrı cümle kurmak yerine bağlaç kullanılır — bu hem daha doğal hem daha akıcı bir anlatım sağlar.",
+            "mistakes": "Türkçe konuşanlar bazen 've' alışkanlığıyla virgülü bağlaç yerine kullanır: \"I like tea, coffee\" yanlış, doğrusu \"I like tea and coffee\". Ayrıca 'and' her zaman son öğeden önce gelir, araya serpiştirilmez.",
+            "confusion": "'And' (ekleme) ile 'but' (karşıtlık) çoğu zaman karıştırılır — 'but' sadece anlamca beklenmedik/zıt bir durum varsa kullanılır: \"tired but happy\" mantıklı, \"tired and happy\" daha nötr ama yanlış değil."
+          },
+          "quiz": { "q": "My sister is tall ___ friendly.", "opts": ["and", "but"], "correct": 0 }
+        },
+        {
+          "id": "phrase-phrase",
+          "guideword": "Phrase + phrase",
+          "title": "İki Eylemi/Durumu Tek Cümlede Toplama",
+          "en": "Use the same conjunctions to connect two short phrases instead of single words.",
+          "tr": "Aynı bağlaçlar tek kelime yerine iki kısa öbeği bağlamak için kullanılır.",
+          "ex": [{ "w": "He plays football <b>and</b> basketball on weekends.", "tr": "Hafta sonları futbol ve basketbol oynuyor." }],
+          "nuance": {
+            "why": "Öbek düzeyinde bağlama, iki ilişkili eylemi/durumu tek cümlede toplayarak tekrarı önler.",
+            "mistakes": "Bağlanan iki öbeğin aynı yapıda olması gerekir (isim öbeği + isim öbeği, fiil öbeği + fiil öbeği). Farklı yapıdaki öbekleri bağlamak İngilizce'de kulağa bozuk gelir.",
+            "confusion": "'Or' burada seçenek sunar, 'and' ikisinin birlikte var olduğunu belirtir — bu ayrım olumsuz cümlelerde ('not X or Y') karışabilir."
+          },
+          "quiz": { "q": "We visited the museum ___ the old castle.", "opts": ["or", "and"], "correct": 1 }
+        },
+        {
+          "id": "clause-clause",
+          "guideword": "Clause + clause",
+          "title": "İki Ayrı Olayı Bağlayarak Anlatma",
+          "en": "Join two full clauses (each with its own subject and verb) with 'and', 'but' or 'or'.",
+          "tr": "Her biri kendi öznesi/fiiline sahip iki tam cümlecik 'and', 'but' veya 'or' ile bağlanır.",
+          "ex": [{ "w": "She cooked dinner <b>and</b> I washed the dishes.", "tr": "O yemeği pişirdi, ben de bulaşıkları yıkadım." }],
+          "nuance": {
+            "why": "İki tam olayı tek cümlede anlatmak, iki kısa cümle kurmaktan daha akıcıdır.",
+            "mistakes": "Her cümlecik kendi öznesini korumalı — özneyi ikinci cümlecikte atlamak (Türkçe'de yaygın olan bir alışkanlık) İngilizce'de belirsizliğe yol açabilir.",
+            "confusion": "Virgülle ayrılan iki bağımsız cümlecik ('comma splice') bağlaçsız bırakılırsa hatalı sayılır — 'and/but/or' bu hatayı önler."
+          },
+          "quiz": { "q": "He wanted to come, ___ he was too tired.", "opts": ["and", "but"], "correct": 1 }
+        },
+        {
+          "id": "sentence-sentence",
+          "guideword": "Sentence + sentence",
+          "title": "Gündelik Yazıda Cümleye Bağlaçla Başlama",
+          "en": "Start a new sentence with 'and'/'but'/'or' in informal writing to add, contrast, or offer an alternative.",
+          "tr": "Gündelik yazıda yeni bir cümleye 'and/but/or' ile başlanarak ekleme, karşıtlık veya alternatif ifade edilir.",
+          "ex": [{ "w": "I was tired. <b>But</b> I finished my homework anyway.", "tr": "Yorgundum. Ama yine de ödevimi bitirdim." }],
+          "nuance": {
+            "why": "Kısa, vurgulu cümleler yaratmak için gündelik yazıda cümleye bağlaçla başlamak yaygındır.",
+            "mistakes": "Resmi yazıda (makale, iş e-postası) bu kullanım genelde uygunsuz kabul edilir — sadece gündelik/samimi metinlerde tercih edilmeli.",
+            "confusion": "Cümle içi bağlaç kullanımıyla (Clause + clause) karıştırılabilir — fark, burada iki ayrı cümle (nokta ile ayrılmış) olması."
+          },
+          "quiz": { "q": "It was raining. ___ we went outside anyway.", "opts": ["So", "But"], "correct": 1 }
+        },
+        {
+          "id": "listing",
+          "guideword": "Listing",
+          "title": "Liste Yaparken Bağlama",
+          "en": "Use 'and' or 'or' before the last item in a list of three or more things.",
+          "tr": "Üç veya daha fazla öğeden oluşan bir listede son öğeden önce 'and' veya 'or' kullanılır.",
+          "ex": [{ "w": "We need eggs, milk, <b>and</b> bread.", "tr": "Yumurta, süt ve ekmeğe ihtiyacımız var." }],
+          "nuance": {
+            "why": "Üç veya daha fazla öğeyi sıralarken her öğeden önce bağlaç tekrarlamak yerine virgül kullanılır, bağlaç sadece son öğeden önce gelir.",
+            "mistakes": "Türkçe'de 've' her öğe arasında tekrarlanabilir ('yumurta ve süt ve ekmek') ama İngilizce'de bu doğal durmaz.",
+            "confusion": "Son virgül ('Oxford comma': \"eggs, milk, and bread\") bazı stillerde zorunlu bazılarında opsiyonel — WordHaven'da kullanıyoruz."
+          },
+          "quiz": { "q": "You can have tea, coffee, ___ juice.", "opts": ["and", "or"], "correct": 1 }
+        },
+        {
+          "id": "but-concessive",
+          "guideword": "'But', concessive",
+          "title": "Beklenmedik Durumu Belirtme (but)",
+          "en": "Use 'but' to introduce an unexpected or contrasting idea.",
+          "tr": "Beklenmeyen veya zıt bir fikri sunmak için 'but' kullanılır.",
+          "ex": [{ "w": "It was raining, <b>but</b> we went outside.", "tr": "Yağmur yağıyordu ama yine de dışarı çıktık." }],
+          "nuance": {
+            "why": "'But' okuyucunun beklentisini kırarak vurgu yaratır — iki fikir arasında mantıksal bir gerilim kurar.",
+            "mistakes": "'But' ile 'however' karıştırılır — 'but' cümle içinde, 'however' genelde yeni bir cümlede/virgülle kullanılır.",
+            "confusion": "'Although' ile aynı işlevi paylaşır ama farklı yapıda kullanılır: \"Although it was raining, we went outside\" (tek cümle, virgülsüz bağlaç yok)."
+          },
+          "quiz": { "q": "She is young, ___ very wise.", "opts": ["and", "but"], "correct": 1 }
+        }
+      ]
+    },
+    {
+      "topicId": "det-articles",
+      "title": "A / An / The Kullanımı",
+      "ref": "Articles",
+      "summary": "Belirli ve belirsiz isimlerde 'a/an' ve 'the' seçimini öğretir.",
+      "category": "DETERMINERS",
+      "icon": "🔎",
+      "verifyType": "quiz",
+      "subs": [
+        {
+          "id": "articles-nouns",
+          "guideword": "With nouns",
+          "title": "Belirli / Belirsiz İsim Ayrımı",
+          "en": "Use 'a/an' for one unspecified thing, and 'the' when both speaker and listener know which one.",
+          "tr": "Belirsiz tekil bir şey için 'a/an', hem konuşan hem dinleyen hangisi olduğunu biliyorsa 'the' kullanılır.",
+          "ex": [{ "w": "I saw <b>a</b> dog. <b>The</b> dog was brown.", "tr": "Bir köpek gördüm. Köpek kahverengiydi." }],
+          "nuance": {
+            "why": "İngilizce'de her tekil sayılabilir isim mutlaka bir article ile kullanılır — Türkçe'de bu zorunlu değildir, bu yüzden Türk öğrenciler makaleyi atlama eğilimindedir.",
+            "mistakes": "En sık hata: 'a/an' veya 'the'yi tamamen atlamak (\"I saw dog\" yanlış). İkinci sık hata: bir şeyden ilk kez bahsederken 'the' kullanmak.",
+            "confusion": "'A' ile 'an' arasındaki seçim yazımdan değil SESTEN belirlenir — \"a university\" (yu- sesi ünsüz gibi davranır), \"an hour\" (h sessiz)."
+          },
+          "quiz": { "q": "She bought ___ umbrella; ___ umbrella was red.", "opts": ["a / the", "the / a"], "correct": 0 }
+        }
+      ]
+    },
+    {
+      "topicId": "pres-simple",
+      "title": "Present Simple",
+      "ref": "Present Simple",
+      "summary": "Rutinleri ve genel doğruları anlatmak için kullanılan geniş zamanı öğretir.",
+      "category": "PRESENT",
+      "icon": "🕐",
+      "verifyType": "sentencekur",
+      "tense": "Present Simple",
+      "subs": [
+        {
+          "id": "habits",
+          "guideword": "Habits and general facts",
+          "title": "Rutinlerini ve Genel Doğruları Anlatma",
+          "en": "Use present simple for routines and things that are generally true.",
+          "tr": "Rutinler ve genel doğrular için present simple kullanılır.",
+          "ex": [{ "w": "She <b>works</b> in a small shop.", "tr": "O küçük bir dükkânda çalışıyor." }],
+          "nuance": {
+            "why": "Türkçe'deki geniş zamanla neredeyse birebir örtüşür ('çalışır', 'içer') — bu yüzden Türk öğrenciler için kavramsal olarak en kolay tense'lerden biridir.",
+            "mistakes": "En sık hata: he/she/it ile -s/-es ekini unutmak (\"She work\" yanlış, \"She works\" doğru). Türkçe'de özneye göre fiil çekimi bu şekilde değişmediği için bu ek kolayca atlanır.",
+            "confusion": "Present Continuous ile karıştırılır — 'I am working' (şu an) ile 'I work' (genel olarak) arasındaki fark, Türkçe'de ikisinin de bazen '-yor' ekiyle karşılanabilmesinden dolayı netleşmeyebilir."
+          }
+        },
+        {
+          "id": "negative",
+          "guideword": "Negative",
+          "title": "Olumsuz Cümle Kurma",
+          "en": "Add 'don't'/'doesn't' before the base verb to make present simple negative.",
+          "tr": "Present simple'ı olumsuz yapmak için fiilin önüne 'don't'/'doesn't' eklenir.",
+          "ex": [{ "w": "He <b>doesn't like</b> coffee.", "tr": "O kahveyi sevmiyor." }],
+          "nuance": {
+            "why": "İngilizce'de olumsuzluk fiile doğrudan ek yerine yardımcı fiil ('do/does not') ile kurulur — Türkçe'nin fiile '-me/-ma' eklemesinden yapısal olarak farklıdır.",
+            "mistakes": "'Doesn't' kullanılınca ana fiildeki -s takısı düşer — \"He doesn't likes\" yanlış, \"He doesn't like\" doğru; bu çifte olumsuzlama/ek hatası çok sık görülür.",
+            "confusion": "'Don't' ile 'doesn't' seçimi özneye göre değişir (he/she/it → doesn't, diğerleri → don't) — bu ayrım bazen present continuous'un 'am/is/are not' yapısıyla karıştırılır."
+          }
+        }
+      ]
+    }
+  ],
+  "A2": [],
+  "B1": [],
+  "B2": [],
+  "C1": [],
+  "C2": []
+}
