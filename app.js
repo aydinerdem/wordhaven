@@ -5359,6 +5359,15 @@ function grToggleAcc(j, forceOpen) {
   const acc = document.getElementById('gr-sec-'+j);
   const body = document.getElementById('gr-body-'+j);
   const shouldOpen = forceOpen !== undefined ? forceOpen : !body.classList.contains('open');
+  if (shouldOpen) {
+    // Tek seferde bir tane açık kalsın — diğer tüm accordion'ları kapat
+    document.querySelectorAll('#gr-sections .gr-acc-body.open').forEach(b => {
+      if (b !== body) b.classList.remove('open');
+    });
+    document.querySelectorAll('#gr-sections .gr-acc.open').forEach(a => {
+      if (a !== acc) a.classList.remove('open');
+    });
+  }
   body.classList.toggle('open', shouldOpen);
   acc.classList.toggle('open', shouldOpen);
 }

@@ -848,7 +848,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         <span id="gr-detail-title"></span>
       </div>
       <div id="gr-summary-card" style="margin-top:12px;"></div>
-      <div id="gr-sub-nav" style="display:flex;gap:6px;overflow-x:auto;margin:10px 0 14px;-webkit-overflow-scrolling:touch;"></div>
+      <div id="gr-sub-nav" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px;"></div>
       <div id="gr-sections"></div>
     </div>
   </div>
@@ -1058,7 +1058,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608111420';
+    s.src = 'app.js?v=202608121930';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
