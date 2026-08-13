@@ -415,50 +415,131 @@ function dashStreakHtml() {
   const head = n === 0
     ? `<div style="font-size:13px;font-weight:600;">Seri başlamadı</div>
        <div style="font-size:12px;color:var(--text2);margin-top:2px;">Bugün çalışırsan 1. gün</div>`
-    : `<div style="font-size:13px;font-weight:600;">🔥 ${n} gün</div>
+    : `<div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;">${ico('flame',13,'var(--warn)',false)}${n} gün</div>
        <div style="font-size:12px;color:var(--text2);margin-top:2px;">${n >= 7 ? 'Tam hafta!' : 'Seriyi sürdür'}</div>`;
 
   return `<div class="streak-bar"><div>${head}</div><div class="streak-days">${dots}</div></div>`;
 }
 
 // ── Kompakt seviye listesi ─────────────────────────────────────────────────
-let dashOpenLevel = null;
+// ── Özet başlığı: karşılama + Ayarlar kısayolu + streak rozeti ─────────────
+function dashHeaderHtml() {
+  const hour = new Date().getHours();
+  const greeting = hour < 6 ? 'İyi geceler' : hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi günler' : 'İyi akşamlar';
+  const dayNames = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+  const monthNames = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const now = new Date();
+  const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${dayNames[(now.getDay()+6)%7]}`;
+  const n = streak.days.length;
+  return `
+    <div class="oz-hdr">
+      <div>
+        <div class="hdr-greet wordfont">${greeting}</div>
+        <div class="hdr-sub">${dateStr}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="settings-btn" onclick="showView('settings')" aria-label="Ayarlar">${ico('settings',17,'var(--text2)',false)}</button>
+        <div class="streak-pill">${ico('flame',15,'var(--warn)',false)}${n}</div>
+      </div>
+    </div>`;
+}
 
-function dashLevelRows() {
-  return CEFR_LEVELS.map(lv => {
+// ── "Kavanoz patikası" — her seviye doldukça dolan bir daire, noktalı bir
+// çizgiyle birbirine bağlı. Erdem'in en çok beğendiği tasarım denemesi
+// (wordhaven_v2_all_preview.html) — burada gerçek veriyle çalışıyor.
+function dashLevelColorVar(lv) { return '--' + lv.toLowerCase(); }
+function dashJarPathHtml(levels, pctByLevel, navFnBuilder) {
+  return `<div class="oz-path-row">${levels.map(lv => {
+    const pct = pctByLevel[lv] || 0;
+    const colorVar = dashLevelColorVar(lv);
+    const fillPct = Math.max(Math.round(pct), 3);
+    const filled = pct > 50;
+    return `<div class="oz-jar" onclick="${navFnBuilder(lv)}">
+      <div class="oz-jar-circle" style="background:linear-gradient(to top, var(${colorVar}) ${fillPct}%, var(${colorVar}bg) ${fillPct}%);color:${filled?'#fff':'var(--text2)'};">${lv}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// Grammar modülünün kendi ana ekranındaki (grInit) genel özet halkası burayı
+// kullanıyor — Özet'in kart tasarımı değişse de bu paylaşılan halka kalıyor.
+function dashRingSvg(pct, color) {
+  return `<svg width="58" height="58" viewBox="0 0 58 58" style="flex-shrink:0;">
+    <circle cx="29" cy="29" r="24" fill="none" stroke="var(--surface2)" stroke-width="6"/>
+    <circle cx="29" cy="29" r="24" fill="none" stroke="${color}" stroke-width="6"
+      stroke-linecap="round" stroke-dasharray="${(2*Math.PI*24).toFixed(1)}"
+      stroke-dashoffset="${(2*Math.PI*24*(1-pct/100)).toFixed(1)}"
+      transform="rotate(-90 29 29)"/>
+    <text x="29" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${pct}%</text>
+  </svg>`;
+}
+
+// ── Kelime patikası: seviye kavanozları + 8 modüle tek dokunuşla erişim ─────
+function dashWordTrackHtml() {
+  const mastered = Object.values(progress).filter(p => p.mastery === 'mastered').length;
+  const pctByLevel = {};
+  CEFR_LEVELS.forEach(lv => {
     const words = WORD_DATA.filter(w => w.cefr === lv);
     const mast = words.filter(w => progress[wkey(w)]?.mastery === 'mastered').length;
-    const started = words.filter(w => progress[wkey(w)]).length;
-    const pct = words.length ? (mast / words.length * 100) : 0;
-    const startedPct = words.length ? (started / words.length * 100) : 0;
-    const col = CEFR_COLORS[lv];
-    const open = dashOpenLevel === lv;
-
-    return `<div class="dash-lvl-row" onclick="dashToggleLevel('${lv}')">
-        <span style="font-size:14px;font-weight:600;color:var(${col});width:26px;flex-shrink:0;">${lv}</span>
-        <div class="dash-lvl-bar">
-          <div style="position:absolute;inset:0;width:${startedPct}%;background:var(${col});opacity:.25;border-radius:99px;"></div>
-          <div style="position:absolute;inset:0;width:${pct}%;background:var(${col});border-radius:99px;"></div>
+    pctByLevel[lv] = words.length ? (mast / words.length * 100) : 0;
+  });
+  const chips = [
+    ['cards','Kart Modu','cardmode'], ['list','Liste','list'], ['book','Sözlüğüm','wordadd'],
+    ['chat','Cümle Kur','sentence'], ['pencil','Cümle Yaz','writing'], ['target','Asmaca','hangman'],
+    ['news','Metin','news'], ['clipboard','Durum','status'],
+  ];
+  return `
+    <div class="oz-track t-word">
+      <div class="oz-track-head">
+        <div class="oz-track-icon">${ico('notebook',19,'#fff',false)}</div>
+        <div>
+          <div class="oz-track-title wordfont">Kelime</div>
+          <div class="oz-track-sub">Aralıklı tekrarla öğren</div>
         </div>
-        <span style="flex-shrink:0;text-align:right;line-height:1.3;">
-          <span style="font-size:12px;color:var(--text2);white-space:nowrap;">${mast} / ${words.length}</span>
-          ${started ? `<br><span style="font-size:10.5px;color:var(--text3);white-space:nowrap;">${started} çalışıldı</span>` : ''}
-        </span>
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0;">${open ? '▾' : '›'}</span>
+        <div class="oz-track-total"><b>${mastered}</b><span>tam öğrenildi</span></div>
       </div>
-      ${open ? `<div class="dash-lvl-detail">${renderCefrSection(words, lv)}</div>` : ''}`;
-  }).join('');
+      ${dashJarPathHtml(CEFR_LEVELS, pctByLevel, lv => `selectListLevel('${lv}');showView('list')`)}
+      <div class="oz-chip-grid">${chips.map(([iconName,label,view]) =>
+        `<div class="oz-qchip" onclick="showView('${view}')">
+          <div class="oz-qchip-ico">${ico(iconName,20,'var(--text)',false)}</div>
+          <div class="oz-qchip-lbl">${label}</div>
+        </div>`
+      ).join('')}</div>
+    </div>`;
 }
 
-function dashToggleLevel(lv) {
-  dashOpenLevel = (dashOpenLevel === lv) ? null : lv;
-  updateDashboard();
+// ── Gramer patikası: seviye kavanozları (A1-C2) + Konular/Gözden Geçir ──────
+function dashGrammarTrackHtml() {
+  const gr = grOverallStats();
+  if (gr.totalSubs === 0) return '';  // Grammar verisi henüz yüklenmediyse hiç gösterme
+  const pctByLevel = {};
+  GR_DASH_LEVELS.forEach(lv => {
+    const g = gr.perLevel[lv];
+    pctByLevel[lv] = g.total ? (g.learned / g.total * 100) : 0;
+  });
+  const chips = [
+    ['list','Konular', "showView('grammar')"],
+    ['repeat','Gözden Geçir', "showView('grammar');grShowReview()"],
+  ];
+  return `
+    <div class="oz-track t-gram">
+      <div class="oz-track-head">
+        <div class="oz-track-icon">${ico('list',19,'#fff',false)}</div>
+        <div>
+          <div class="oz-track-title wordfont">Gramer</div>
+          <div class="oz-track-sub">397 konu, kendi hızında</div>
+        </div>
+        <div class="oz-track-total"><b>${gr.learnedSubs}</b><span>/ ${gr.totalSubs} alt madde</span></div>
+      </div>
+      ${dashJarPathHtml(GR_DASH_LEVELS, pctByLevel, lv => `showView('grammar');grShowTopics('${lv}')`)}
+      <div class="oz-chip-grid" style="grid-template-columns:repeat(2,1fr);max-width:210px;">${chips.map(([iconName,label,onclick]) =>
+        `<div class="oz-qchip" onclick="${onclick}">
+          <div class="oz-qchip-ico">${ico(iconName,20,'var(--text)',false)}</div>
+          <div class="oz-qchip-lbl">${label}</div>
+        </div>`
+      ).join('')}</div>
+    </div>`;
 }
 
-// ── Grammar özeti (backlog #13) ─────────────────────────────────────────────
-// Kelime ilerlemesinden BAĞIMSIZ bir hesap: her seviyedeki toplam alt madde
-// sayısı ve grIsLearned ile öğrenilmiş olan sayısı. Grammar A1-C2 kapsıyor,
-// kelime CEFR_LEVELS'ı C2 içermiyor — burada ayrı bir seviye listesi kullanılır.
 const GR_DASH_LEVELS = ['A1','A2','B1','B2','C1','C2'];
 function grOverallStats() {
   let totalSubs = 0, learnedSubs = 0;
@@ -472,100 +553,6 @@ function grOverallStats() {
     learnedSubs += learned;
   });
   return { totalSubs, learnedSubs, perLevel };
-}
-
-// SEÇENEK A (Birleşik) denendi, Erdem "B daha anlaşılır" dedi — kod
-// sadeleştirmesi için bu fonksiyon kaldırıldı, sadece B (ayrı kart) kalıcı.
-
-// Halka kartlarının üstündeki "Genel / A1 / A2 …" seçici — hem Kelimeler hem
-// Gramer kartında aynı görsel dille kullanılıyor. Erdem'in isteği: sadece
-// TOPLAM değil, "A1'de neredeyim" bakışı da olsun.
-function dashRingPillsHtml(levels, selected, setFnName) {
-  const pills = ['ALL', ...levels];
-  return `<div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;">${pills.map(lv =>
-    `<button class="gr-review-tab ${selected===lv?'active':''}" style="font-size:10.5px;padding:4px 9px;" onclick="${setFnName}('${lv}')">${lv==='ALL'?'Genel':lv}</button>`
-  ).join('')}</div>`;
-}
-
-let dashWordRingLevel = 'ALL';
-function dashSetWordRingLevel(lv) { dashWordRingLevel = lv; updateDashboard(); }
-let dashGrammarRingLevel = 'ALL';
-function dashSetGrammarRingLevel(lv) { dashGrammarRingLevel = lv; updateDashboard(); }
-
-function dashRingSvg(pct, color) {
-  return `<svg width="58" height="58" viewBox="0 0 58 58" style="flex-shrink:0;">
-    <circle cx="29" cy="29" r="24" fill="none" stroke="var(--surface2)" stroke-width="6"/>
-    <circle cx="29" cy="29" r="24" fill="none" stroke="${color}" stroke-width="6"
-      stroke-linecap="round" stroke-dasharray="${(2*Math.PI*24).toFixed(1)}"
-      stroke-dashoffset="${(2*Math.PI*24*(1-pct/100)).toFixed(1)}"
-      transform="rotate(-90 29 29)"/>
-    <text x="29" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${pct}%</text>
-  </svg>`;
-}
-
-// Gramer kartı ile aynı görsel dil (halka + başlık + alt satırlar), Erdem'in
-// isteğiyle Kelimeler bölümüne de uygulandı — bkz. dashWordSummaryHeaderHtml.
-function dashGrammarCardHtml() {
-  const gr = grOverallStats();
-  if (gr.totalSubs === 0) return '';  // Grammar verisi henüz yüklenmediyse hiç gösterme
-  const sel = dashGrammarRingLevel;
-  const ringLearned = sel === 'ALL' ? gr.learnedSubs : gr.perLevel[sel].learned;
-  const ringTotal = sel === 'ALL' ? gr.totalSubs : gr.perLevel[sel].total;
-  const pct = ringTotal ? Math.round(ringLearned / ringTotal * 100) : 0;
-  const subtitle = sel === 'ALL'
-    ? `${gr.learnedSubs} / ${gr.totalSubs} alt madde öğrenildi`
-    : `${sel}: ${ringLearned} / ${ringTotal} alt madde öğrenildi`;
-  const barsHtml = GR_DASH_LEVELS.map(lv => {
-    const g = gr.perLevel[lv];
-    if (g.total === 0) return '';
-    const p = g.total ? (g.learned / g.total * 100) : 0;
-    return `<div class="dash-lvl-row" onclick="showView('grammar');grShowTopics('${lv}')">
-      <span style="font-size:13px;font-weight:600;color:var(--accent);width:26px;flex-shrink:0;">${lv}</span>
-      <div class="dash-lvl-bar">
-        <div style="position:absolute;inset:0;width:${p}%;background:var(--accent);border-radius:99px;"></div>
-      </div>
-      <span style="flex-shrink:0;font-size:12px;color:var(--text2);white-space:nowrap;">${g.learned} / ${g.total}</span>
-      <span style="font-size:11px;color:var(--text3);flex-shrink:0;">›</span>
-    </div>`;
-  }).join('');
-  return `
-    <div class="dash-lvl-list" style="margin-top:14px;">
-      ${dashRingPillsHtml(GR_DASH_LEVELS, sel, 'dashSetGrammarRingLevel')}
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-        ${dashRingSvg(pct, 'var(--accent)')}
-        <div>
-          <div class="dash-lvl-title" style="margin:0;">Gramer</div>
-          <div style="font-size:11.5px;color:var(--text3);">${subtitle}</div>
-        </div>
-      </div>
-      ${barsHtml}
-    </div>`;
-}
-
-// Kelimeler bölümünün başına, Gramer kartıyla aynı halka+başlık dilini
-// taşıyan bir özet ekler. Erdem'in isteğiyle "Genel" toplamın yanında
-// seviye başına da bakılabiliyor (dashRingPillsHtml). Alttaki mevcut
-// dashLevelRows() (iki katmanlı çubuklar, "X çalışıldı" satırı) korunuyor —
-// sadece üstüne tutarlı bir başlık ekleniyor, detay kaybolmuyor.
-function dashWordSummaryHeaderHtml() {
-  const sel = dashWordRingLevel;
-  const words = sel === 'ALL' ? WORD_DATA : WORD_DATA.filter(w => w.cefr === sel);
-  const totalWords = words.length;
-  const mastered = words.filter(w => progress[wkey(w)]?.mastery === 'mastered').length;
-  const pct = totalWords ? Math.round(mastered / totalWords * 100) : 0;
-  const color = sel === 'ALL' ? 'var(--success)' : `var(${CEFR_COLORS[sel]})`;
-  const subtitle = sel === 'ALL'
-    ? `${mastered} / ${totalWords} kelime tam öğrenildi`
-    : `${sel}: ${mastered} / ${totalWords} kelime tam öğrenildi`;
-  return `
-    ${dashRingPillsHtml(CEFR_LEVELS, sel, 'dashSetWordRingLevel')}
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-      ${dashRingSvg(pct, color)}
-      <div>
-        <div class="dash-lvl-title" style="margin:0;">Kelimeler</div>
-        <div style="font-size:11.5px;color:var(--text3);">${subtitle}</div>
-      </div>
-    </div>`;
 }
 
 // ── Birincil eylem ─────────────────────────────────────────────────────────
@@ -596,16 +583,19 @@ function updateDashboard() {
   if (!anyProgress) {
     const a1 = WORD_DATA.filter(w => w.cefr === 'A1').length;
     el.innerHTML = `
+      ${dashHeaderHtml()}
       <div class="dash-hero" style="text-align:center;">
-        <div style="font-size:34px;margin-bottom:6px;">📖</div>
+        <div style="margin-bottom:8px;">${ico('notebook',34,'#fff',false)}</div>
         <div style="font-size:18px;font-weight:700;margin-bottom:6px;">WordHaven'a hoş geldin</div>
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;">
+        <p style="font-size:13px;line-height:1.7;margin-bottom:16px;">
           A1 seviyesinde <b>${a1}</b> kelime seni bekliyor. Günde ${goal} kelime ile başla —
           birkaç dakika yeter.
         </p>
         <button class="start-btn" style="margin-top:0;" onclick="showView('cardmode')">İlk kelimelerini çalış →</button>
       </div>
-      <div class="dash-lvl-list">${dashLevelRows()}</div>`;
+      ${dashWordTrackHtml()}
+      ${dashGrammarTrackHtml()}
+      <div class="oz-more-link" onclick="toggleMainMenu()">Tüm modüller ›</div>`;
     return;
   }
 
@@ -616,6 +606,7 @@ function updateDashboard() {
     : (complete ? 'Çalışmaya devam et →' : 'Kart Modu ile çalış →');
 
   el.innerHTML = `
+    ${dashHeaderHtml()}
     <div class="dash-hero">
       <div style="display:flex;align-items:center;gap:16px;">
         ${dashRing(done, goal)}
@@ -623,7 +614,7 @@ function updateDashboard() {
           <div style="font-size:15px;font-weight:700;margin-bottom:4px;">
             ${complete ? 'Bugünü tamamladın 🎉' : 'Bugün'}
           </div>
-          <p style="font-size:13px;color:var(--text2);line-height:1.6;">
+          <p style="font-size:13px;line-height:1.6;">
             ${dashMessage(done, goal, due, mastered)}
           </p>
           <button class="dash-goal-btn" onclick="dashEditGoal()">Hedef: ${goal} kelime · değiştir</button>
@@ -641,16 +632,9 @@ function updateDashboard() {
       <div><span class="dash-sum-n" style="color:var(--warn);">${due}</span><span class="dash-sum-l">tekrar bekliyor</span></div>
     </div>
 
-    <div class="dash-lvl-list">
-      ${dashWordSummaryHeaderHtml()}
-      <div style="font-size:11px;color:var(--text3);line-height:1.6;padding:0 0 8px;">
-        Koyu dolgu <b>tam öğrenildi</b>, soluk dolgu <b>çalıştıkların</b>.
-        Bir kelime, 4 farklı günde doğru hatırlandığında (yaklaşık bir aya yayılarak)
-        tam öğrenildi sayılır.
-      </div>
-      ${dashLevelRows()}
-    </div>
-    ${dashGrammarCardHtml()}`;
+    ${dashWordTrackHtml()}
+    ${dashGrammarTrackHtml()}
+    <div class="oz-more-link" onclick="toggleMainMenu()">Tüm modüller ›</div>`;
 }
 
 // Hedefi ekrandan hızlıca değiştir (Ayarlar'daki alanla aynı değeri yazar)
@@ -885,13 +869,18 @@ function gbRender(containerId) {
   let pool = [];
   try { pool = m.poolFn() || []; } catch (e) { pool = []; }
 
-  const chip = (label, on, handler, disabled) =>
-    `<button class="chip${on ? ' on' : ''}${disabled ? ' disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="${handler}">${label}</button>`;
+  const chip = (label, on, handler, disabled, extraClass) =>
+    `<button class="chip${extraClass ? ' ' + extraClass : ''}${on ? ' on' : ''}${disabled ? ' disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="${handler}">${label}</button>`;
 
+  // Erdem: S1-S3/W1-W3/frekans/VOA chip'leri de CEFR seviyeleri gibi
+  // renklendirilsin dedi — mevcut rozet (badge, b-s1/b-w1/b-high vb.)
+  // renkleriyle tutarlı olsun diye AYNI paleti chip sınıfı olarak kullanıyoruz.
+  const BAND_CLASS = { S1:'band-s1', S2:'band-s2', S3:'band-s3', W1:'band-w1', W2:'band-w2', W3:'band-w3',
+                        High:'band-high', Medium:'band-medium', Low:'band-low' };
   const row = (opts, dim) => opts.map(([v, l]) => {
     const c = gbChipCounts(pool, dim, v);
-    return chip(`${l} <span style="color:var(--text3);">(${c.display})</span>`, c.selected,
-                `gbToggle('${dim}','${v}')`, c.own === 0 && !c.selected);
+    return chip(`${l}<span class="n">(${c.display})</span>`, c.selected,
+                `gbToggle('${dim}','${v}')`, c.own === 0 && !c.selected, BAND_CLASS[l]);
   }).join('');
 
   const voaOwn = gbCountWith(pool, gbFilter.sp, gbFilter.wr, gbFilter.fr, true);
@@ -908,14 +897,14 @@ function gbRender(containerId) {
           Bu seçim tüm modüllerde geçerlidir.
         </div>
         <div class="band-label">Konuşma sıklığı</div>
-        <div class="f-row">${row(SP_OPTS, 'sp')}</div>
+        <div class="f-row3">${row(SP_OPTS, 'sp')}</div>
         <div class="band-label">Yazı sıklığı</div>
-        <div class="f-row">${row(WR_OPTS, 'wr')}</div>
+        <div class="f-row3">${row(WR_OPTS, 'wr')}</div>
         <div class="band-label">Genel frekans</div>
-        <div class="f-row">${row(FREQ_OPTS_LIST, 'fr')}</div>
+        <div class="f-row3">${row(FREQ_OPTS_LIST, 'fr')}</div>
         <div class="band-label">Özel liste</div>
         <div class="f-row">
-          ${chip(`VOA çekirdeği <span style="color:var(--text3);">(${voaOwn})</span>`, gbFilter.voa, 'gbToggleVoa()', voaOwn === 0 && !gbFilter.voa).replace('class="chip', `class="chip chip-voa`)}
+          ${chip(`VOA çekirdeği<span class="n">(${voaOwn})</span>`, gbFilter.voa, 'gbToggleVoa()', voaOwn === 0 && !gbFilter.voa, 'band-voa')}
           ${on ? `<button class="chip-all" onclick="gbClear()">Filtreleri temizle</button>` : ''}
         </div>
         <div style="font-size:12px;color:var(--text3);margin-top:10px;">${total} kelime bu filtreden geçiyor</div>
@@ -1082,7 +1071,7 @@ function renderExtraGrid() {
   grid.innerHTML = shown.map(w => {
     const k = wkey(w);
     const open = (k === extraOpenKey);
-    let html = `<div class="list-word-item" onclick="toggleExtraWord('${k.replace(/'/g, "\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+    let html = `<div class="list-word-item" onclick="toggleExtraWord('${k.replace(/'/g, "\\'")}')">
       <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos || ''}</span></div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open ? '▾' : '▸'}</span>
     </div>`;
@@ -1220,7 +1209,7 @@ function wrRenderTenses() {
   if (!el) return;
   el.innerHTML = WR_TENSES.map(t => {
     const n = wrPoolFor(t).length;
-    return `<button class="chip${t === wrTense ? ' on' : ''}${n === 0 ? ' disabled' : ''}" ${n === 0 ? 'disabled' : ''} onclick="wrSelectTense('${t}')">${t}</button>`;
+    return `<button class="tense-chip${t === wrTense ? ' active' : ''}${n === 0 ? ' disabled' : ''}" ${n === 0 ? 'disabled' : ''} onclick="wrSelectTense('${t}')">${t}</button>`;
   }).join('');
 }
 
@@ -1294,7 +1283,7 @@ function wrRenderQuestion() {
   if (!el || !wrCurrent) return;
   const sig = WR_TENSE_SIGNALS[wrCurrent.tense];
   el.innerHTML = `
-    <div class="filter-panel" style="margin-bottom:14px;">
+    <div class="sg-card" style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">${wrCurrent.tense}</span>
         ${wrCurrent.cefr ? `<span class="badge b-${wrCurrent.cefr.toLowerCase()}">${wrCurrent.cefr}</span>` : ''}
@@ -1305,9 +1294,9 @@ function wrRenderQuestion() {
       <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">Şu kelimeyi mutlaka kullan: <b class="wordfont" style="font-size:15px;color:var(--text);">${escHtml(wrCurrent.word)}</b>${ttsButtonHtml(wrCurrent.word, wrCurrent.word)}</div>
       <textarea id="wr-answer" rows="3" placeholder="İngilizce cümleni buraya yaz…" style="width:100%;padding:12px;font-size:15px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);box-sizing:border-box;font-family:inherit;resize:vertical;"></textarea>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-        <button class="start-btn" style="flex:1;min-width:130px;margin-top:0;" onclick="wrCheckAnswer()">Kontrol et</button>
-        <button class="chip" onclick="wrShowHint()">${wrHintLevel === 0 ? 'İpucu' : wrHintLevel === 1 ? 'Daha fazla ipucu' : 'Cevabı göster'}</button>
-        <button class="chip" onclick="wrNextQuestion()">Başka cümle</button>
+        <button class="start-btn" style="flex:1;min-width:130px;margin-top:0;" onclick="wrCheckAnswer()">${ico('check',14,'var(--bg)',true)}Kontrol et</button>
+        <button class="chip" onclick="wrShowHint()">${ico('question',12,null,true)}${wrHintLevel === 0 ? 'İpucu' : wrHintLevel === 1 ? 'Daha fazla ipucu' : 'Cevabı göster'}</button>
+        <button class="chip" onclick="wrNextQuestion()">${ico('shuffle',12,null,true)}Başka cümle</button>
       </div>
       <div id="wr-hint" style="margin-top:10px;"></div>
     </div>
@@ -1696,7 +1685,24 @@ const ICO = {
   target: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".4" fill="currentColor"/></svg>',
   box: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5 10 3l6.5 3.5v7L10 17l-6.5-3.5z"/><path d="M3.5 6.5 10 10l6.5-3.5M10 10v7"/></svg>',
   play: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.3v11.4l9-5.7z" fill="currentColor" stroke="currentColor"/></svg>',
-  question: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 7.6a2.5 2.5 0 1 1 3.6 2.3c-.9.5-1.1 1-1.1 1.9"/><circle cx="10" cy="14.6" r=".15" fill="currentColor" stroke-width="2.4"/></svg>'
+  question: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 7.6a2.5 2.5 0 1 1 3.6 2.3c-.9.5-1.1 1-1.1 1.9"/><circle cx="10" cy="14.6" r=".15" fill="currentColor" stroke-width="2.4"/></svg>',
+  sparkle: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5v3.5M10 14v3.5M2.5 10H6M14 10h3.5M5 5l2.3 2.3M12.7 12.7L15 15M15 5l-2.3 2.3M7.3 12.7L5 15"/></svg>',
+  shuffle: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7h9l-2.5-2.5M12.5 7L10 9.5"/><path d="M16.5 13h-9l2.5 2.5M7.5 13L10 10.5"/></svg>',
+  book: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg>',
+  headphones: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12v-2a5.5 5.5 0 0 1 11 0v2"/><rect x="3" y="11" width="3" height="4.6" rx="1.3"/><rect x="14" y="11" width="3" height="4.6" rx="1.3"/></svg>',
+  chart: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V9M9 17V4M14 17v-6"/></svg>',
+  clipboard: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4.5" width="10" height="13" rx="1.5"/><path d="M7.5 4.5V3.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"/><path d="M7.5 9h5M7.5 12h5M7.5 15h3"/></svg>',
+  speaker: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v4h3l4 3.5V4.5L7 8z"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5.1a7 7 0 0 1 0 9.8"/></svg>',
+  save: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/><path d="M4 14v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V14"/></svg>',
+  folder: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a1 1 0 0 1 1-1h3.5l1.5 1.8H16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>',
+  info: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 9v4.2"/><circle cx="10" cy="6.8" r=".15" fill="currentColor" stroke-width="2.2"/></svg>',
+  cards: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="11" height="13" rx="2"/><path d="M8 3.5h7a2 2 0 0 1 2 2V15"/></svg>',
+  news: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M6 8h8M6 11h8M6 14h5"/></svg>',
+  list: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12M4 10h12M4 15h8"/></svg>',
+  pencil: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l4 4-9.5 9.5L3 18l1.5-4.5z"/></svg>',
+  chat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5a1.5 1.5 0 0 1 1.5-1.5h9a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H9l-3.5 3v-3H5.5A1.5 1.5 0 0 1 4 11.5z"/></svg>',
+  flame: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17.5c-3 0-5-2-5-4.7 0-2.3 1.6-3.6 2.2-5.4.4-1.2.2-2.4-.4-3.4 2.6.4 4.7 2.5 4.9 5.2.9-.8 1.2-2 1-3.1 1.8 1.3 2.8 3.4 2.8 5.6 0 3-2.3 5.8-5.5 5.8z"/></svg>',
+  notebook: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg>'
 };
 // name: ICO anahtarı. size: px. color: opsiyonel currentColor override. inline:
 // true ise metinle aynı satırda hizalanacak margin-right taşır (etiket önü),
@@ -1854,7 +1860,7 @@ function renderListCefrRow(){
     // böylece "Medium" seçiliyken her seviyenin gerçek kelime sayısı görünür.
     const count=WORD_DATA.filter(w=>w.cefr===lv && listWordPasses(w)).length;
     const dis = count===0 && lv!==listLevel;
-    return `<button class="chip lvl-${lv.toLowerCase()}${lv===listLevel?' on':''}${dis?' disabled':''}" ${dis?'disabled':''} data-lv="${lv}" onclick="selectListLevel('${lv}')">${lv} <span style="color:var(--text3);">(${count})</span></button>`;
+    return `<button class="chip lvl-${lv.toLowerCase()}${lv===listLevel?' on':''}${dis?' disabled':''}" ${dis?'disabled':''} data-lv="${lv}" onclick="selectListLevel('${lv}')">${lv}<span class="n">(${count})</span></button>`;
   }).join('');
 }
 function selectListLevel(lv){
@@ -1869,7 +1875,7 @@ function renderWordList(level){
   grid.innerHTML=words.map(w=>{
     const k=wkey(w);
     const open=(k===listOpenKey);
-    let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+    let html=`<div class="list-word-item" onclick="toggleListWord('${k.replace(/'/g,"\\'")}')">
       <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span></div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
@@ -1943,7 +1949,7 @@ function renderListSearchResults(raw){
     const sourceTag = isOxford ? '' : (isExtra
       ? ' <span style="font-size:10px;color:var(--warn);">Ek Havuz</span>'
       : ' <span style="font-size:10px;color:var(--text3);">Konu Kelimesi</span>');
-    let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 4px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+    let html = `<div class="list-word-item" onclick="toggleListSearchWord('${k.replace(/'/g,"\\'")}')">
       <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}${sourceTag}</div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
@@ -2014,8 +2020,8 @@ function renderStruggleList(){
     const k=wkey(w);
     const open=(k===struggleOpenKey);
     const n = lookupCount[w.word.toLowerCase()] || 0;
-    let html=`<div class="list-word-item" onclick="toggleStruggleWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
-      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);">🔍${n}</span></div>${wordRowLine2Html(w)}</div>
+    let html=`<div class="list-word-item" onclick="toggleStruggleWord('${k.replace(/'/g,"\\'")}')">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''} <span style="font-size:11px;color:var(--warn);display:inline-flex;align-items:center;gap:2px;">${ico('search',10,null,false)}${n}</span></div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if(open){
@@ -2046,7 +2052,7 @@ function renderFavoritesList(){
   grid.innerHTML=words.map(w=>{
     const k=wkey(w);
     const open=(k===favoritesOpenKey);
-    let html=`<div class="list-word-item" onclick="toggleFavoritesWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+    let html=`<div class="list-word-item" onclick="toggleFavoritesWord('${k.replace(/'/g,"\\'")}')">
       <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}</div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
@@ -2113,7 +2119,7 @@ function renderTopicWordGrid(){
     const open=(k===topicOpenKey);
     const _w=BUILTIN_CONTENT[k];
     const _warn=(_w&&_w.definition&&_w.definition.trim())?'':'⚠️';
-    let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')" style="padding:10px 8px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+    let html=`<div class="list-word-item" onclick="toggleTopicWord('${k.replace(/'/g,"\\'")}')">
       <div style="min-width:0;"><div><span class="wordfont">${w.word}</span>${_warn} <span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span> ${w.cefr?`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`:''}</div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
@@ -2181,15 +2187,15 @@ function renderListDefHTML(c,w){
   const lookups = lookupCount[w.word.toLowerCase()] || 0;
   const isMastered = progress[wkey(w)]?.mastery === 'mastered';
   const lookupHtml = (lookups >= 2 && !isMastered)
-    ? `<div style="font-size:12px;color:var(--warn);background:var(--warnbg);display:inline-block;padding:4px 10px;border-radius:20px;margin-bottom:10px;">🔍 ${lookups} kez arandı — hâlâ "Biliyorum" değil</div>`
+    ? `<div style="font-size:12px;color:var(--warn);background:var(--warnbg);display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;margin-bottom:10px;">${ico('search',13,null,false)}${lookups} kez arandı — hâlâ "Biliyorum" değil</div>`
     : '';
   const statsId = 'stats-' + w.word.toLowerCase().replace(/[^a-z0-9]/g,'') + '-' + w.pos;
   const statsToggleHtml = `<div class="c-section">
-    <div onclick="event.stopPropagation();document.getElementById('${statsId}').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;">📊 İstatistikler <span style="color:var(--text3);">▸</span></div>
+    <div onclick="event.stopPropagation();document.getElementById('${statsId}').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;">${ico('chart',13,null,false)}İstatistikler <span style="color:var(--text3);">▸</span></div>
     <div id="${statsId}" class="hidden" style="margin-top:8px;">${contactHtml}${lookupHtml}</div>
   </div>`;
   const copyPayload = escAttr(JSON.stringify({ w:{word:w.word,pos:w.pos,cefr:w.cefr}, c }));
-  const copyBtnHtml = `<button class="copy-btn" onclick="event.stopPropagation();copyWordContent(${copyPayload},this)">📋 İçeriği kopyala</button>`;
+  const copyBtnHtml = `<button class="copy-btn" onclick="event.stopPropagation();copyWordContent(${copyPayload},this)" style="display:inline-flex;align-items:center;gap:5px;">${ico('clipboard',13,null,false)}İçeriği kopyala</button>`;
   const statusHtml = (w.word && WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos)) ? progressQuickControlHtml(w) : '';
   const html = `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
@@ -2720,8 +2726,15 @@ function doImport(e){
   reader.readAsText(file);
 }
 
-updateDashboard();
-updateFilterCount();
+// NOT: Burada eskiden "updateDashboard(); updateFilterCount();" şeklinde
+// erken bir çağrı vardı. Bu çağrı, srsStore/grItemStates gibi henüz bu
+// noktada tanımlanmamış değişkenlere (aşağıda `let` ile bildiriliyorlar)
+// dokunan herhangi bir kod eklendiğinde TDZ (temporal dead zone) hatası
+// fırlatıp TÜM script'i çökertiyordu — üstelik çıktısı hiçbir zaman
+// görünmüyordu (yükleme ekranı overlay'inin arkasında kalıyor, loadState()
+// sonrası gerçek updateDashboard() çağrısı tarafından hemen eziliyordu).
+// Tamamen gereksiz/tehlikeli olduğu için kaldırıldı — gerçek ilk çizim
+// aşağıdaki loadState()+updateDashboard() çağrısıyla yapılıyor (bkz. ~satır 2900).
 
 // ── NEWS & CUSTOM WORD SYSTEM ──────────────────────────────────────────────
 
@@ -2975,20 +2988,10 @@ function toggleNewsLevel(lvl) {
 
 function updateNewsLevelButtons() {
   var allOn = ['A1','A2','B1','B2','C1'].every(function(l) { return activeLevels.has(l); });
-  document.querySelectorAll('.news-lvl-btn').forEach(function(b) {
+  document.querySelectorAll('.news-lvl-chip').forEach(function(b) {
     var lvl = b.dataset.lvl;
     var isOn = lvl === 'all' ? allOn : activeLevels.has(lvl);
-    if (lvl === 'all') {
-      b.style.background = isOn ? 'var(--text)' : 'none';
-      b.style.color = isOn ? 'var(--bg)' : 'var(--text2)';
-      b.style.borderColor = 'var(--border2)';
-    } else {
-      var l = lvl.toLowerCase();
-      b.style.background = isOn ? 'var(--' + l + 'bg)' : 'none';
-      b.style.color = 'var(--' + l + ')';
-      b.style.borderColor = 'var(--' + l + ')';
-      b.style.opacity = isOn ? '1' : '0.4';
-    }
+    b.classList.toggle('on', isOn);
   });
 }
 
@@ -3097,7 +3100,7 @@ function cmRenderLevels() {
   row.innerHTML = levels.map(lv => {
     const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w)).length;
     const disabled = count === 0;
-    return `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleLevel('${lv}')"`}>${lv} <span style="color:var(--text3);">(${count})</span></button>`;
+    return `<button class="chip lvl-${lv.toLowerCase()}${cmSelectedLevels.has(lv)?' on':''}${disabled?' disabled':''}" ${disabled?'disabled':`onclick="cmToggleLevel('${lv}')"`}>${lv}<span class="n">(${count})</span></button>`;
   }).join('');
 }
 
@@ -3221,12 +3224,12 @@ function cmRenderProgress() {
     : '';
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-      <span class="badge" style="background:var(--accentbg);color:var(--accent);">${cmDone.known} Biliyorum</span>
-      <span class="badge" style="background:#fff3e0;color:#a05000;">${cmDone.learning} Öğreniyorum</span>
+      <span class="badge" style="background:var(--accentbg);color:var(--accent);">${ico('check',11,'var(--accent)',true)}${cmDone.known} Biliyorum</span>
+      <span class="badge" style="background:var(--b2bg);color:var(--b2);">${ico('repeat',11,'var(--b2)',true)}${cmDone.learning} Öğreniyorum</span>
       <span style="font-size:13px;color:var(--text2);font-weight:600;">${total} Kelime${capNote}</span>
     </div>
-    <div style="height:6px;border-radius:3px;background:var(--border2);overflow:hidden;margin-bottom:12px;">
-      <div style="height:100%;width:${pct}%;background:var(--accent);transition:width .2s;"></div>
+    <div style="height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-bottom:2px;">
+      <div style="height:100%;width:${pct}%;background:var(--a1);border-radius:4px;transition:width .2s;"></div>
     </div>`;
 }
 
@@ -3264,14 +3267,14 @@ async function cmShowCard() {
     // hemen bir kez daha görmek (test etkisi + aralıklı tekrar). Bu yüzden
     // "zorlandıklarını tekrar et" birincil öneri; yeni liste ikinci sırada.
     const primary = hardCount > 0
-      ? `<button onclick="cmRetryHard()" style="padding:12px 26px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Zorlandığın ${hardCount} kelimeyi tekrar et →</button>`
-      : (hasMore ? `<button onclick="cmStart()" style="padding:12px 26px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Yeni ${cmSessionSize} kelime →</button>` : '');
+      ? `<button onclick="cmRetryHard()" class="cm-answer-btn known" style="flex:0 1 auto;padding:14px 24px;">${ico('repeat',15,'#fff',false)}Zorlandığın ${hardCount} kelimeyi tekrar et →</button>`
+      : (hasMore ? `<button onclick="cmStart()" class="cm-answer-btn known" style="flex:0 1 auto;padding:14px 24px;">Yeni ${cmSessionSize} kelime →</button>` : '');
 
     const advice = goalMet
       ? `Bugünkü hedefini (${goal}) tamamladın. Kısa ve düzenli çalışmak, uzun tek seferlik oturumlardan daha kalıcı — istersen burada bırakabilirsin.`
       : `Bugün ${doneToday}/${goal} kelime yaptın.`;
 
-    area.innerHTML = `<div style="text-align:center;padding:30px 16px;">
+    area.innerHTML = `<div class="cm-end-card">
       <div style="font-size:30px;margin-bottom:8px;">${hasMore ? (goalMet ? '🎯' : '🎉') : '🏁'}</div>
       <div style="font-size:17px;font-weight:700;margin-bottom:8px;">
         ${hasMore ? `${cmQueue.length} kelimelik oturumu bitirdin` : 'Bu seviye(ler)de çalışılacak kelime kalmadı'}</div>
@@ -3376,12 +3379,12 @@ function cmRenderCard(w, answerFn, isQueueCard, targetId, backFn, dir) {
 
   area.innerHTML = `
     ${backToListBtn}
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;">
+    <div class="cm-card">
       ${promptBlock}
       ${revealBlock}
-      <div style="display:flex;gap:10px;">
-        <button onclick="${answerCall}false)" style="flex:1;padding:14px;border-radius:var(--rsm);border:none;background:#fff3e0;color:#a05000;font-weight:600;font-size:14px;cursor:pointer;">Öğreniyorum</button>
-        <button onclick="${answerCall}true)" style="flex:1;padding:14px;border-radius:var(--rsm);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Biliyorum</button>
+      <div class="cm-answer-row">
+        <button onclick="${answerCall}false)" class="cm-answer-btn learning">${ico('repeat',15,'var(--b2)',false)}Öğreniyorum</button>
+        <button onclick="${answerCall}true)" class="cm-answer-btn known">${ico('check',15,'#fff',false)}Biliyorum</button>
       </div>
     </div>
     ${isQueueCard ? cmNavBarHtml() : ''}`;
@@ -3610,7 +3613,7 @@ function stRenderLevels() {
   row.innerHTML = levels.map(lv => {
     // Sayaç: o seviyede ortak filtreden geçen ve ilerleme kaydı olan kelimeler
     const count = WORD_DATA.filter(w => w.cefr === lv && gbPasses(w) && stProgressStore()[wkey(w)]).length;
-    return `<button class="chip lvl-${lv.toLowerCase()}${stSelectedLevels.has(lv)?' on':''}" onclick="stToggleLevel('${lv}')">${lv} <span style="color:var(--text3);">(${count})</span></button>`;
+    return `<button class="chip lvl-${lv.toLowerCase()}${stSelectedLevels.has(lv)?' on':''}" onclick="stToggleLevel('${lv}')">${lv}<span class="n">(${count})</span></button>`;
   }).join('');
 }
 
@@ -3758,10 +3761,10 @@ function contactDotsHtml(w) {
 // göre kademeli koyulaşır (0/5 = anahat gri, 5/5 = tam aksan rengi). Modal,
 // Kart Modu/Kelime Durumu kartı ve Kelime Listem'in genişleyen panelleri
 // hepsi bu tek fonksiyonu kullanır — böylece görünüm her yerde birebir aynı.
-const CONTACT_DIMS = [ ['read','📖 Okuma'], ['heard','🎧 Dinleme'], ['used','🔁 Kullanım'] ];
+const CONTACT_DIMS = [ ['read','Okuma','book'], ['heard','Dinleme','headphones'], ['used','Kullanım','repeat'] ];
 function contactBadgesHtml(word) {
   const c = contactTrack[word.toLowerCase()] || {};
-  return CONTACT_DIMS.map(([dim,label]) => {
+  return CONTACT_DIMS.map(([dim,label,iconName]) => {
     const count = c[dim] || 0;
     const ratio = contactRatio(count);
     let style;
@@ -3771,7 +3774,7 @@ function contactBadgesHtml(word) {
       const fg = ratio >= 0.6 ? '#fff' : 'var(--accent)';
       style = `background:${bg};color:${fg};font-weight:600;`;
     }
-    return `<span title="${count}/${CONTACT_THRESHOLD}" style="font-size:12.5px;padding:5px 12px;border-radius:20px;${style}">${label} ${count}/${CONTACT_THRESHOLD}</span>`;
+    return `<span title="${count}/${CONTACT_THRESHOLD}" style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:5px 12px;border-radius:20px;${style}">${ico(iconName,13,null,false)}${label} ${count}/${CONTACT_THRESHOLD}</span>`;
   }).join('');
 }
 function renderModalContactRow() {
@@ -3802,7 +3805,7 @@ function stRenderList() {
     const k = wkey(w);
     const isFav = !!favorites[k];
     const wordArg = `'${w.word.replace(/'/g,"\\'")}','${w.pos.replace(/'/g,"\\'")}'`;
-    return `<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    return `<div class="st-word-card">
       <div style="cursor:pointer;flex:1;" onclick="stOpenWord(${wordArg})">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:15px;font-weight:700;">${escHtml(w.word)}</span>
@@ -3812,8 +3815,8 @@ function stRenderList() {
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:11.5px;color:var(--text2);white-space:nowrap;display:inline-flex;align-items:center;gap:9px;">${ico('check',12,'#5cb87a',false)}${p.totalKnown||0} ${ico('repeat',12,'#6b9ee0',false)}${p.totalLearning||0}</span>
-        <span onclick="stToggleFavorite(${wordArg})" style="font-size:18px;cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};">★</span>
-        <span onclick="stRemoveWord(${wordArg})" title="Listeden çıkar" style="font-size:16px;cursor:pointer;color:var(--text3);">✕</span>
+        <span onclick="stToggleFavorite(${wordArg})" style="font-size:18px;cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};">${isFav?'★':'☆'}</span>
+        <span onclick="stRemoveWord(${wordArg})" title="Listeden çıkar" style="cursor:pointer;color:var(--text3);">${ico('x',15,'currentColor',false)}</span>
       </div>
     </div>`;
   }).join('');
@@ -3973,8 +3976,8 @@ function ttsSpeakWebSpeech(text) {
 
 async function ttsSpeak(text, btnEl) {
   if (!text || !text.trim()) return;
-  const origLabel = btnEl ? btnEl.textContent : null;
-  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '⏳'; }
+  const origLabel = btnEl ? btnEl.innerHTML : null;
+  if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = ico('clock',13,null,false); }
   const hasKey = !!ttsGetActiveKey();
   try {
     if (hasKey) {
@@ -3999,13 +4002,13 @@ async function ttsSpeak(text, btnEl) {
     console.error('TTS hatası:', e);
     alert('Ses oynatılamadı.\n\nTeknik detay: ' + (e && e.message ? e.message : String(e)) + '\n\nBu satırı ekran görüntüsüyle paylaşırsan tam nedeni görebilirim.');
   } finally {
-    if (btnEl) { btnEl.disabled = false; btnEl.textContent = origLabel || '🔊'; }
+    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = origLabel || ico('speaker',13,null,false); }
   }
 }
 
 function ttsButtonHtml(text, contactWord) {
   const attr = contactWord ? ` data-contact-word="${escAttr(contactWord)}"` : '';
-  return `<button type="button" class="tts-btn" data-tts-text="${escAttr(text)}"${attr} title="Dinle">🔊</button>`;
+  return `<button type="button" class="tts-btn" data-tts-text="${escAttr(text)}"${attr} title="Dinle">${ico('speaker',13,null,false)}</button>`;
 }
 
 // Bir konteyner içindeki tüm .tts-btn düğmelerini tıklama olayına bağlar.
@@ -4119,7 +4122,7 @@ function renderCustomWordsList() {
       else if (p.mastery === 'consolidating') status = ico('trend',12,'#c9a548',false);
       else status = ico('repeat',12,'#6b9ee0',false);
     }
-    return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;" data-word="${escAttr(w.word)}" onclick="handleWordClick(this)">${status} ${w.word} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">🔊</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;" data-word="${escAttr(w.word)}" onclick="handleWordClick(this)">${status} ${w.word} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">${ico('speaker',11,null,false)}</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
   }).join('');
   ttsWireButtons(el);
 }
@@ -4438,7 +4441,7 @@ function sgRenderLevels() {
   el.innerHTML = all.map(l => {
     const count = countFor(l);
     const disabled = count === 0;
-    return `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l} <span style="color:var(--text3);">(${count})</span></div>`;
+    return `<div class="chip lvl-${l.toLowerCase()}${sgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}<span class="n">(${count})</span></div>`;
   }).join('');
   el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
     chip.onclick = () => {
@@ -4487,19 +4490,41 @@ function sgRenderFreqFilter() {
   });
 }
 
+let sgTenseManualOpen = false;
+function sgToggleTenseManual() {
+  sgTenseManualOpen = !sgTenseManualOpen;
+  sgRenderTenseFilter();
+}
 function sgRenderTenseFilter() {
   const el = document.getElementById('sg-tense-filter');
   const tenses = [...new Set(SG_EXERCISES.map(e => e.tense))];
-  const options = ["__auto__", ...tenses];
-  el.innerHTML = options.map(t => {
-    const label = t === "__auto__" ? "Otomatik (seviyeye göre)" : t;
-    const active = (t === "__auto__" && !sgSelectedTenseFilter) || (t === sgSelectedTenseFilter);
-    return `<div class="sg-level-chip sg-tense-chip ${active ? 'active' : ''}" data-tense="${t}">${label}</div>`;
-  }).join('');
-  el.querySelectorAll('.sg-tense-chip').forEach(chip => {
+  const isAuto = !sgSelectedTenseFilter;
+  const activeLabel = isAuto ? 'Otomatik' : sgSelectedTenseFilter;
+  const gridHtml = sgTenseManualOpen ? `<div class="tense-grid">${tenses.map(t => {
+    const active = t === sgSelectedTenseFilter;
+    return `<button class="tense-chip ${active ? 'active' : ''}" data-tense="${t}">${t}</button>`;
+  }).join('')}</div>` : '';
+  el.innerHTML = `
+    <button class="auto-tense-btn ${isAuto ? 'active' : ''}" data-tense="__auto__">
+      ${ico('sparkle', 20, isAuto ? '#fff' : 'var(--a1)', false)}
+      <span class="auto-tense-txt">
+        <div class="auto-tense-title">${activeLabel}</div>
+        <div class="auto-tense-sub">${isAuto ? 'Seviyene göre karışık zamanlar' : 'Manuel seçildi'}</div>
+      </span>
+      <button class="auto-tense-toggle" onclick="event.stopPropagation();sgToggleTenseManual();">${sgTenseManualOpen ? 'Gizle ⌃' : 'Belirli bir zaman seç ›'}</button>
+    </button>
+    ${gridHtml}`;
+  el.querySelector('.auto-tense-btn').onclick = (e) => {
+    if (e.target.classList.contains('auto-tense-toggle')) return;
+    sgSelectedTenseFilter = null;
+    sgRenderTenseFilter();
+    sgRenderLevels();
+    sgRenderFreqFilter();
+    sgPickExercise();
+  };
+  el.querySelectorAll('.tense-chip').forEach(chip => {
     chip.onclick = () => {
-      const t = chip.dataset.tense;
-      sgSelectedTenseFilter = t === "__auto__" ? null : t;
+      sgSelectedTenseFilter = chip.dataset.tense;
       sgRenderTenseFilter();
       sgRenderLevels();
       sgRenderFreqFilter();
@@ -4785,7 +4810,7 @@ function sgRenderExercise() {
       <div id="sg-tr-result"></div>`;
   }
 
-  c.innerHTML = `<div class="sg-card">${sgInfoBar}<div class="sg-skip-row"><button class="sg-skip-btn" onclick="sgPickExercise()">🔀 Farklı bir örnek göster</button></div>${progressHtml}${sentenceHtml}${bodyHtml}</div>`;
+  c.innerHTML = `<div class="sg-card">${sgInfoBar}<div class="sg-skip-row"><button class="sg-skip-btn" onclick="sgPickExercise()">${ico('shuffle',13,'var(--accent)',true)}Farklı bir cümle göster</button></div>${progressHtml}${sentenceHtml}${bodyHtml}</div>`;
   ttsWireButtons(c);
 
   if (needsVerbStage) {
@@ -4992,7 +5017,7 @@ function hgRenderLevels() {
   el.innerHTML = all.map(l => {
     const count = HG_POOL.filter(w => w.cefr === l && gbPasses(w)).length;
     const disabled = count === 0;
-    return `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l} <span style="color:var(--text3);">(${count})</span></div>`;
+    return `<div class="chip lvl-${l.toLowerCase()}${hgSelectedLevels.has(l) ? ' on' : ''}${disabled?' disabled':''}" data-level="${l}">${l}<span class="n">(${count})</span></div>`;
   }).join('');
   el.querySelectorAll('.chip:not(.disabled)').forEach(chip => {
     chip.onclick = () => {
@@ -5454,7 +5479,24 @@ function grGetItemStates(topicId, subId) {
   return grItemStates[key];
 }
 
+// Erdem: Gramer modülüne girince toplam ilerleme hiç görünmüyordu (sadece
+// seviye kartları vardı, aggregate yoktu) — arama kutusunun üstüne, Özet'teki
+// halka ile aynı görsel dilde bir genel özet ekliyoruz.
+function grOverallSummaryHtml() {
+  const gr = grOverallStats();
+  if (gr.totalSubs === 0) return '';
+  const pct = Math.round(gr.learnedSubs / gr.totalSubs * 100);
+  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+    ${dashRingSvg(pct, 'var(--accent)')}
+    <div>
+      <div class="dash-lvl-title" style="margin:0;">Genel ilerleme</div>
+      <div style="font-size:12.5px;color:var(--text2);">${gr.learnedSubs} / ${gr.totalSubs} alt madde öğrenildi</div>
+    </div>
+  </div>`;
+}
+
 function grInit() {
+  document.getElementById('gr-overall-summary').innerHTML = grOverallSummaryHtml();
   const el = document.getElementById('gr-level-list');
   const levels = ['A1','A2','B1','B2','C1','C2'];
   el.innerHTML = levels.map(lv => {

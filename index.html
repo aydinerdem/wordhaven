@@ -82,6 +82,19 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .main-nav-btn.active .nav-icon{color:#fff;}
 .main-nav-btn.active .nav-chevron{color:#fff;opacity:.8;}
 .main-nav-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+/* ── Hamburger menü — LanGeek ilhamlı renkli kutucuk ızgarası. Erdem'in
+   "Excel gibi" eleştirdiği düz metin listesi yerine, her modül kendi
+   rengiyle ayrı bir simge kartı. Özet bilinçli olarak sade/tek-eylem
+   kalıyor (bkz. proje notları) — renk enerjisi burada, menüde. ── */
+.nav-tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px;margin-bottom:6px;padding:14px 10px;}
+.nav-tile{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:2px 0;border:none;background:none;position:relative;}
+.nav-tile-ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 8px -2px rgba(0,0,0,.28);transition:transform .12s;}
+.nav-tile-ico svg{width:23px;height:23px;}
+.nav-tile:active .nav-tile-ico{transform:scale(.92);}
+.nav-tile-lbl{font-size:11px;font-weight:600;color:var(--text);text-align:center;line-height:1.25;}
+.nav-tile.active .nav-tile-ico{box-shadow:0 0 0 3px var(--accentbg),0 3px 8px -2px rgba(0,0,0,.28);}
+.nav-tile.active{background:none;color:var(--text);box-shadow:none;border-color:transparent;}
+.nav-tile-badge{position:absolute;top:-2px;right:6px;font-size:8.5px;font-weight:700;color:#fff;background:var(--accent);border-radius:8px;padding:1px 5px;line-height:1.4;}
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .dash-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;}
 .dash-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
@@ -103,15 +116,47 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .acc-body.open{display:block;}
 .copy-btn{font-size:11px;padding:2px 8px;border-radius:4px;border:0.5px solid var(--border2);background:none;color:var(--text3);cursor:pointer;}
 .filter-panel{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;}
-.f-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+/* ── Kelime Listem: 6 farklı yerde (Oxford/Konu/Arama/Zorlandıklarım/
+   Favoriler/Ek Havuz) birebir aynı satır stili tekrarlanıyordu — tek
+   paylaşılan sınıfa indirgendi, artık tek yerden değişiyor. ── */
+.list-word-item{padding:11px 10px;font-size:14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:6px;transition:background .1s;}
+.list-word-item:active{background:var(--surface2);}
+.st-word-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:14px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+/* ── Metin Analizi: seviye göster/gizle butonları artık chip diliyle
+   tutarlı (dolgulu/renkli), ince outline değil. Panel kartları ise metin
+   yapıştırma odaklı olduğu için gradyan yerine sade ama daha yuvarlak/net
+   bir etiket kullanıyor — okunabilirlik önceliği. ── */
+.news-lvl-chip{padding:7px 14px;border-radius:12px;font-size:12px;font-weight:700;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;}
+.news-lvl-chip.on{background:var(--text);color:var(--bg);border-color:var(--text);}
+.news-lvl-chip.a1{border-color:var(--a1);color:var(--a1);}
+.news-lvl-chip.a1.on{background:var(--a1);color:#fff;}
+.news-lvl-chip.a2{border-color:var(--a2);color:var(--a2);}
+.news-lvl-chip.a2.on{background:var(--a2);color:#fff;}
+.news-lvl-chip.b1{border-color:var(--b1);color:var(--b1);}
+.news-lvl-chip.b1.on{background:var(--b1);color:#fff;}
+.news-lvl-chip.b2{border-color:var(--b2);color:var(--b2);}
+.news-lvl-chip.b2.on{background:var(--b2);color:#fff;}
+.news-lvl-chip.c1{border-color:var(--c1);color:var(--c1);}
+.news-lvl-chip.c1.on{background:var(--c1);color:#fff;}
+.news-panel{background:var(--surface);border:0.5px solid var(--border2);border-radius:16px;padding:15px;}
+.news-panel-label{font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;}
+/* ── Sözlüğüm: kelime detay kartı diğer modüllerle tutarlı gradyan diliyle. ── */
+.dict-card{background:linear-gradient(160deg,var(--a1bg),var(--surface) 55%);border:0.5px solid var(--border2);border-radius:20px;padding:22px;margin-bottom:16px;}
+.f-label{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
 .f-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
-.chip{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--text2);transition:all .15s;}
-.chip.disabled,.chip:disabled{opacity:0.3;cursor:not-allowed;text-decoration:line-through;}
+/* Erdem geri bildirimi: 3'lü gruplarda (S1-S3, W1-W3, High/Medium/Low)
+   rakam uzunluğuna göre chip genişlikleri değişince satır düzensiz
+   kırılıyordu ("Low" tek başına alta düşüyordu). f-row3: eşit genişlikli
+   sabit 3 sütunlu ızgara — genişlik asla içerikten etkilenmiyor. */
+.f-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.f-row3 .chip{text-align:center;}
+.chip{padding:8px 14px;border-radius:12px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border2);background:var(--surface2);cursor:pointer;color:var(--text2);transition:all .15s;}
+.chip.disabled,.chip:disabled{opacity:0.35;cursor:not-allowed;text-decoration:line-through;}
 /* Gezinme butonları: pasifken üzeri çizili görünmesin — "sonuç yok" anlamına
    gelen filtre chip'lerinden farklı olarak burada "şimdilik gidilemez" demek. */
 .chip.chip-nav.disabled,.chip.chip-nav:disabled{text-decoration:none;opacity:0.38;}
 .chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
-.chip-all{padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--text3);transition:all .15s;}
+.chip-all{padding:8px 12px;border-radius:12px;font-size:11.5px;font-weight:600;border:1.5px dashed var(--border2);background:none;cursor:pointer;color:var(--text3);transition:all .15s;}
 .chip-all:hover{background:var(--surface2);}
 .f-count{font-size:12px;color:var(--text3);margin-top:6px;}
 .start-btn{width:100%;padding:12px;font-size:15px;font-weight:500;background:var(--text);color:var(--bg);border:none;border-radius:var(--rsm);cursor:pointer;margin-top:12px;transition:opacity .15s;}
@@ -134,19 +179,80 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .b-c1{background:var(--c1bg);color:var(--c1);}
 .b-c2{background:var(--c2bg);color:var(--c2);}
 
-/* ── Tutarlı seviye rengi: A1-C2 çipleri her yerde aynı renk mantığını kullanır ── */
-.chip.lvl-a1{border-color:var(--a1);color:var(--a1);}
-.chip.lvl-a2{border-color:var(--a2);color:var(--a2);}
-.chip.lvl-b1{border-color:var(--b1);color:var(--b1);}
-.chip.lvl-b2{border-color:var(--b2);color:var(--b2);}
-.chip.lvl-c1{border-color:var(--c1);color:var(--c1);}
-.chip.lvl-c2{border-color:var(--c2);color:var(--c2);}
+/* ── Tutarlı seviye rengi: A1-C2 çipleri her yerde aynı renk mantığını
+   kullanır. ÖNEMLİ KURAL: boş seçim = tümü dahil, dolu chip yok. Varsayılan
+   durum nötr kalmalı, sadece .on canlı renkte dolmalı.
+   Erdem: S1-S3/W1-W3/frekans/VOA chip'lerinin de CEFR gibi büyük+alt satır
+   sayı+renkli olması istendi. BÜYÜK/İSTİFLİ görünüm artık KONTEYNERE değil
+   (f-row3) ÇİPİN KENDİ SINIFINA bağlı — böylece VOA gibi tek başına flex
+   satırda duran bir chip de aynı görünümü alabiliyor. Renkler mevcut rozet
+   (badge b-s1/b-w1/b-high vb.) paletiyle birebir tutarlı. */
+.chip.lvl-a1,.chip.lvl-a2,.chip.lvl-b1,.chip.lvl-b2,.chip.lvl-c1,.chip.lvl-c2,
+.chip.band-s1,.chip.band-s2,.chip.band-s3,.chip.band-w1,.chip.band-w2,.chip.band-w3,
+.chip.band-high,.chip.band-medium,.chip.band-low,.chip.band-voa{
+  padding:14px 10px;font-size:15px;font-weight:700;text-align:center;border-radius:14px;line-height:1.3;min-width:90px;
+}
+.chip.lvl-a1 .n,.chip.lvl-a2 .n,.chip.lvl-b1 .n,.chip.lvl-b2 .n,.chip.lvl-c1 .n,.chip.lvl-c2 .n,
+.chip.band-s1 .n,.chip.band-s2 .n,.chip.band-s3 .n,.chip.band-w1 .n,.chip.band-w2 .n,.chip.band-w3 .n,
+.chip.band-high .n,.chip.band-medium .n,.chip.band-low .n,.chip.band-voa .n{
+  display:block;font-size:11px;font-weight:600;opacity:.65;margin-top:2px;color:inherit;
+}
+.chip.lvl-a1{background:var(--surface2);border:1.5px solid var(--a1);color:var(--a1);}
+.chip.lvl-a2{background:var(--surface2);border:1.5px solid var(--a2);color:var(--a2);}
+.chip.lvl-b1{background:var(--surface2);border:1.5px solid var(--b1);color:var(--b1);}
+.chip.lvl-b2{background:var(--surface2);border:1.5px solid var(--b2);color:var(--b2);}
+.chip.lvl-c1{background:var(--surface2);border:1.5px solid var(--c1);color:var(--c1);}
+.chip.lvl-c2{background:var(--surface2);border:1.5px solid var(--c2);color:var(--c2);}
 .chip.lvl-a1.on{background:var(--a1);color:#fff;border-color:var(--a1);}
 .chip.lvl-a2.on{background:var(--a2);color:#fff;border-color:var(--a2);}
 .chip.lvl-b1.on{background:var(--b1);color:#fff;border-color:var(--b1);}
 .chip.lvl-b2.on{background:var(--b2);color:#fff;border-color:var(--b2);}
 .chip.lvl-c1.on{background:var(--c1);color:#fff;border-color:var(--c1);}
 .chip.lvl-c2.on{background:var(--c2);color:#fff;border-color:var(--c2);}
+/* S1-S3 (konuşma), W1-W3 (yazı), High/Medium/Low (frekans), VOA — mevcut
+   rozet (b-s1 vb.) renk kimliğiyle birebir aynı paleti kullanıyor. */
+.chip.band-s1{background:var(--surface2);border:1.5px solid #854f0b;color:#854f0b;}
+.chip.band-s2{background:var(--surface2);border:1.5px solid #9a6516;color:#9a6516;}
+.chip.band-s3{background:var(--surface2);border:1.5px solid #a8813f;color:#a8813f;}
+.chip.band-w1{background:var(--surface2);border:1.5px solid #3b6d11;color:#3b6d11;}
+.chip.band-w2{background:var(--surface2);border:1.5px solid #4d7d22;color:#4d7d22;}
+.chip.band-w3{background:var(--surface2);border:1.5px solid #658d43;color:#658d43;}
+.chip.band-voa{background:var(--surface2);border:1.5px solid #185fa5;color:#185fa5;}
+.chip.band-high{background:var(--surface2);border:1.5px solid #3d5568;color:#3d5568;}
+.chip.band-medium{background:var(--surface2);border:1.5px solid #5d7688;color:#5d7688;}
+.chip.band-low{background:var(--surface2);border:1.5px solid #8398a6;color:#8398a6;}
+.chip.band-s1.on{background:#854f0b;color:#fff;border-color:#854f0b;}
+.chip.band-s2.on{background:#9a6516;color:#fff;border-color:#9a6516;}
+.chip.band-s3.on{background:#a8813f;color:#fff;border-color:#a8813f;}
+.chip.band-w1.on{background:#3b6d11;color:#fff;border-color:#3b6d11;}
+.chip.band-w2.on{background:#4d7d22;color:#fff;border-color:#4d7d22;}
+.chip.band-w3.on{background:#658d43;color:#fff;border-color:#658d43;}
+.chip.band-voa.on{background:#185fa5;color:#fff;border-color:#185fa5;}
+.chip.band-high.on{background:#3d5568;color:#fff;border-color:#3d5568;}
+.chip.band-medium.on{background:#5d7688;color:#fff;border-color:#5d7688;}
+.chip.band-low.on{background:#8398a6;color:#fff;border-color:#8398a6;}
+@media(prefers-color-scheme:dark){
+  .chip.band-s1{border-color:#f0c98a;color:#f0c98a;}
+  .chip.band-s2{border-color:#dfba7e;color:#dfba7e;}
+  .chip.band-s3{border-color:#c9a97a;color:#c9a97a;}
+  .chip.band-w1{border-color:#b8dd90;color:#b8dd90;}
+  .chip.band-w2{border-color:#a9cf84;color:#a9cf84;}
+  .chip.band-w3{border-color:#96bb77;color:#96bb77;}
+  .chip.band-voa{border-color:#a8cdf2;color:#a8cdf2;}
+  .chip.band-high{border-color:#a9c2d1;color:#a9c2d1;}
+  .chip.band-medium{border-color:#93aebd;color:#93aebd;}
+  .chip.band-low{border-color:#7d97a5;color:#7d97a5;}
+  .chip.band-s1.on{background:#854f0b;color:#fff;}
+  .chip.band-s2.on{background:#9a6516;color:#fff;}
+  .chip.band-s3.on{background:#a8813f;color:#fff;}
+  .chip.band-w1.on{background:#3b6d11;color:#fff;}
+  .chip.band-w2.on{background:#4d7d22;color:#fff;}
+  .chip.band-w3.on{background:#658d43;color:#fff;}
+  .chip.band-voa.on{background:#185fa5;color:#fff;}
+  .chip.band-high.on{background:#3d5568;color:#fff;}
+  .chip.band-medium.on{background:#5d7688;color:#fff;}
+  .chip.band-low.on{background:#8398a6;color:#fff;}
+}
 .b-s1{background:#faeeda;color:#854f0b;}
 .b-s2{background:#fdf4e6;color:#9a6516;}
 .b-s3{background:#fbf8f2;color:#a8813f;}
@@ -157,7 +263,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .b-high{background:#e3e8ec;color:#3d5568;}
 .b-medium{background:#eef1f3;color:#5d7688;}
 .b-low{background:#f6f7f8;color:#8398a6;}
-.chip.chip-voa{border-color:#185fa5;color:#185fa5;}
+.chip.chip-voa{background:var(--surface2);border:1.5px solid #185fa5;color:#185fa5;}
 .chip.chip-voa.on{background:#185fa5;color:#fff;border-color:#185fa5;}
 @media(prefers-color-scheme:dark){
   .b-s1{background:#4a3308;color:#f0c98a;}
@@ -189,7 +295,43 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .wa-opt.disabled{opacity:.4;cursor:not-allowed;}
 .wa-opt-label{font-size:14px;font-weight:600;}
 .wa-opt-sub{font-size:11.5px;color:var(--text3);}
-.dash-hero{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.dash-hero{background:linear-gradient(155deg,var(--accent),#3f3894);border-radius:20px;padding:20px;margin-bottom:16px;color:#fff;position:relative;overflow:hidden;box-shadow:0 8px 24px -8px rgba(83,74,183,.5);}
+.dash-hero::after{content:'';position:absolute;right:-30px;bottom:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.07);}
+.dash-hero .dash-goal-btn{color:#fff;opacity:.85;}
+.dash-hero p{color:rgba(255,255,255,.85) !important;}
+.dash-hero .start-btn{background:#fff;color:var(--accent);}
+/* ── Özet başlığı: karşılama + ayarlar + streak rozeti ── */
+.oz-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.hdr-greet{font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:700;}
+.hdr-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.streak-pill{display:flex;align-items:center;gap:5px;background:var(--surface);border:0.5px solid var(--border2);border-radius:99px;padding:7px 12px 7px 10px;font-size:13px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.06);color:var(--warn);}
+.settings-btn{width:36px;height:36px;border-radius:50%;background:var(--surface);border:0.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);box-shadow:0 1px 3px rgba(0,0,0,.06);}
+/* ── İki patika: Kelime (a1/yeşil) ve Gramer (b1/mor) kartları — her biri
+   kendi "kavanoz" seviye yolu + hızlı erişim ikon ızgarasını taşıyor. ── */
+.oz-track{border-radius:20px;padding:18px 16px 16px;margin-bottom:16px;position:relative;overflow:hidden;border:0.5px solid var(--border2);}
+.oz-track.t-word{background:linear-gradient(165deg,var(--a1bg),var(--surface) 60%);}
+.oz-track.t-gram{background:linear-gradient(165deg,var(--b1bg),var(--surface) 60%);}
+.oz-track-head{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.oz-track-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;}
+.t-word .oz-track-icon{background:linear-gradient(135deg,var(--a1),#0a5744);}
+.t-gram .oz-track-icon{background:linear-gradient(135deg,var(--b1),#4c2d75);}
+.oz-track-title{font-family:'Source Serif 4',Georgia,serif;font-size:17px;font-weight:700;}
+.oz-track-sub{font-size:11.5px;color:var(--text2);margin-top:1px;}
+.oz-track-total{margin-left:auto;text-align:right;flex-shrink:0;}
+.oz-track-total b{font-size:15px;}
+.oz-track-total span{display:block;font-size:10px;color:var(--text3);}
+.oz-path-row{display:flex;align-items:flex-end;justify-content:space-between;position:relative;margin:16px 2px 4px;padding:0 2px;}
+.oz-path-row::before{content:'';position:absolute;left:20px;right:20px;top:20px;height:0;border-top:2px dotted var(--border2);z-index:0;}
+.oz-jar{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;cursor:pointer;}
+.oz-jar-circle{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--surface);box-shadow:0 0 0 1.5px var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;position:relative;background:var(--surface2);transition:transform .15s;}
+.oz-jar:active .oz-jar-circle{transform:scale(.92);}
+.oz-jar-lvl{font-size:10.5px;color:var(--text2);font-weight:700;}
+.oz-chip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;margin-top:16px;}
+.oz-qchip{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+.oz-qchip-ico{width:44px;height:44px;border-radius:13px;background:var(--surface);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .15s;margin:0 auto;}
+.oz-qchip:active .oz-qchip-ico{transform:scale(.92);}
+.oz-qchip-lbl{font-size:10px;color:var(--text2);text-align:center;font-weight:600;line-height:1.2;}
+.oz-more-link{text-align:center;font-size:12px;color:var(--text3);font-weight:600;padding:16px 0 0;cursor:pointer;}
 .dash-goal-btn{margin-top:8px;background:none;border:none;padding:0;font-size:11.5px;color:var(--accent);cursor:pointer;font-family:inherit;text-align:left;}
 .dash-summary-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .dash-summary-row>div{flex:1;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px 8px;text-align:center;}
@@ -197,15 +339,18 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .dash-sum-l{display:block;font-size:10.5px;color:var(--text3);margin-top:3px;line-height:1.3;}
 .dash-lvl-list{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:6px 12px 10px;}
 .dash-lvl-title{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 4px;}
+.dash-module-head{display:flex;align-items:center;gap:14px;cursor:pointer;padding:2px 0;}
+.dash-module-tile{cursor:pointer;transition:background .15s;}
+.dash-module-tile:active{background:var(--surface2);}
 .dash-lvl-row{display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer;border-bottom:0.5px solid var(--border);}
 .dash-lvl-row:last-child{border-bottom:none;}
 .dash-lvl-bar{position:relative;flex:1;height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;min-width:40px;}
 .dash-lvl-detail{padding:4px 0 12px;border-bottom:0.5px solid var(--border);}
-.band-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;}
-.gb-details{border-top:0.5px solid var(--border);padding-top:8px;}
-.gb-details summary{list-style:none;}
+.band-label{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;}
+.gb-details{border-top:0.5px solid var(--border);padding-top:10px;}
+.gb-details summary{list-style:none;font-weight:600;color:var(--accent);}
 .gb-details summary::-webkit-details-marker{display:none;}
-.gb-details summary::before{content:'▸ ';}
+.gb-details summary::before{content:'▸ ';font-size:11px;}
 .gb-details[open] summary::before{content:'▾ ';}
 .band-label:first-child{margin-top:0;}
 .b-s2,.b-s3,.b-w2,.b-w3{background:var(--surface2);color:var(--text2);}
@@ -268,7 +413,22 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .sg-tense-row-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 6px;}
 .sg-tense-chip{font-size:12.5px;padding:6px 12px;}
 .sg-stats-bar{font-size:12px;color:var(--accent);margin-bottom:14px;font-weight:600;}
-.sg-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.sg-card{background:linear-gradient(160deg,var(--a1bg),var(--surface) 55%);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;}
+/* ── "Otomatik" zaman seçici: Erdem geri bildirimi — 13 zaman chip'i aynı
+   görsel ağırlıkta yan yana durunca göz dinlenecek yer bulamıyordu. Artık
+   "Otomatik" tek başına büyük/belirgin, geri kalan 13 zaman varsayılan
+   KAPALI, "Belirli bir zaman seç" ile açılan küçük bir ızgarada. ── */
+.auto-tense-btn{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:2px solid var(--a1);background:var(--a1bg);color:var(--a1);cursor:pointer;margin-bottom:10px;}
+.auto-tense-btn.active{background:var(--a1);color:#fff;}
+.auto-tense-ico{flex-shrink:0;}
+.auto-tense-txt{text-align:left;flex:1;min-width:0;}
+.auto-tense-title{font-size:14px;font-weight:700;}
+.auto-tense-sub{font-size:11px;opacity:.85;margin-top:1px;}
+.auto-tense-toggle{font-size:11px;font-weight:600;opacity:.9;flex-shrink:0;background:none;border:none;color:inherit;cursor:pointer;}
+.tense-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px;}
+.tense-chip{padding:9px 10px;border-radius:10px;font-size:12px;font-weight:600;text-align:center;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;}
+.tense-chip.active{background:var(--a1);border-color:var(--a1);color:#fff;}
+.tense-chip.disabled,.tense-chip:disabled{opacity:.35;cursor:not-allowed;text-decoration:line-through;}
 .sg-progress{display:flex;gap:5px;margin-bottom:16px;}
 .sg-progress-dot{flex:1;height:4px;border-radius:2px;background:var(--border2);}
 .sg-level-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
@@ -328,6 +488,19 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .sg-rate-done{font-size:13px;color:var(--success);font-weight:600;}
 .sg-suggestion-note{font-size:12px;color:var(--text2);margin-bottom:8px;}
 .sg-empty{text-align:center;color:var(--text2);padding:40px 20px;font-size:14px;}
+/* ── KART MODU (flashcard) — Asmaca'yla aynı görsel dil: gradyanlı kart,
+   ikonlu cevap butonları. "Kelime" patikası a1 (yeşil-teal) rengini
+   taşıyor (Özet'teki Kelime kartıyla tutarlı). ── */
+.cm-progress-wrap{background:linear-gradient(155deg,var(--a1bg),var(--surface) 65%);border:0.5px solid var(--border2);border-radius:18px;padding:16px;margin-bottom:16px;}
+.cm-card{background:linear-gradient(160deg,var(--a1bg),var(--surface) 55%);border:0.5px solid var(--border2);border-radius:20px;padding:26px 20px;text-align:center;}
+.cm-answer-row{display:flex;gap:10px;}
+.cm-answer-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:15px;border-radius:14px;border:none;font-weight:700;font-size:14.5px;cursor:pointer;transition:transform .1s;}
+.cm-answer-btn:active{transform:scale(.97);}
+.cm-answer-btn.learning{background:var(--b2bg);color:var(--b2);}
+.cm-answer-btn.known{background:var(--accent);color:#fff;}
+.cm-end-card{background:linear-gradient(155deg,var(--accentbg),var(--surface) 60%);border:0.5px solid var(--border2);border-radius:20px;padding:30px 20px;text-align:center;}
+.cm-end-icon{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+
 /* ── ADAM ASMACA (Hangman) — hg- prefix, izole ── */
 .hg-info-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;}
 .hg-badge{padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:700;background:var(--surface2);color:var(--text2);}
@@ -354,16 +527,16 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .tts-btn:disabled{opacity:.45;cursor:wait;}
 /* ── GRAMMAR MODÜLÜ ── */
 .gr-lvl-card{border-radius:var(--r);padding:20px;margin-bottom:12px;cursor:pointer;position:relative;overflow:hidden;}
-.gr-lvl-card.h-a1{background:#ffe0a8;color:#2a1c00;}
+.gr-lvl-card.h-a1{background:var(--a1bg);color:var(--a1);}
 .gr-lvl-card.h-a2{background:var(--a2bg);color:var(--a2);}
 .gr-lvl-card.h-b1{background:var(--b1bg);color:var(--b1);}
 .gr-lvl-card.h-b2{background:var(--b2bg);color:var(--b2);}
-.gr-lvl-card.h-c1{background:var(--dangerbg,#fff0f0);color:var(--danger,#8b0000);}
-.gr-lvl-card.h-c2{background:var(--surface2);color:var(--text2);}
+.gr-lvl-card.h-c1{background:var(--c1bg);color:var(--c1);}
+.gr-lvl-card.h-c2{background:var(--c2bg);color:var(--c2);}
 .gr-lvl-title{font-size:19px;font-weight:600;margin-bottom:12px;}
 .gr-lvl-meta{font-size:11.5px;opacity:.75;}
 .gr-lvl-badge{position:absolute;right:18px;top:18px;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px dashed currentColor;opacity:.85;}
-.gr-topic-card{background:linear-gradient(rgba(255,255,255,.035),rgba(255,255,255,.035)),var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.18);}
+.gr-topic-card{background:linear-gradient(rgba(255,255,255,.035),rgba(255,255,255,.035)),var(--surface);border:1.5px solid var(--border2);border-radius:16px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.18);}
 .gr-topic-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;}
 .gr-topic-icon{flex-shrink:0;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;}
 .gr-topic-icon.done::after{content:'✓';position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--success);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
@@ -380,10 +553,10 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-ex b{color:var(--accent);}
 .gr-tr-toggle{font-size:12px;color:var(--gr-accent,var(--accent));background:none;border:none;cursor:pointer;padding:8px 0 0;font-weight:500;}
 .gr-tr-text{display:none;font-size:13px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:0.5px dashed var(--border2);}
-.gr-review-tab{font-size:12.5px;font-weight:500;padding:8px 12px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;}
+.gr-review-tab{font-size:12.5px;font-weight:600;padding:8px 12px;border-radius:12px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;}
 .gr-review-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 .gr-review-count{opacity:.75;font-weight:400;}
-.gr-review-item{display:flex;align-items:center;gap:10px;background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--rsm);padding:11px 13px;margin-bottom:8px;cursor:pointer;}
+.gr-review-item{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--border2);border-radius:14px;padding:11px 13px;margin-bottom:8px;cursor:pointer;}
 .gr-review-item-main{flex:1;min-width:0;}
 .gr-review-item-title{font-size:13.5px;font-weight:600;line-height:1.3;}
 .gr-review-item-meta{font-size:11px;color:var(--text3);margin-top:2px;}
@@ -393,12 +566,12 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-verify-counter{font-size:11px;color:var(--accent);font-weight:600;}
 .gr-quiz-q{font-size:13.5px;margin-bottom:10px;}
 .gr-quiz-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:2px;}
-.gr-quiz-opt{text-align:left;padding:9px 12px;border-radius:var(--rsm,8px);border:0.5px solid var(--border2);background:none;font-size:13px;color:var(--text);cursor:pointer;}
-.gr-quiz-opt.correct{background:var(--successbg);border-color:var(--success);color:var(--success);font-weight:600;}
+.gr-quiz-opt{text-align:left;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border2);background:var(--surface2);font-size:13.5px;font-weight:600;color:var(--text);cursor:pointer;}
+.gr-quiz-opt.correct{background:var(--successbg);border-color:var(--success);color:var(--success);font-weight:700;}
 .gr-quiz-opt.wrong{background:var(--warnbg);border-color:var(--warn);color:var(--warn);}
 .gr-quiz-opt.selected{border-color:var(--gr-accent,var(--accent));background:var(--accentbg);}
 .gr-quiz-opt:disabled{opacity:.85;cursor:default;}
-.gr-check-btn{margin-top:4px;width:100%;padding:11px;border-radius:var(--rsm,8px);border:none;background:var(--gr-accent,var(--accent));color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+.gr-check-btn{margin-top:4px;width:100%;padding:13px;border-radius:14px;border:none;background:var(--gr-accent,var(--accent));color:#fff;font-weight:700;font-size:14px;cursor:pointer;}
 .gr-check-btn:disabled{opacity:.35;cursor:not-allowed;}
 .gr-mark-done{margin-top:10px;font-size:12.5px;color:var(--success);font-weight:600;display:flex;align-items:center;gap:5px;}
 .gr-p-dots{display:flex;gap:4px;margin-top:8px;}
@@ -487,31 +660,68 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   </button>
   <div class="main-menu-panel hidden" id="main-menu-panel">
     <div class="menu-group-label">Genel</div>
-    <div class="menu-group">
-      <button class="nav-btn main-nav-btn active" id="nav-dash" onclick="showView('dash')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/></svg></span>Özet<span class="nav-chevron">›</span></button>
+    <div class="menu-group nav-tile-grid">
+      <button class="nav-btn main-nav-btn nav-tile active" id="nav-dash" onclick="showView('dash')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,var(--accent),#3f3894);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/></svg></span>
+        <span class="nav-tile-lbl">Özet</span>
+      </button>
     </div>
 
     <div class="menu-group-label">Analiz</div>
-    <div class="menu-group">
-      <button class="nav-btn main-nav-btn" id="nav-status" onclick="showView('status')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V10"/><path d="M10 16.5V4"/><path d="M16 16.5v-6.5"/></svg></span>Kelime Durumu<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-news" onclick="showView('news')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.3 16.7 7 7 16.7H3.3V13z"/></svg></span>Metin Analizi<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-wordadd" onclick="showView('wordadd')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg></span>Sözlüğüm<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-list" onclick="showView('list')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="11" height="13" rx="1.3"/><path d="M7.2 7.3h5.6M7.2 10.2h5.6M7.2 13.1h3.6"/></svg></span>Kelime Listem<span class="nav-chevron">›</span></button>
+    <div class="menu-group nav-tile-grid">
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-status" onclick="showView('status')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#2f80ed,#1a5cb0);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V10"/><path d="M10 16.5V4"/><path d="M16 16.5v-6.5"/></svg></span>
+        <span class="nav-tile-lbl">Kelime Durumu</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-news" onclick="showView('news')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#f2994a,#c96f1e);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.3 16.7 7 7 16.7H3.3V13z"/></svg></span>
+        <span class="nav-tile-lbl">Metin Analizi</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-wordadd" onclick="showView('wordadd')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#0f9b6e,#0a6b4c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg></span>
+        <span class="nav-tile-lbl">Sözlüğüm</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-list" onclick="showView('list')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="11" height="13" rx="1.3"/><path d="M7.2 7.3h5.6M7.2 10.2h5.6M7.2 13.1h3.6"/></svg></span>
+        <span class="nav-tile-lbl">Kelime Listem</span>
+      </button>
     </div>
 
     <div class="menu-group-label">Pratik &amp; Oyunlar</div>
-    <div class="menu-group">
-      <button class="nav-btn main-nav-btn" id="nav-cardmode" onclick="showView('cardmode')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.3" width="14" height="10.2" rx="1.4"/><path d="M6.2 6.3V4.8A1.4 1.4 0 0 1 7.6 3.4h4.8a1.4 1.4 0 0 1 1.4 1.4v1.5"/></svg></span>Kart Modu<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-sentence" onclick="showView('sentence')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 9.6c0-3.4 3-6.1 6.7-6.1s6.7 2.7 6.7 6.1-3 6.1-6.7 6.1c-.8 0-1.6-.1-2.3-.4L4 16.7l1-3A5.9 5.9 0 0 1 3.3 9.6z"/></svg></span>Cümle Kur<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-writing" onclick="showView('writing')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.1 2.9a1.7 1.7 0 0 1 2.4 2.4L7.6 14.2l-3.3.9.9-3.3z"/><path d="M12.4 4.6 15.4 7.6"/></svg></span>Cümle Yaz<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-hangman" onclick="showView('hangman')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span>Asmaca<span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-study" onclick="showView('filter')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10.2a6 6 0 1 1-2-4.6"/><path d="M16 3v4.2h-4.2"/></svg></span>Tekrar Et <span style="font-size:10px;color:var(--text3);font-weight:400;">(eski)</span><span class="nav-chevron">›</span></button>
-      <button class="nav-btn main-nav-btn" id="nav-grammar" onclick="showView('grammar')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg></span>Grammar <span style="font-size:9px;color:#fff;background:var(--accent);border-radius:8px;padding:1px 6px;font-weight:600;">yeni</span><span class="nav-chevron">›</span></button>
+    <div class="menu-group nav-tile-grid">
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-cardmode" onclick="showView('cardmode')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#22c55e,#15803d);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.3" width="14" height="10.2" rx="1.4"/><path d="M6.2 6.3V4.8A1.4 1.4 0 0 1 7.6 3.4h4.8a1.4 1.4 0 0 1 1.4 1.4v1.5"/></svg></span>
+        <span class="nav-tile-lbl">Kart Modu</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-sentence" onclick="showView('sentence')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#ec4899,#be185d);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 9.6c0-3.4 3-6.1 6.7-6.1s6.7 2.7 6.7 6.1-3 6.1-6.7 6.1c-.8 0-1.6-.1-2.3-.4L4 16.7l1-3A5.9 5.9 0 0 1 3.3 9.6z"/></svg></span>
+        <span class="nav-tile-lbl">Cümle Kur</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-writing" onclick="showView('writing')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#ef4444,#b91c1c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.1 2.9a1.7 1.7 0 0 1 2.4 2.4L7.6 14.2l-3.3.9.9-3.3z"/><path d="M12.4 4.6 15.4 7.6"/></svg></span>
+        <span class="nav-tile-lbl">Cümle Yaz</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-hangman" onclick="showView('hangman')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span>
+        <span class="nav-tile-lbl">Asmaca</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-grammar" onclick="showView('grammar')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg></span>
+        <span class="nav-tile-lbl">Grammar</span>
+        <span class="nav-tile-badge">yeni</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-study" onclick="showView('filter')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#9ca3af,#6b7280);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10.2a6 6 0 1 1-2-4.6"/><path d="M16 3v4.2h-4.2"/></svg></span>
+        <span class="nav-tile-lbl">Tekrar Et <span style="opacity:.7;font-weight:400;">(eski)</span></span>
+      </button>
     </div>
 
     <div class="menu-group-label">Sistem</div>
-    <div class="menu-group">
-      <button class="nav-btn main-nav-btn" id="nav-settings" onclick="showView('settings')"><span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 3.5v2.1M10 14.4v2.1M4.3 4.3l1.5 1.5M14.2 14.2l1.5 1.5M3.5 10h2.1M14.4 10h2.1M4.3 15.7l1.5-1.5M14.2 5.8l1.5-1.5"/></svg></span>Ayarlar<span class="nav-chevron">›</span></button>
+    <div class="menu-group nav-tile-grid">
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-settings" onclick="showView('settings')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#64748b,#475569);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 3.5v2.1M10 14.4v2.1M4.3 4.3l1.5 1.5M14.2 14.2l1.5 1.5M3.5 10h2.1M14.4 10h2.1M4.3 15.7l1.5-1.5M14.2 5.8l1.5-1.5"/></svg></span>
+        <span class="nav-tile-lbl">Ayarlar</span>
+      </button>
     </div>
   </div>
   </div>
@@ -643,36 +853,36 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
       <span style="font-size:11px;color:var(--text3);">Göster:</span>
-      <button class="news-lvl-btn on" data-lvl="all" onclick="toggleNewsLevel('all')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:var(--text);cursor:pointer;color:var(--bg);">Tümü</button>
-      <button class="news-lvl-btn" data-lvl="A1" onclick="toggleNewsLevel('A1')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--a1);background:none;cursor:pointer;color:var(--a1);">A1</button>
-      <button class="news-lvl-btn" data-lvl="A2" onclick="toggleNewsLevel('A2')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--a2);background:none;cursor:pointer;color:var(--a2);">A2</button>
-      <button class="news-lvl-btn" data-lvl="B1" onclick="toggleNewsLevel('B1')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--b1);background:none;cursor:pointer;color:var(--b1);">B1</button>
-      <button class="news-lvl-btn" data-lvl="B2" onclick="toggleNewsLevel('B2')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--b2);background:none;cursor:pointer;color:var(--b2);">B2</button>
-      <button class="news-lvl-btn" data-lvl="C1" onclick="toggleNewsLevel('C1')" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--c1);background:none;cursor:pointer;color:var(--c1);">C1</button>
+      <button class="news-lvl-chip on" data-lvl="all" onclick="toggleNewsLevel('all')">Tümü</button>
+      <button class="news-lvl-chip a1" data-lvl="A1" onclick="toggleNewsLevel('A1')">A1</button>
+      <button class="news-lvl-chip a2" data-lvl="A2" onclick="toggleNewsLevel('A2')">A2</button>
+      <button class="news-lvl-chip b1" data-lvl="B1" onclick="toggleNewsLevel('B1')">B1</button>
+      <button class="news-lvl-chip b2" data-lvl="B2" onclick="toggleNewsLevel('B2')">B2</button>
+      <button class="news-lvl-chip c1" data-lvl="C1" onclick="toggleNewsLevel('C1')">C1</button>
       <span style="font-size:11px;color:var(--text3);margin-left:4px;" id="news-word-count"></span>
     </div>
 
     <!-- Text inputs -->
     <div id="news-panels" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
-      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div class="news-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:12px;font-weight:500;color:var(--a1);">Kolay</span>
+          <span class="news-panel-label" style="background:var(--a1bg);color:var(--a1);">Kolay</span>
           <button onclick="clearPanel(0)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Temizle</button>
         </div>
         <textarea id="news-input-0" placeholder="Kolay seviye haber metnini buraya yapıştır..." style="width:100%;min-height:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:14px;color:var(--text);resize:vertical;outline:none;" oninput="analyzePanel(0)"></textarea>
         <div id="news-output-0" style="margin-top:10px;font-size:15px;line-height:2;display:none;"></div>
       </div>
-      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div class="news-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:12px;font-weight:500;color:var(--a2);">Orta</span>
+          <span class="news-panel-label" style="background:var(--a2bg);color:var(--a2);">Orta</span>
           <button onclick="clearPanel(1)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Temizle</button>
         </div>
         <textarea id="news-input-1" placeholder="Orta seviye haber metnini buraya yapıştır..." style="width:100%;min-height:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:14px;color:var(--text);resize:vertical;outline:none;" oninput="analyzePanel(1)"></textarea>
         <div id="news-output-1" style="margin-top:10px;font-size:15px;line-height:2;display:none;"></div>
       </div>
-      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div class="news-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:12px;font-weight:500;color:var(--b1);">Zor</span>
+          <span class="news-panel-label" style="background:var(--b1bg);color:var(--b1);">Zor</span>
           <button onclick="clearPanel(2)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Temizle</button>
         </div>
         <textarea id="news-input-2" placeholder="Zor seviye haber metnini buraya yapıştır..." style="width:100%;min-height:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px;font-size:14px;color:var(--text);resize:vertical;outline:none;" oninput="analyzePanel(2)"></textarea>
@@ -697,7 +907,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
     <!-- Word lookup panel (inline, no fixed positioning) -->
     <div id="word-modal-overlay" class="hidden" onclick="closeWordModal()" style="display:none;"></div>
-    <div id="word-modal" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:22px;margin-bottom:16px;">
+    <div id="word-modal" class="hidden dict-card">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
         <div>
           <div class="wordfont" style="font-size:28px;" id="modal-word"></div>
@@ -709,12 +919,12 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
           <span id="modal-wr-badge"></span>
           <span id="modal-custom-badge" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--warnbg);color:var(--warn);">Özel</span>
           <span id="modal-fav-btn" onclick="modalToggleFavorite()" title="Favori" style="font-size:20px;cursor:pointer;line-height:1;padding-top:2px;color:var(--text3);">☆</span>
-          <button onclick="closeWordModal()" style="background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;margin-left:4px;">✕</button>
+          <button onclick="closeWordModal()" style="background:none;border:none;cursor:pointer;margin-left:4px;color:var(--text3);display:inline-flex;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
         </div>
       </div>
       <div id="modal-sr-status" class="hidden" style="background:var(--accentbg);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--accent);"></div>
       <div class="c-section" style="margin-bottom:14px;">
-        <div onclick="document.getElementById('modal-contact-row').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;">📊 İstatistikler <span style="color:var(--text3);">▸</span></div>
+        <div onclick="document.getElementById('modal-contact-row').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V9M9 17V4M14 17v-6"/></svg>İstatistikler <span style="color:var(--text3);">▸</span></div>
         <div id="modal-contact-row" class="hidden" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
       </div>
       <div style="height:0.5px;background:var(--border);margin-bottom:14px;"></div>
@@ -784,7 +994,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div id="list-oxford-panel">
       <div class="filter-panel" style="margin-bottom:14px;">
         <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Seviye seç</div>
-        <div class="f-row" id="list-cefr-row"></div>
+        <div class="f-row3" id="list-cefr-row"></div>
         <div id="list-band-filters" style="margin-top:10px;"></div>
         <div id="list-count-info" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
       </div>
@@ -829,10 +1039,10 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <!-- CÜMLE GENİŞLETME VIEW -->
   <div id="view-sentence" class="hidden">
     <div class="filter-panel">
-      <div class="sg-levels" id="sg-levels"></div>
+      <div class="f-row3" id="sg-levels"></div>
       <div id="sg-band-filters" style="margin-top:10px;"></div>
       <div class="sg-tense-row-label">Gramer yapısı</div>
-      <div class="sg-levels" id="sg-tense-filter"></div>
+      <div id="sg-tense-filter"></div>
       <div class="sg-tense-row-label">Kaynak (opsiyonel — birini/birkaçını seç, listenden çalış)</div>
       <div class="sg-levels" id="sg-source-filter"></div>
     </div>
@@ -847,7 +1057,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6;">
         Sana bir Türkçe cümle ve bir hedef kelime veriyorum; İngilizcesini sen yazıyorsun.
       </p>
-      <div class="f-row" id="wr-tense-row"></div>
+      <div class="tense-grid" id="wr-tense-row"></div>
       <div id="wr-band-filters" style="margin-top:10px;"></div>
       <div id="wr-status-bar" style="font-size:11.5px;color:var(--text3);margin-top:10px;line-height:1.6;"></div>
     </div>
@@ -858,7 +1068,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <div id="view-hangman" class="hidden">
     <div class="filter-panel">
       <div class="sg-tense-row-label">CEFR seviye (boş bırakırsan tüm seviyeler)</div>
-      <div class="sg-levels" id="hg-levels"></div>
+      <div class="f-row3" id="hg-levels"></div>
       <div id="hg-band-filters" style="margin-top:10px;"></div>
     </div>
     <div class="sg-stats-bar" id="hg-stats-bar">Yükleniyor...</div>
@@ -868,6 +1078,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <!-- GRAMMAR VIEW (yeni modül) -->
   <div id="view-grammar" class="hidden">
     <div id="gr-levels-view">
+      <div id="gr-overall-summary"></div>
       <div class="filter-panel" style="margin-bottom:14px;">
         <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0;">
           Konu iskeleti <b>English Grammar Profile</b>'dan (Cambridge, CEFR bazlı araştırma
@@ -909,14 +1120,14 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <div id="view-cardmode" class="hidden">
     <div class="filter-panel">
       <div class="f-label" style="margin-bottom:8px;">Seviye</div>
-      <div class="f-row" id="cm-level-row"></div>
+      <div class="f-row3" id="cm-level-row"></div>
       <div id="cm-band-filters" style="margin-top:10px;"></div>
       <div class="f-label" style="margin:14px 0 8px;">Yön</div>
       <div class="f-row" id="cm-dir-row"></div>
       <div class="f-label" style="margin:14px 0 8px;">Oturum büyüklüğü</div>
       <div class="f-row" id="cm-size-row" style="align-items:center;"></div>
     </div>
-    <div id="cm-progress-card" style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;"></div>
+    <div id="cm-progress-card" class="cm-progress-wrap"></div>
 
     <div id="cm-card-area"></div>
   </div>
@@ -929,7 +1140,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
     <div class="filter-panel">
       <div class="f-label" style="margin-bottom:8px;">Seviye</div>
-      <div class="f-row" id="st-level-row"></div>
+      <div class="f-row3" id="st-level-row"></div>
       <div id="st-band-filters" style="margin-top:10px;"></div>
       <div class="f-label" style="margin:14px 0 8px;">Yön</div>
       <div class="f-row" id="st-dir-row"></div>
@@ -954,17 +1165,17 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <!-- AYARLAR -->
   <div id="view-settings" class="hidden">
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:14px;">💾 Veri</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/><path d="M4 14v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V14"/></svg>Veri</div>
       <div style="display:flex;gap:8px;">
-        <button onclick="doExport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">💾 Dışa aktar</button>
-        <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;">📂 İlerlemeyi yükle</button>
+        <button onclick="doExport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/><path d="M4 14v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V14"/></svg>Dışa aktar</button>
+        <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a1 1 0 0 1 1-1h3.5l1.5 1.8H16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>İlerlemeyi yükle</button>
       </div>
       <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">İlerlemen (öğrendiğin kelimeler, streak, vs.) bu cihazda saklanıyor. Başka bir cihaza taşımak veya yedeklemek istersen "Dışa aktar"ı kullan.</p>
-      <button onclick="showWelcomeOverlay()" style="width:100%;margin-top:10px;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">👋 Uygulama turunu tekrar göster</button>
+      <button onclick="showWelcomeOverlay()" style="width:100%;margin-top:10px;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5v3.5M10 14v3.5M2.5 10H6M14 10h3.5M5 5l2.3 2.3M12.7 12.7L15 15M15 5l-2.3 2.3M7.3 12.7L5 15"/></svg>Uygulama turunu tekrar göster</button>
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">🔊 Ses Ayarları</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v4h3l4 3.5V4.5L7 8z"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5.1a7 7 0 0 1 0 9.8"/></svg>Ses Ayarları</div>
       <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
       <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
       <div style="display:flex;gap:8px;">
@@ -1022,7 +1233,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">ℹ️ WordHaven Hakkında</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 9v4.2"/><circle cx="10" cy="6.8" r=".15" fill="currentColor" stroke-width="2.2"/></svg>WordHaven Hakkında</div>
       <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
         WordHaven, Oxford 3000/5000 kelime listesi ve binlerce konu bazlı kelimeyi aralıklı tekrar (spaced repetition) yöntemiyle öğretmek için tasarlanmış kişisel bir İngilizce kelime öğrenme uygulamasıdır.
       </p>
@@ -1046,19 +1257,19 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
 <div id="welcome-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--surface);border-radius:var(--r);padding:24px 20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;">
-    <div style="font-size:20px;font-weight:700;margin-bottom:4px;">WordHaven'a hoş geldin 👋</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px;">WordHaven'a hoş geldin</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:18px;">Uygulama 10 bölümden oluşuyor, hepsine ☰ menüden ulaşırsın. Kısaca ne işe yaradıklarına bakalım:</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-      <div><b>📊 Özet</b> — <span style="color:var(--text2);">Genel ilerlemeni, seviyelere göre dağılımını görürsün.</span></div>
-      <div><b>🃏 Kart Modu</b> — <span style="color:var(--text2);">Duolingo tarzı hızlı "Biliyorum / Öğreniyorum" akışı.</span></div>
-      <div><b>📋 Kelime Durumu</b> — <span style="color:var(--text2);">Öğrendiğin ve öğrenmekte olduğun kelimelerin tam listesi, elle ekle/çıkar.</span></div>
-      <div><b>📰 Metin Analizi</b> — <span style="color:var(--text2);">Bir metin yapıştır, içindeki Oxford kelimeleri seviyeye göre renklenir.</span></div>
-      <div><b>🔎 Sözlüğüm</b> — <span style="color:var(--text2);">Günlük kelime arama ekranın — Oxford'da varsa direkt gösterir, yoksa dış sözlüklere yönlendirir.</span></div>
-      <div><b>📚 Kelime Listem</b> — <span style="color:var(--text2);">Oxford 3000/5000, Konu Kelimeleri, Favorilerin ve Zorlandıkların — hepsi burada, göz atmak için.</span></div>
-      <div><b>✏️ Cümle Kur</b> — <span style="color:var(--text2);">Gramer yapılarıyla cümle inşa egzersizi — istersen sadece öğrendiğin kelimelerle çalışabilirsin.</span></div>
-      <div><b>🎯 Asmaca</b> — <span style="color:var(--text2);">Kelime oyunuyla eğlenceli tekrar.</span></div>
-      <div><b>⚙️ Ayarlar</b> — <span style="color:var(--text2);">Veri dışa/içe aktar, ElevenLabs anahtarı, bu turu tekrar izle.</span></div>
-      <div><b>🔁 Tekrar Et</b> — <span style="color:var(--text2);">Orijinal flashcard tekrarı. Geliştirme durdu; yerini Kart Modu aldı, ilerlemen ortak olduğu için istersen kullanmaya devam edebilirsin.</span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 17V9M9 17V4M14 17v-6"/></svg><span><b>Özet</b> — <span style="color:var(--text2);">Genel ilerlemeni, seviyelere göre dağılımını görürsün.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="5" width="11" height="13" rx="2"/><path d="M8 3.5h7a2 2 0 0 1 2 2V15"/></svg><span><b>Kart Modu</b> — <span style="color:var(--text2);">Duolingo tarzı hızlı "Biliyorum / Öğreniyorum" akışı.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="5" y="4.5" width="10" height="13" rx="1.5"/><path d="M7.5 4.5V3.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"/><path d="M7.5 9h5M7.5 12h5M7.5 15h3"/></svg><span><b>Kelime Durumu</b> — <span style="color:var(--text2);">Öğrendiğin ve öğrenmekte olduğun kelimelerin tam listesi, elle ekle/çıkar.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M6 8h8M6 11h8M6 14h5"/></svg><span><b>Metin Analizi</b> — <span style="color:var(--text2);">Bir metin yapıştır, içindeki Oxford kelimeleri seviyeye göre renklenir.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="8.7" cy="8.7" r="5"/><path d="M15.5 15.5l-3.6-3.6"/></svg><span><b>Sözlüğüm</b> — <span style="color:var(--text2);">Günlük kelime arama ekranın — Oxford'da varsa direkt gösterir, yoksa dış sözlüklere yönlendirir.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 5h12M4 10h12M4 15h8"/></svg><span><b>Kelime Listem</b> — <span style="color:var(--text2);">Oxford 3000/5000, Konu Kelimeleri, Favorilerin ve Zorlandıkların — hepsi burada, göz atmak için.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M13 3l4 4-9.5 9.5L3 18l1.5-4.5z"/></svg><span><b>Cümle Kur</b> — <span style="color:var(--text2);">Gramer yapılarıyla cümle inşa egzersizi — istersen sadece öğrendiğin kelimelerle çalışabilirsin.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".4" fill="var(--text2)"/></svg><span><b>Asmaca</b> — <span style="color:var(--text2);">Kelime oyunuyla eğlenceli tekrar.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4M15.3 15.3l-1.4-1.4M6.1 6.1L4.7 4.7"/></svg><span><b>Ayarlar</b> — <span style="color:var(--text2);">Veri dışa/içe aktar, ElevenLabs anahtarı, bu turu tekrar izle.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg><span><b>Tekrar Et</b> — <span style="color:var(--text2);">Orijinal flashcard tekrarı. Geliştirme durdu; yerini Kart Modu aldı, ilerlemen ortak olduğu için istersen kullanmaya devam edebilirsin.</span></span></div>
     </div>
     <button onclick="closeWelcomeOverlay()" style="width:100%;padding:14px;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);font-weight:600;font-size:15px;cursor:pointer;">Başla</button>
   </div>
