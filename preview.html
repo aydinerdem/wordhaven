@@ -22,13 +22,13 @@
   --danger:#a32d2d;--dangerbg:#fcebeb;
   --warn:#a05000;--warnbg:#fff3e0;
   --success:#0f6e56;--successbg:#e1f5ee;
-  --accent:#534ab7;--accentbg:#eeedfe;
+  --accent:#534ab7;--accentbg:#eeedfe;--accent2:#3f3894;
   --r:12px;--rsm:8px;
 }
 @media(prefers-color-scheme:dark){:root{
-  --bg:#1a1a18;--surface:#242422;--surface2:#2e2e2b;
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-  --text:#f0efe9;--text2:#9e9e9a;--text3:#6b6b67;
+  --bg:#2e2a24;--surface:#3b362e;--surface2:#474137;
+  --border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.18);
+  --text:#f5f4ef;--text2:#c2beb5;--text3:#8a857b;
   --a1:#5dcaa5;--a1bg:#085041;
   --a2:#85b7eb;--a2bg:#0c447c;
   --b1:#c4a0f0;--b1bg:#3a2060;
@@ -38,7 +38,7 @@
   --danger:#f09595;--dangerbg:#501313;
   --warn:#f0a060;--warnbg:#5a3000;
   --success:#5dcaa5;--successbg:#085041;
-  --accent:#afa9ec;--accentbg:#26215c;
+  --accent:#afa9ec;--accentbg:#3a3277;--accent2:#6558c4;
 }}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;}
@@ -70,7 +70,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .main-menu-toggle span:first-child{font-size:16px;}
 .main-menu-panel{display:flex;flex-direction:column;gap:0;margin-top:8px;}
 .main-menu-panel.hidden{display:none;}
-.menu-group-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:18px 6px 7px;}
+.menu-group-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:14px 6px 6px;}
 .menu-group-label:first-child{margin-top:2px;}
 .menu-group{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;}
 .main-nav-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;border-bottom:0.5px solid var(--border);background:transparent;text-align:left;font-size:14.5px;font-weight:500;color:var(--text);width:100%;}
@@ -86,14 +86,27 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
    "Excel gibi" eleştirdiği düz metin listesi yerine, her modül kendi
    rengiyle ayrı bir simge kartı. Özet bilinçli olarak sade/tek-eylem
    kalıyor (bkz. proje notları) — renk enerjisi burada, menüde. ── */
-.nav-tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px;margin-bottom:6px;padding:14px 10px;}
-.nav-tile{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:2px 0;border:none;background:none;position:relative;}
-.nav-tile-ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 8px -2px rgba(0,0,0,.28);transition:transform .12s;}
-.nav-tile-ico svg{width:23px;height:23px;}
+.nav-tile-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 4px;margin-bottom:4px;padding:10px 8px;}
+.nav-tile{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:4px 0;border:none;background:none;position:relative;}
+.nav-tile-ico{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 8px -2px rgba(0,0,0,.28);transition:transform .12s;}
+.nav-tile-ico svg{width:20px;height:20px;}
 .nav-tile:active .nav-tile-ico{transform:scale(.92);}
 .nav-tile-lbl{font-size:11px;font-weight:600;color:var(--text);text-align:center;line-height:1.25;}
 .nav-tile.active .nav-tile-ico{box-shadow:0 0 0 3px var(--accentbg),0 3px 8px -2px rgba(0,0,0,.28);}
 .nav-tile.active{background:none;color:var(--text);box-shadow:none;border-color:transparent;}
+/* ── Gramer grubu tek modülden oluştuğu için boş 4'lü ızgarada "unutulmuş
+   tek kutu" gibi durmasın diye, diğer gruplardan bilinçli olarak farklı: tam
+   genişlik, yatay "öne çıkan modül" satırı — konu sayısı alt satırda görünür,
+   Panom'daki Gramer patikasıyla aynı mor tonu taşır. ── */
+.nav-feature-row{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border:none;background:var(--surface);cursor:pointer;text-align:left;}
+.nav-feature-row:active{background:var(--surface2);}
+.nav-feature-ico{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 3px 8px -2px rgba(0,0,0,.28);}
+.nav-feature-ico svg{width:19px;height:19px;}
+.nav-feature-text{flex:1;min-width:0;}
+.nav-feature-title{font-size:14.5px;font-weight:700;color:var(--text);}
+.nav-feature-sub{font-size:11.5px;color:var(--text3);margin-top:1px;}
+.nav-feature-chevron{color:var(--text3);font-size:16px;flex-shrink:0;}
+.nav-feature-row.active{background:var(--accentbg);}
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .dash-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;}
 .dash-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
@@ -157,19 +170,9 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 .chip-all{padding:8px 12px;border-radius:12px;font-size:11.5px;font-weight:600;border:1.5px dashed var(--border2);background:none;cursor:pointer;color:var(--text3);transition:all .15s;}
 .chip-all:hover{background:var(--surface2);}
-.f-count{font-size:12px;color:var(--text3);margin-top:6px;}
 .start-btn{width:100%;padding:12px;font-size:15px;font-weight:500;background:var(--text);color:var(--bg);border:none;border-radius:var(--rsm);cursor:pointer;margin-top:12px;transition:opacity .15s;}
 .start-btn:hover{opacity:.88;}
 .start-btn:disabled{opacity:.35;cursor:not-allowed;}
-.study-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.back-btn{background:none;border:none;font-size:13px;color:var(--text2);cursor:pointer;padding:4px 0;}
-.prog-wrap{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:22px;}
-.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
-.card{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:22px;margin-bottom:14px;cursor:pointer;transition:border-color .15s;min-height:220px;}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
-.c-word{font-size:30px;font-weight:500;margin-bottom:4px;}
-.c-pos{font-size:13px;color:var(--text3);font-style:italic;}
-.badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
 .badge{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
 .b-a1{background:var(--a1bg);color:var(--a1);}
 .b-a2{background:var(--a2bg);color:var(--a2);}
@@ -294,7 +297,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .wa-opt.disabled{opacity:.4;cursor:not-allowed;}
 .wa-opt-label{font-size:14px;font-weight:600;}
 .wa-opt-sub{font-size:11.5px;color:var(--text3);}
-.dash-hero{background:linear-gradient(155deg,var(--accent),#3f3894);border-radius:20px;padding:20px;margin-bottom:16px;color:#fff;position:relative;overflow:hidden;box-shadow:0 8px 24px -8px rgba(83,74,183,.5);}
+.dash-hero{background:linear-gradient(155deg,var(--accent),var(--accent2));border-radius:20px;padding:20px;margin-bottom:16px;color:#fff;position:relative;overflow:hidden;box-shadow:0 8px 24px -8px rgba(83,74,183,.5);}
 .dash-hero::after{content:'';position:absolute;right:-30px;bottom:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.07);}
 .dash-hero .dash-goal-btn{color:#fff;opacity:.85;}
 .dash-hero p{color:rgba(255,255,255,.85) !important;}
@@ -304,7 +307,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .hdr-greet{font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:700;}
 .hdr-sub{font-size:12px;color:var(--text3);margin-top:2px;}
 .streak-pill{display:flex;align-items:center;gap:5px;background:var(--surface);border:0.5px solid var(--border2);border-radius:99px;padding:7px 12px 7px 10px;font-size:13px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.06);color:var(--warn);}
-.settings-btn{width:36px;height:36px;border-radius:50%;background:var(--surface);border:0.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.settings-btn{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1.2px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.06);}
 /* ── İki patika: Kelime (a1/yeşil) ve Gramer (b1/mor) kartları — her biri
    kendi "kavanoz" seviye yolu + hızlı erişim ikon ızgarasını taşıyor. ── */
 .oz-track{border-radius:20px;padding:18px 16px 16px;margin-bottom:16px;position:relative;overflow:hidden;border:0.5px solid var(--border2);}
@@ -366,20 +369,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .c-example p{font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;}
 .tr-toggle{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 0;margin-top:3px;display:block;}
 .tr-text{font-size:13px;color:var(--text2);margin-top:3px;font-style:normal;display:none;}
-.flip-hint{text-align:center;padding-top:14px;}
-.flip-hint p{font-size:12px;color:var(--text3);}
-.loading-card{text-align:center;padding:24px 0;}
-.spinner{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.action-row{display:flex;gap:10px;}
-.act-btn{flex:1;padding:13px;font-size:15px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid;background:none;}
-.btn-again{color:var(--danger);border-color:var(--danger);}
-.btn-again:hover{background:var(--dangerbg);}
-.btn-know{color:var(--success);border-color:var(--success);}
-.btn-know:hover{background:var(--successbg);}
-.session-end{text-align:center;padding:48px 24px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);}
-.session-end h2{font-size:22px;font-weight:500;margin-bottom:8px;}
-.session-end p{font-size:15px;color:var(--text2);margin-bottom:24px;}
 .save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border2);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;z-index:10;}
 .save-bar button{padding:9px 18px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;}
 .save-bar button:hover{background:var(--surface2);}
@@ -655,42 +644,34 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   </div>
   <div class="main-nav-wrap">
   <button class="main-menu-toggle" id="main-menu-toggle" onclick="toggleMainMenu()">
-    <span>☰</span><span id="main-menu-current">Özet</span>
+    <span>☰</span><span id="main-menu-current">Panom</span>
   </button>
   <div class="main-menu-panel hidden" id="main-menu-panel">
     <div class="menu-group-label">Genel</div>
     <div class="menu-group nav-tile-grid">
       <button class="nav-btn main-nav-btn nav-tile active" id="nav-dash" onclick="showView('dash')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,var(--accent),#3f3894);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/></svg></span>
-        <span class="nav-tile-lbl">Özet</span>
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,var(--accent),var(--accent2));"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/></svg></span>
+        <span class="nav-tile-lbl">Panom</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-settings" onclick="showView('settings')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#64748b,#475569);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 3.5v2.1M10 14.4v2.1M4.3 4.3l1.5 1.5M14.2 14.2l1.5 1.5M3.5 10h2.1M14.4 10h2.1M4.3 15.7l1.5-1.5M14.2 5.8l1.5-1.5"/></svg></span>
+        <span class="nav-tile-lbl">Ayarlar</span>
       </button>
     </div>
 
-    <div class="menu-group-label">Analiz</div>
+    <div class="menu-group-label">Kelime</div>
     <div class="menu-group nav-tile-grid">
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-status" onclick="showView('status')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#2f80ed,#1a5cb0);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V10"/><path d="M10 16.5V4"/><path d="M16 16.5v-6.5"/></svg></span>
-        <span class="nav-tile-lbl">Kelime Durumu</span>
-      </button>
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-news" onclick="showView('news')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#f2994a,#c96f1e);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.3 16.7 7 7 16.7H3.3V13z"/></svg></span>
-        <span class="nav-tile-lbl">Metin Analizi</span>
-      </button>
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-wordadd" onclick="showView('wordadd')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#0f9b6e,#0a6b4c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg></span>
-        <span class="nav-tile-lbl">Sözlüğüm</span>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-cardmode" onclick="showView('cardmode')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#22c55e,#15803d);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.3" width="14" height="10.2" rx="1.4"/><path d="M6.2 6.3V4.8A1.4 1.4 0 0 1 7.6 3.4h4.8a1.4 1.4 0 0 1 1.4 1.4v1.5"/></svg></span>
+        <span class="nav-tile-lbl">Kart Modu</span>
       </button>
       <button class="nav-btn main-nav-btn nav-tile" id="nav-list" onclick="showView('list')">
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="11" height="13" rx="1.3"/><path d="M7.2 7.3h5.6M7.2 10.2h5.6M7.2 13.1h3.6"/></svg></span>
         <span class="nav-tile-lbl">Kelime Listem</span>
       </button>
-    </div>
-
-    <div class="menu-group-label">Pratik &amp; Oyunlar</div>
-    <div class="menu-group nav-tile-grid">
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-cardmode" onclick="showView('cardmode')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#22c55e,#15803d);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.3" width="14" height="10.2" rx="1.4"/><path d="M6.2 6.3V4.8A1.4 1.4 0 0 1 7.6 3.4h4.8a1.4 1.4 0 0 1 1.4 1.4v1.5"/></svg></span>
-        <span class="nav-tile-lbl">Kart Modu</span>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-wordadd" onclick="showView('wordadd')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#0f9b6e,#0a6b4c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg></span>
+        <span class="nav-tile-lbl">Sözlüğüm</span>
       </button>
       <button class="nav-btn main-nav-btn nav-tile" id="nav-sentence" onclick="showView('sentence')">
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#ec4899,#be185d);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 9.6c0-3.4 3-6.1 6.7-6.1s6.7 2.7 6.7 6.1-3 6.1-6.7 6.1c-.8 0-1.6-.1-2.3-.4L4 16.7l1-3A5.9 5.9 0 0 1 3.3 9.6z"/></svg></span>
@@ -704,22 +685,29 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span>
         <span class="nav-tile-lbl">Asmaca</span>
       </button>
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-grammar" onclick="showView('grammar')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg></span>
-        <span class="nav-tile-lbl">Grammar</span>
-        <span class="nav-tile-badge">yeni</span>
-      </button>
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-study" onclick="showView('filter')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#9ca3af,#6b7280);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10.2a6 6 0 1 1-2-4.6"/><path d="M16 3v4.2h-4.2"/></svg></span>
-        <span class="nav-tile-lbl">Tekrar Et <span style="opacity:.7;font-weight:400;">(eski)</span></span>
+    </div>
+
+    <div class="menu-group-label">Gramer</div>
+    <div class="menu-group">
+      <button class="nav-feature-row" id="nav-grammar" onclick="showView('grammar')">
+        <span class="nav-feature-ico" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg></span>
+        <div class="nav-feature-text">
+          <div class="nav-feature-title">Grammar</div>
+          <div class="nav-feature-sub">397 konu · A1–C2</div>
+        </div>
+        <span class="nav-feature-chevron">›</span>
       </button>
     </div>
 
-    <div class="menu-group-label">Sistem</div>
+    <div class="menu-group-label">Analiz</div>
     <div class="menu-group nav-tile-grid">
-      <button class="nav-btn main-nav-btn nav-tile" id="nav-settings" onclick="showView('settings')">
-        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#64748b,#475569);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 3.5v2.1M10 14.4v2.1M4.3 4.3l1.5 1.5M14.2 14.2l1.5 1.5M3.5 10h2.1M14.4 10h2.1M4.3 15.7l1.5-1.5M14.2 5.8l1.5-1.5"/></svg></span>
-        <span class="nav-tile-lbl">Ayarlar</span>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-status" onclick="showView('status')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#2f80ed,#1a5cb0);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V10"/><path d="M10 16.5V4"/><path d="M16 16.5v-6.5"/></svg></span>
+        <span class="nav-tile-lbl">Kelime Durumu</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-news" onclick="showView('news')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#f2994a,#c96f1e);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.3 16.7 7 7 16.7H3.3V13z"/></svg></span>
+        <span class="nav-tile-lbl">Metin Analizi</span>
       </button>
     </div>
   </div>
@@ -730,117 +718,6 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <!-- DASHBOARD -->
   <div id="view-dash">
     <div id="dash-body"></div>
-  </div>
-
-  <!-- FILTER -->
-  <div id="view-filter" class="hidden">
-    <div class="filter-panel">
-      <div style="font-size:13px;font-weight:500;margin-bottom:14px;">Filtrele ve çalış</div>
-
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="f-label" style="margin:0;">CEFR Seviye</div>
-          <button class="chip-all" onclick="selectAll('cefr')">Tümünü seç</button>
-        </div>
-        <div class="f-row">
-          <button class="chip on lvl-a1" data-g="cefr" data-v="A1">A1</button>
-          <button class="chip on lvl-a2" data-g="cefr" data-v="A2">A2</button>
-          <button class="chip lvl-b1" data-g="cefr" data-v="B1">B1</button>
-          <button class="chip lvl-b2" data-g="cefr" data-v="B2">B2</button>
-          <button class="chip lvl-c1" data-g="cefr" data-v="C1">C1</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="f-label" style="margin:0;">Longman Speaking</div>
-          <button class="chip-all" onclick="selectAll('sp')">Tümünü seç</button>
-        </div>
-        <div class="f-row">
-          <button class="chip on" data-g="sp" data-v="S1">S1</button>
-          <button class="chip on" data-g="sp" data-v="S2">S2</button>
-          <button class="chip on" data-g="sp" data-v="S3">S3</button>
-          <button class="chip on" data-g="sp" data-v="">—</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="f-label" style="margin:0;">Longman Writing</div>
-          <button class="chip-all" onclick="selectAll('wr')">Tümünü seç</button>
-        </div>
-        <div class="f-row">
-          <button class="chip on" data-g="wr" data-v="W1">W1</button>
-          <button class="chip on" data-g="wr" data-v="W2">W2</button>
-          <button class="chip on" data-g="wr" data-v="W3">W3</button>
-          <button class="chip on" data-g="wr" data-v="">—</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="f-label" style="margin:0;">Frekans</div>
-          <button class="chip-all" onclick="selectAll('fr')">Tümünü seç</button>
-        </div>
-        <div class="f-row">
-          <button class="chip on" data-g="fr" data-v="High Frequency">High</button>
-          <button class="chip on" data-g="fr" data-v="Medium Frequency">Medium</button>
-          <button class="chip on" data-g="fr" data-v="Low Frequency">Low</button>
-          <button class="chip on" data-g="fr" data-v="">—</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <div class="f-label">Mod</div>
-        <div class="f-row">
-          <button class="chip on" data-g="mode" data-v="due">Bugün bekleyenler</button>
-          <button class="chip" data-g="mode" data-v="new">Yeni kelimeler</button>
-          <button class="chip" data-g="mode" data-v="all">Tümü</button>
-        </div>
-      </div>
-
-      <div class="f-count" id="f-count">— kelime</div>
-      <button class="start-btn" id="start-btn" onclick="startStudy()">Çalışmaya başla</button>
-    </div>
-  </div>
-
-  <!-- STUDY -->
-  <div id="view-study" class="hidden">
-    <div class="study-top">
-      <button class="back-btn" onclick="showView('filter')">← Geri</button>
-      <span style="font-size:13px;color:var(--text2);" id="study-prog">0 / 0</span>
-    </div>
-    <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-
-    <div id="card-wrap">
-      <div class="card" id="the-card" onclick="flipCard()">
-        <div class="card-top">
-          <div><div class="c-word" id="c-word"></div><div class="c-pos" id="c-pos"></div></div>
-          <div class="badges" id="c-badges"></div>
-        </div>
-        <div class="divider"></div>
-        <div id="c-def-wrap">
-          <div class="loading-card" id="c-loading"><div class="spinner"></div><p style="font-size:13px;color:var(--text3);">İçerik yükleniyor...</p></div>
-          <div class="c-def hidden" id="c-def"></div>
-        </div>
-        <div class="card-back" id="card-back">
-          <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish" id="c-turkish"></div></div>
-          <div class="c-section" id="c-cats-wrap"><div class="c-section-label">Kategoriler</div><div class="c-cats" id="c-cats"></div></div>
-          <div class="c-section"><div class="c-section-label">Nüans</div><div id="c-nuance"></div></div>
-          <div class="c-section"><div class="c-section-label">Örnekler</div><div id="c-examples"></div></div>
-        </div>
-        <div class="flip-hint" id="flip-hint"><p>Kartı çevirmek için tıkla</p></div>
-      </div>
-      <div class="action-row hidden" id="action-row">
-        <button class="act-btn btn-again" onclick="answer(false)">↩ Tekrar bak</button>
-        <button class="act-btn btn-know" onclick="answer(true)">✓ Biliyorum</button>
-      </div>
-    </div>
-    <div class="session-end hidden" id="session-end">
-      <h2>Tur tamamlandı! 🎉</h2>
-      <p id="session-summary"></p>
-      <button class="start-btn" style="max-width:200px;margin:0 auto;" onclick="showView('dash')">Özet'e dön</button>
-    </div>
   </div>
 
   <!-- NEWS VIEW -->
@@ -1200,7 +1077,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div class="filter-panel">
       <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Günlük hedef</div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
-        Özet ekranındaki halka bu hedefe göre dolar. Hedefe ulaşınca çalışmayı bırakman
+        Panom ekranındaki halka bu hedefe göre dolar. Hedefe ulaşınca çalışmayı bırakman
         gerekmez — istediğin kadar devam edebilirsin.
       </p>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -1238,7 +1115,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       </p>
       <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
         <b>Neler yapabilirsin:</b><br>
-        • <b>Özet</b> — genel ilerlemeni gör<br>
+        • <b>Panom</b> — genel ilerlemeni gör<br>
         • <b>Tekrar Et</b> — seviye/frekansa göre filtreleyip flashcard çalış<br>
         • <b>Metin Analizi</b> — haber metni yapıştır, bildiğin/bilmediğin kelimeleri gör<br>
         • <b>Sözlüğüm</b> — Oxford dışı kelimeleri kendi havuzuna ekle<br>
@@ -1259,7 +1136,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     <div style="font-size:20px;font-weight:700;margin-bottom:4px;">WordHaven'a hoş geldin</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:18px;">Uygulama 10 bölümden oluşuyor, hepsine ☰ menüden ulaşırsın. Kısaca ne işe yaradıklarına bakalım:</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 17V9M9 17V4M14 17v-6"/></svg><span><b>Özet</b> — <span style="color:var(--text2);">Genel ilerlemeni, seviyelere göre dağılımını görürsün.</span></span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 17V9M9 17V4M14 17v-6"/></svg><span><b>Panom</b> — <span style="color:var(--text2);">Genel ilerlemeni, seviyelere göre dağılımını görürsün.</span></span></div>
       <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="5" width="11" height="13" rx="2"/><path d="M8 3.5h7a2 2 0 0 1 2 2V15"/></svg><span><b>Kart Modu</b> — <span style="color:var(--text2);">Duolingo tarzı hızlı "Biliyorum / Öğreniyorum" akışı.</span></span></div>
       <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="5" y="4.5" width="10" height="13" rx="1.5"/><path d="M7.5 4.5V3.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"/><path d="M7.5 9h5M7.5 12h5M7.5 15h3"/></svg><span><b>Kelime Durumu</b> — <span style="color:var(--text2);">Öğrendiğin ve öğrenmekte olduğun kelimelerin tam listesi, elle ekle/çıkar.</span></span></div>
       <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M6 8h8M6 11h8M6 14h5"/></svg><span><b>Metin Analizi</b> — <span style="color:var(--text2);">Bir metin yapıştır, içindeki Oxford kelimeleri seviyeye göre renklenir.</span></span></div>
@@ -1764,7 +1641,7 @@ function dashHeaderHtml() {
         <div class="hdr-sub">${dateStr}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button class="settings-btn" onclick="showView('settings')" aria-label="Ayarlar">${ico('settings',17,'var(--text2)',false)}</button>
+        <button class="settings-btn" onclick="showView('settings')" aria-label="Ayarlar">${ico('settings',18,'var(--text)',false)}</button>
         <div class="streak-pill">${ico('flame',15,'var(--warn)',false)}${n}</div>
       </div>
     </div>`;
@@ -1910,13 +1787,14 @@ function updateDashboard() {
     const a1 = WORD_DATA.filter(w => w.cefr === 'A1').length;
     el.innerHTML = `
       ${dashHeaderHtml()}
-      <div class="dash-hero" style="text-align:center;">
-        <div style="margin-bottom:8px;">${ico('notebook',34,'#fff',false)}</div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:6px;">WordHaven'a hoş geldin</div>
-        <p style="font-size:13px;line-height:1.7;margin-bottom:16px;">
-          A1 seviyesinde <b>${a1}</b> kelime seni bekliyor. Günde ${goal} kelime ile başla —
-          birkaç dakika yeter.
-        </p>
+      <div class="dash-hero" style="padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${ico('notebook',19,'#fff',false)}</div>
+          <div style="flex:1;min-width:0;text-align:left;">
+            <div style="font-size:15px;font-weight:700;">WordHaven'a hoş geldin</div>
+            <div style="font-size:12px;opacity:.85;margin-top:1px;">A1'de <b>${a1}</b> kelime seni bekliyor — günde ${goal} kelime ile başla.</div>
+          </div>
+        </div>
         <button class="start-btn" style="margin-top:0;" onclick="showView('cardmode')">İlk kelimelerini çalış →</button>
       </div>
       ${dashWordTrackHtml()}
@@ -2988,6 +2866,7 @@ const CEFR_COLORS = { A1:'--a1', A2:'--a2', B1:'--b1', B2:'--b2', C1:'--c1' };
 // uç). Tek bir yerden yönetilir; Kelime Durumu, kelime modalı, Kelime Listem
 // sekmeleri ve durum/sıralama chip'lerinin hepsi buradan besleniyor.
 const ICO = {
+  settings: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.8"/><path d="M10 3.3v2.3M10 14.4v2.3M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M3.3 10h2.3M14.4 10h2.3M4.1 15.9l1.6-1.6M14.3 5.7l1.6-1.6"/></svg>',
   calendar: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.2" width="13" height="12" rx="1.5"/><path d="M3.5 8h13M7 2.8v2.4M13 2.8v2.4"/></svg>',
   repeat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg>',
   alert: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 7v3.6"/><circle cx="10" cy="13.2" r=".15" fill="currentColor" stroke-width="2.4"/></svg>',
@@ -3058,14 +2937,6 @@ function freqMatches(wordFreq, selectedSet, allCount) {
 }
 let contentCache = {};
 let streak = { days: [], lastDate: null };
-let filters = {
-  cefr: new Set(['A1','A2']),
-  sp:   new Set(['S1','S2','S3','']),
-  wr:   new Set(['W1','W2','W3','']),
-  fr:   new Set(['High Frequency','Medium Frequency','Low Frequency','']),
-  mode: 'due'
-};
-let studyQueue=[], studyIdx=0, flipped=false, requeuedKeys=new Set(), sessionResults={ok:0,miss:0};
 let accordionState = {};
 
 const todayStr = () => new Date().toISOString().slice(0,10);
@@ -3099,40 +2970,8 @@ function getNextDate(n) {
   const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10);
 }
 
-// ── FILTER & QUEUE ─────────────────────────────────────────────────────────
-function filteredWords() {
-  // Eski yerel sp/wr/fr seçimleri yerine ortak Longman/VOA filtresi geçerli.
-  return WORD_DATA.filter(w => filters.cefr.has(w.cefr) && gbPasses(w));
-}
-function buildQueue() {
-  const fw=filteredWords(), today=todayStr();
-  if (filters.mode==='due') return fw.filter(w=>{ const p=progress[wkey(w)]; return p&&p.nextReview<=today; });
-  if (filters.mode==='new') return fw.filter(w=>!progress[wkey(w)]).slice(0,20);
-  const due=fw.filter(w=>{ const p=progress[wkey(w)]; return p&&p.nextReview<=today; });
-  const nw=fw.filter(w=>!progress[wkey(w)]).slice(0,Math.max(0,20-due.length));
-  return [...due,...nw];
-}
-
-// ── SELECT ALL ─────────────────────────────────────────────────────────────
-function selectAll(group) {
-  const chips = document.querySelectorAll(`[data-g="${group}"]`);
-  const allOn = [...chips].every(c => c.classList.contains('on'));
-  chips.forEach(c => {
-    if (allOn) {
-      // deselect all except first
-      if (c === chips[0]) c.classList.add('on'); else c.classList.remove('on');
-    } else {
-      c.classList.add('on');
-    }
-    const v = c.dataset.v;
-    if (allOn) { if (c !== chips[0]) filters[group].delete(v); }
-    else filters[group].add(v);
-  });
-  updateFilterCount();
-}
-
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
+const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -3144,16 +2983,15 @@ document.addEventListener('click', function (e) {
   const panel = document.getElementById('main-menu-panel');
   const toggle = document.getElementById('main-menu-toggle');
   if (!panel || panel.classList.contains('hidden')) return;
-  if (panel.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+  if (panel.contains(e.target) || (toggle && toggle.contains(e.target)) || e.target.closest('.oz-more-link')) return;
   panel.classList.add('hidden');
 });
 function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
-  document.getElementById('nav-study').classList.toggle('active', v==='filter'||v==='study');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
   document.getElementById('nav-wordadd').classList.toggle('active', v==='wordadd');
   document.getElementById('nav-list').classList.toggle('active', v==='list');
@@ -3165,7 +3003,6 @@ function showView(v) {
   document.getElementById('nav-writing').classList.toggle('active', v==='writing');
   document.getElementById('nav-grammar').classList.toggle('active', v==='grammar');
   if (v==='dash') updateDashboard();
-  if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
   if (v==='list') { listUpdatePersonalCounts(); if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
   if (v==='cardmode') cmInit();
@@ -3709,21 +3546,6 @@ function renderCefrSection(cefrWords, level) {
   </div>`;
 }
 
-// ── FILTER CHIPS ───────────────────────────────────────────────────────────
-document.querySelectorAll('.chip[data-g]').forEach(chip=>{
-  chip.addEventListener('click',()=>{
-    const g=chip.dataset.g, v=chip.dataset.v;
-    if (g==='mode') {
-      document.querySelectorAll('[data-g="mode"]').forEach(c=>c.classList.remove('on'));
-      chip.classList.add('on'); filters.mode=v;
-    } else {
-      chip.classList.toggle('on');
-      if(chip.classList.contains('on')) filters[g].add(v); else filters[g].delete(v);
-    }
-    updateFilterCount();
-  });
-});
-
 // ── GLOBAL SEARCH ──────────────────────────────────────────────────────────
 const DICT_SITES = [
   { name: 'Longman',       url: w => `https://www.ldoceonline.com/dictionary/${w}` },
@@ -3895,75 +3717,6 @@ function closeSearchResult() {
 document.getElementById('global-search-input').addEventListener('input', performGlobalSearch);
 document.getElementById('global-search-input').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); performGlobalSearch(); } });
 
-function updateFilterCount() {
-  const q=buildQueue();
-  document.getElementById('f-count').textContent=`${q.length} kelime seçildi`;
-  document.getElementById('start-btn').disabled=q.length===0;
-}
-
-// ── STUDY ──────────────────────────────────────────────────────────────────
-function startStudy() {
-  studyQueue=[...buildQueue()];
-  if(!studyQueue.length) return;
-  studyIdx=0; requeuedKeys=new Set(); sessionResults={ok:0,miss:0};
-  document.getElementById('session-end').classList.add('hidden');
-  document.getElementById('card-wrap').classList.remove('hidden');
-  showView('study'); showCard();
-}
-
-async function showCard() {
-  if(studyIdx>=studyQueue.length){ endSession(); return; }
-  const w=studyQueue[studyIdx], total=studyQueue.length;
-  document.getElementById('study-prog').textContent=`${studyIdx+1} / ${total}`;
-  document.getElementById('prog-fill').style.width=(studyIdx/total*100)+'%';
-  flipped=false;
-  document.getElementById('card-back').classList.remove('show');
-  document.getElementById('flip-hint').style.display='block';
-  document.getElementById('action-row').classList.add('hidden');
-  document.getElementById('c-word').innerHTML = escHtml(w.word) + ttsButtonHtml(w.word, w.word);
-  ttsWireButtons(document.getElementById('c-word'));
-  document.getElementById('c-pos').textContent=w.pos;
-  const cefrColor = CEFR_COLORS[w.cefr] || '--text2';
-  const badges=[`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`];
-  if(w.speaking) badges.push(`<span class="badge b-${w.speaking.toLowerCase()}">${w.speaking}</span>`);
-  if(w.writing)  badges.push(`<span class="badge b-${w.writing.toLowerCase()}">${w.writing}</span>`);
-  if(w.voa)      badges.push('<span class="badge b-voa">VOA</span>');
-  document.getElementById('c-badges').innerHTML=badges.join('');
-  const k=wkey(w);
-  if(contentCache[k]) { renderContent(contentCache[k],w); }
-  else {
-    document.getElementById('c-loading').classList.remove('hidden');
-    document.getElementById('c-def').classList.add('hidden');
-    document.getElementById('card-back').classList.remove('show');
-    const c=await fetchContent(w); contentCache[k]=c; renderContent(c,w);
-  }
-}
-
-function renderContent(c, w) {
-  document.getElementById('c-loading').classList.add('hidden');
-  document.getElementById('c-def').classList.remove('hidden');
-  document.getElementById('c-def').textContent=c.definition||'—';
-  document.getElementById('c-turkish').textContent=c.turkish||'—';
-  // Nuance — paragraphs
-  const paras=(c.nuance||'—').split(/\n\n+/).filter(p=>p.trim());
-  document.getElementById('c-nuance').innerHTML=paras.map(p=>
-    `<p style="margin-bottom:10px;font-size:14px;line-height:1.65;color:var(--text);">${p.trim()}</p>`
-  ).join('');
-  // Categories
-  if(w.categories&&w.categories.length){
-    document.getElementById('c-cats-wrap').style.display='block';
-    document.getElementById('c-cats').innerHTML=w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('');
-  } else { document.getElementById('c-cats-wrap').style.display='none'; }
-  // Examples with collapsible Turkish
-  document.getElementById('c-examples').innerHTML=(c.examples||[]).map((ex,i)=>{
-    const en=typeof ex==='object'?ex.en:ex;
-    const tr=typeof ex==='object'?ex.tr:null;
-    const trHtml=tr?`<button class="tr-toggle" onclick="toggleTr(this)">Türkçeyi gör ▾</button><div class="tr-text">${tr}</div>`:'';
-    return `<div class="c-example"><p>${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
-  }).join('');
-  ttsWireButtons(document.getElementById('c-examples'));
-}
-
 function toggleTr(btn) {
   const trDiv=btn.nextElementSibling;
   const showing=trDiv.style.display==='block';
@@ -3984,41 +3737,15 @@ async function fetchContent(w) {
   };
 }
 
-function flipCard() {
-  if(flipped) return; flipped=true;
-  document.getElementById('card-back').classList.add('show');
-  document.getElementById('flip-hint').style.display='none';
-  document.getElementById('action-row').classList.remove('hidden');
-}
-
-function answer(correct) {
-  const w=studyQueue[studyIdx], k=wkey(w);
-  const cur=progress[k]||{};
-  const next=getNextReview(cur,correct);
-  progress[k]={...next, nextReview:next.nextReview||getNextDate(next.interval), lastSeen:todayStr()};
-  if(correct){ sessionResults.ok++; }
-  else {
-    sessionResults.miss++;
-    if(!requeuedKeys.has(k)){ requeuedKeys.add(k); studyQueue.push(w); }
-  }
-  const today=todayStr();
-  if(streak.lastDate!==today){
-    streak.lastDate=today;
-    const dn=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date().getDay()];
-    if(!streak.days.includes(dn)) streak.days.push(dn);
-  }
-  saveState();
-  studyIdx++; showCard();
-}
-
-function endSession() {
-  document.getElementById('card-wrap').classList.add('hidden');
-  document.getElementById('session-end').classList.remove('hidden');
-  const uniq=new Set(studyQueue.map(w=>wkey(w))).size;
-  const mastered=Object.values(progress).filter(p=>p.mastery==='mastered').length;
-  document.getElementById('session-summary').textContent=
-    `${uniq} kelime çalışıldı — ${sessionResults.ok} doğru, ${sessionResults.miss} tekrar. Toplam tam öğrenilen: ${mastered}`;
-  updateDashboard();
+// Eski "Tekrar Et" ekranının answer() fonksiyonu içindeydi, o ekranla birlikte
+// silinmesin diye buraya, paylaşılan bir yardımcıya taşındı — artık Kart
+// Modu'nun cmAnswer() fonksiyonu çağırıyor (bkz. not: "streak bug fix").
+function markStreakToday() {
+  const today = todayStr();
+  if (streak.lastDate === today) return;
+  streak.lastDate = today;
+  const dn = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date().getDay()];
+  if (!streak.days.includes(dn)) streak.days.push(dn);
 }
 
 function doExport() {
@@ -4267,7 +3994,6 @@ if (!localStorage.getItem(WELCOME_SEEN_KEY)) {
 
 loadState();
 updateDashboard();
-updateFilterCount();
 renderCustomWordsList();
 window.addEventListener('beforeunload', saveState);
 window.addEventListener('pagehide', saveState);
@@ -4832,6 +4558,7 @@ function cmAnswer(correct) {
   }
   cmAnswers[i] = correct;
   cmIdx = cmAnsweredCount();
+  markStreakToday();
 
   // Sıradaki cevaplanmamış karta geç; kalmadıysa olduğun yerde kal
   // (cmShowCard oturum sonu ekranını gösterecek).
@@ -5695,7 +5422,6 @@ function modalRestart() {
 }
 
 updateDashboard();
-updateFilterCount();
 
 // ── CÜMLE GENİŞLETME (Sentence Expansion) ───────────────────────────────────
 // NOT: SG_EXERCISES şu an elle hazırlanmış küçük bir set (8 örnek, A1-B2).

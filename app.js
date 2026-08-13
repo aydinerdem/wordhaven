@@ -438,7 +438,7 @@ function dashHeaderHtml() {
         <div class="hdr-sub">${dateStr}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button class="settings-btn" onclick="showView('settings')" aria-label="Ayarlar">${ico('settings',17,'var(--text2)',false)}</button>
+        <button class="settings-btn" onclick="showView('settings')" aria-label="Ayarlar">${ico('settings',18,'var(--text)',false)}</button>
         <div class="streak-pill">${ico('flame',15,'var(--warn)',false)}${n}</div>
       </div>
     </div>`;
@@ -584,13 +584,14 @@ function updateDashboard() {
     const a1 = WORD_DATA.filter(w => w.cefr === 'A1').length;
     el.innerHTML = `
       ${dashHeaderHtml()}
-      <div class="dash-hero" style="text-align:center;">
-        <div style="margin-bottom:8px;">${ico('notebook',34,'#fff',false)}</div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:6px;">WordHaven'a hoş geldin</div>
-        <p style="font-size:13px;line-height:1.7;margin-bottom:16px;">
-          A1 seviyesinde <b>${a1}</b> kelime seni bekliyor. Günde ${goal} kelime ile başla —
-          birkaç dakika yeter.
-        </p>
+      <div class="dash-hero" style="padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${ico('notebook',19,'#fff',false)}</div>
+          <div style="flex:1;min-width:0;text-align:left;">
+            <div style="font-size:15px;font-weight:700;">WordHaven'a hoş geldin</div>
+            <div style="font-size:12px;opacity:.85;margin-top:1px;">A1'de <b>${a1}</b> kelime seni bekliyor — günde ${goal} kelime ile başla.</div>
+          </div>
+        </div>
         <button class="start-btn" style="margin-top:0;" onclick="showView('cardmode')">İlk kelimelerini çalış →</button>
       </div>
       ${dashWordTrackHtml()}
@@ -1662,6 +1663,7 @@ const CEFR_COLORS = { A1:'--a1', A2:'--a2', B1:'--b1', B2:'--b2', C1:'--c1' };
 // uç). Tek bir yerden yönetilir; Kelime Durumu, kelime modalı, Kelime Listem
 // sekmeleri ve durum/sıralama chip'lerinin hepsi buradan besleniyor.
 const ICO = {
+  settings: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.8"/><path d="M10 3.3v2.3M10 14.4v2.3M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M3.3 10h2.3M14.4 10h2.3M4.1 15.9l1.6-1.6M14.3 5.7l1.6-1.6"/></svg>',
   calendar: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.2" width="13" height="12" rx="1.5"/><path d="M3.5 8h13M7 2.8v2.4M13 2.8v2.4"/></svg>',
   repeat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg>',
   alert: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 7v3.6"/><circle cx="10" cy="13.2" r=".15" fill="currentColor" stroke-width="2.4"/></svg>',
@@ -1732,14 +1734,6 @@ function freqMatches(wordFreq, selectedSet, allCount) {
 }
 let contentCache = {};
 let streak = { days: [], lastDate: null };
-let filters = {
-  cefr: new Set(['A1','A2']),
-  sp:   new Set(['S1','S2','S3','']),
-  wr:   new Set(['W1','W2','W3','']),
-  fr:   new Set(['High Frequency','Medium Frequency','Low Frequency','']),
-  mode: 'due'
-};
-let studyQueue=[], studyIdx=0, flipped=false, requeuedKeys=new Set(), sessionResults={ok:0,miss:0};
 let accordionState = {};
 
 const todayStr = () => new Date().toISOString().slice(0,10);
@@ -1773,40 +1767,8 @@ function getNextDate(n) {
   const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10);
 }
 
-// ── FILTER & QUEUE ─────────────────────────────────────────────────────────
-function filteredWords() {
-  // Eski yerel sp/wr/fr seçimleri yerine ortak Longman/VOA filtresi geçerli.
-  return WORD_DATA.filter(w => filters.cefr.has(w.cefr) && gbPasses(w));
-}
-function buildQueue() {
-  const fw=filteredWords(), today=todayStr();
-  if (filters.mode==='due') return fw.filter(w=>{ const p=progress[wkey(w)]; return p&&p.nextReview<=today; });
-  if (filters.mode==='new') return fw.filter(w=>!progress[wkey(w)]).slice(0,20);
-  const due=fw.filter(w=>{ const p=progress[wkey(w)]; return p&&p.nextReview<=today; });
-  const nw=fw.filter(w=>!progress[wkey(w)]).slice(0,Math.max(0,20-due.length));
-  return [...due,...nw];
-}
-
-// ── SELECT ALL ─────────────────────────────────────────────────────────────
-function selectAll(group) {
-  const chips = document.querySelectorAll(`[data-g="${group}"]`);
-  const allOn = [...chips].every(c => c.classList.contains('on'));
-  chips.forEach(c => {
-    if (allOn) {
-      // deselect all except first
-      if (c === chips[0]) c.classList.add('on'); else c.classList.remove('on');
-    } else {
-      c.classList.add('on');
-    }
-    const v = c.dataset.v;
-    if (allOn) { if (c !== chips[0]) filters[group].delete(v); }
-    else filters[group].add(v);
-  });
-  updateFilterCount();
-}
-
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Özet', filter:'Tekrar Et', study:'Tekrar Et', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
+const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -1814,20 +1776,22 @@ function toggleMainMenu() {
 // menü açık kalıyordu, çünkü sadece showView() (nav öğesi seçimi) paneli
 // kapatıyordu. Artık panel açıkken panelin/toggle'ın DIŞINA her tıklama da
 // paneli kapatıyor — sayfa içeriğiyle etkileşim otomatik olarak menüyü kapatır.
+// oz-more-link (Panom'daki "Tüm modüller ›") istisnası: bu link zaten
+// toggleMainMenu() çağırıyor, dışta sayılırsa menü açtığı anda kendini
+// kapatıyordu (bulunan gerçek bug, düzeltildi).
 document.addEventListener('click', function (e) {
   const panel = document.getElementById('main-menu-panel');
   const toggle = document.getElementById('main-menu-toggle');
   if (!panel || panel.classList.contains('hidden')) return;
-  if (panel.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+  if (panel.contains(e.target) || (toggle && toggle.contains(e.target)) || e.target.closest('.oz-more-link')) return;
   panel.classList.add('hidden');
 });
 function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','filter','study','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
-  document.getElementById('nav-study').classList.toggle('active', v==='filter'||v==='study');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
   document.getElementById('nav-wordadd').classList.toggle('active', v==='wordadd');
   document.getElementById('nav-list').classList.toggle('active', v==='list');
@@ -1839,7 +1803,6 @@ function showView(v) {
   document.getElementById('nav-writing').classList.toggle('active', v==='writing');
   document.getElementById('nav-grammar').classList.toggle('active', v==='grammar');
   if (v==='dash') updateDashboard();
-  if (v==='filter') updateFilterCount();
   if (v==='wordadd') renderCustomWordsList();
   if (v==='list') { listUpdatePersonalCounts(); if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
   if (v==='cardmode') cmInit();
@@ -2383,21 +2346,6 @@ function renderCefrSection(cefrWords, level) {
   </div>`;
 }
 
-// ── FILTER CHIPS ───────────────────────────────────────────────────────────
-document.querySelectorAll('.chip[data-g]').forEach(chip=>{
-  chip.addEventListener('click',()=>{
-    const g=chip.dataset.g, v=chip.dataset.v;
-    if (g==='mode') {
-      document.querySelectorAll('[data-g="mode"]').forEach(c=>c.classList.remove('on'));
-      chip.classList.add('on'); filters.mode=v;
-    } else {
-      chip.classList.toggle('on');
-      if(chip.classList.contains('on')) filters[g].add(v); else filters[g].delete(v);
-    }
-    updateFilterCount();
-  });
-});
-
 // ── GLOBAL SEARCH ──────────────────────────────────────────────────────────
 const DICT_SITES = [
   { name: 'Longman',       url: w => `https://www.ldoceonline.com/dictionary/${w}` },
@@ -2569,75 +2517,6 @@ function closeSearchResult() {
 document.getElementById('global-search-input').addEventListener('input', performGlobalSearch);
 document.getElementById('global-search-input').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); performGlobalSearch(); } });
 
-function updateFilterCount() {
-  const q=buildQueue();
-  document.getElementById('f-count').textContent=`${q.length} kelime seçildi`;
-  document.getElementById('start-btn').disabled=q.length===0;
-}
-
-// ── STUDY ──────────────────────────────────────────────────────────────────
-function startStudy() {
-  studyQueue=[...buildQueue()];
-  if(!studyQueue.length) return;
-  studyIdx=0; requeuedKeys=new Set(); sessionResults={ok:0,miss:0};
-  document.getElementById('session-end').classList.add('hidden');
-  document.getElementById('card-wrap').classList.remove('hidden');
-  showView('study'); showCard();
-}
-
-async function showCard() {
-  if(studyIdx>=studyQueue.length){ endSession(); return; }
-  const w=studyQueue[studyIdx], total=studyQueue.length;
-  document.getElementById('study-prog').textContent=`${studyIdx+1} / ${total}`;
-  document.getElementById('prog-fill').style.width=(studyIdx/total*100)+'%';
-  flipped=false;
-  document.getElementById('card-back').classList.remove('show');
-  document.getElementById('flip-hint').style.display='block';
-  document.getElementById('action-row').classList.add('hidden');
-  document.getElementById('c-word').innerHTML = escHtml(w.word) + ttsButtonHtml(w.word, w.word);
-  ttsWireButtons(document.getElementById('c-word'));
-  document.getElementById('c-pos').textContent=w.pos;
-  const cefrColor = CEFR_COLORS[w.cefr] || '--text2';
-  const badges=[`<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>`];
-  if(w.speaking) badges.push(`<span class="badge b-${w.speaking.toLowerCase()}">${w.speaking}</span>`);
-  if(w.writing)  badges.push(`<span class="badge b-${w.writing.toLowerCase()}">${w.writing}</span>`);
-  if(w.voa)      badges.push('<span class="badge b-voa">VOA</span>');
-  document.getElementById('c-badges').innerHTML=badges.join('');
-  const k=wkey(w);
-  if(contentCache[k]) { renderContent(contentCache[k],w); }
-  else {
-    document.getElementById('c-loading').classList.remove('hidden');
-    document.getElementById('c-def').classList.add('hidden');
-    document.getElementById('card-back').classList.remove('show');
-    const c=await fetchContent(w); contentCache[k]=c; renderContent(c,w);
-  }
-}
-
-function renderContent(c, w) {
-  document.getElementById('c-loading').classList.add('hidden');
-  document.getElementById('c-def').classList.remove('hidden');
-  document.getElementById('c-def').textContent=c.definition||'—';
-  document.getElementById('c-turkish').textContent=c.turkish||'—';
-  // Nuance — paragraphs
-  const paras=(c.nuance||'—').split(/\n\n+/).filter(p=>p.trim());
-  document.getElementById('c-nuance').innerHTML=paras.map(p=>
-    `<p style="margin-bottom:10px;font-size:14px;line-height:1.65;color:var(--text);">${p.trim()}</p>`
-  ).join('');
-  // Categories
-  if(w.categories&&w.categories.length){
-    document.getElementById('c-cats-wrap').style.display='block';
-    document.getElementById('c-cats').innerHTML=w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('');
-  } else { document.getElementById('c-cats-wrap').style.display='none'; }
-  // Examples with collapsible Turkish
-  document.getElementById('c-examples').innerHTML=(c.examples||[]).map((ex,i)=>{
-    const en=typeof ex==='object'?ex.en:ex;
-    const tr=typeof ex==='object'?ex.tr:null;
-    const trHtml=tr?`<button class="tr-toggle" onclick="toggleTr(this)">Türkçeyi gör ▾</button><div class="tr-text">${tr}</div>`:'';
-    return `<div class="c-example"><p>${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
-  }).join('');
-  ttsWireButtons(document.getElementById('c-examples'));
-}
-
 function toggleTr(btn) {
   const trDiv=btn.nextElementSibling;
   const showing=trDiv.style.display==='block';
@@ -2658,41 +2537,15 @@ async function fetchContent(w) {
   };
 }
 
-function flipCard() {
-  if(flipped) return; flipped=true;
-  document.getElementById('card-back').classList.add('show');
-  document.getElementById('flip-hint').style.display='none';
-  document.getElementById('action-row').classList.remove('hidden');
-}
-
-function answer(correct) {
-  const w=studyQueue[studyIdx], k=wkey(w);
-  const cur=progress[k]||{};
-  const next=getNextReview(cur,correct);
-  progress[k]={...next, nextReview:next.nextReview||getNextDate(next.interval), lastSeen:todayStr()};
-  if(correct){ sessionResults.ok++; }
-  else {
-    sessionResults.miss++;
-    if(!requeuedKeys.has(k)){ requeuedKeys.add(k); studyQueue.push(w); }
-  }
-  const today=todayStr();
-  if(streak.lastDate!==today){
-    streak.lastDate=today;
-    const dn=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date().getDay()];
-    if(!streak.days.includes(dn)) streak.days.push(dn);
-  }
-  saveState();
-  studyIdx++; showCard();
-}
-
-function endSession() {
-  document.getElementById('card-wrap').classList.add('hidden');
-  document.getElementById('session-end').classList.remove('hidden');
-  const uniq=new Set(studyQueue.map(w=>wkey(w))).size;
-  const mastered=Object.values(progress).filter(p=>p.mastery==='mastered').length;
-  document.getElementById('session-summary').textContent=
-    `${uniq} kelime çalışıldı — ${sessionResults.ok} doğru, ${sessionResults.miss} tekrar. Toplam tam öğrenilen: ${mastered}`;
-  updateDashboard();
+// Eski "Tekrar Et" ekranının answer() fonksiyonu içindeydi, o ekranla birlikte
+// silinmesin diye buraya, paylaşılan bir yardımcıya taşındı — artık Kart
+// Modu'nun cmAnswer() fonksiyonu çağırıyor (bkz. proje notu: "streak bug fix").
+function markStreakToday() {
+  const today = todayStr();
+  if (streak.lastDate === today) return;
+  streak.lastDate = today;
+  const dn = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date().getDay()];
+  if (!streak.days.includes(dn)) streak.days.push(dn);
 }
 
 function doExport() {
@@ -2941,7 +2794,6 @@ if (!localStorage.getItem(WELCOME_SEEN_KEY)) {
 
 loadState();
 updateDashboard();
-updateFilterCount();
 renderCustomWordsList();
 window.addEventListener('beforeunload', saveState);
 window.addEventListener('pagehide', saveState);
@@ -3506,6 +3358,7 @@ function cmAnswer(correct) {
   }
   cmAnswers[i] = correct;
   cmIdx = cmAnsweredCount();
+  markStreakToday();
 
   // Sıradaki cevaplanmamış karta geç; kalmadıysa olduğun yerde kal
   // (cmShowCard oturum sonu ekranını gösterecek).
@@ -4369,7 +4222,6 @@ function modalRestart() {
 }
 
 updateDashboard();
-updateFilterCount();
 
 // ── CÜMLE GENİŞLETME (Sentence Expansion) ───────────────────────────────────
 // NOT: SG_EXERCISES şu an elle hazırlanmış küçük bir set (8 örnek, A1-B2).
