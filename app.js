@@ -5483,7 +5483,9 @@ function grRenderVerify(t, j) {
     return;
   }
   if (t.verifyType === 'quiz') {
-    if (!s.quiz || !s.quiz.opts || s.quiz.opts.length < 2) {
+    // Geriye dönük uyumluluk: eski tekil "quiz" alanı varsa quizPool'a çevir
+    if (!s.quizPool && s.quiz) s.quizPool = [s.quiz];
+    if (!s.quizPool || s.quizPool.length === 0) {
       // İçerik üretiminde bu alt madde için quiz gelmemiş — kendin işaretle
       el.innerHTML = `<div class="gr-verify-box">
         <p style="font-size:12px;color:var(--text3);margin-bottom:8px;">Bu alt madde için otomatik kontrol henüz yok.</p>
@@ -5491,12 +5493,19 @@ function grRenderVerify(t, j) {
       </div>`;
       return;
     }
+    s._progress = s._progress || 0;
+    const target = s.quizPool.length;
+    const q = s.quizPool[s._progress % s.quizPool.length];
+    const counterHtml = target > 1
+      ? `<span class="gr-verify-counter">${s._progress}/${target} doğru</span>` : '';
     el.innerHTML = `<div class="gr-verify-box">
-      <div class="gr-verify-label">Kontrol et</div>
-      <div class="gr-quiz-q">${s.quiz.q}</div>
+      <div class="gr-verify-label"><span>Kontrol et</span>${counterHtml}</div>
+      <div class="gr-quiz-q">${q.q}</div>
       <div class="gr-quiz-opts">
-        ${s.quiz.opts.map((o, k) => `<button class="gr-quiz-opt" onclick="grAnswerQuiz(${j}, ${k===s.quiz.correct})">${o}</button>`).join('')}
+        ${q.opts.map((o, k) => `<button class="gr-quiz-opt" onclick="grAnswerQuiz(${j}, ${k===q.correct}, ${target})">${o}</button>`).join('')}
       </div>
+      ${target > 1 ? `<div class="gr-p-dots">${Array.from({length:target}).map((_,k)=>`<span class="gr-p-dot ${k<s._progress?'filled':''}"></span>`).join('')}</div>` : ''}
+      ${grWordBadgeHtml(q.relatedWords)}
     </div>`;
   } else if (t.verifyType === 'sentencekur') {
     // Cümle Kur'un kendi havuzundan (SENTENCE_EXERCISES), aynı tense'e filtrelenmiş,
@@ -5511,6 +5520,10 @@ function grRenderVerify(t, j) {
     }
     const ex = s._pool[s._progress % s._pool.length];
     const sentence = ex.root.join(' ') + (ex.chunks[0] ? ' ' + ex.chunks[0].text : '');
+    const wordEntry = grFindWordDataEntry(ex.targetWord);
+    const wordBadge = wordEntry
+      ? grWordBadgeHtml([{ word: wordEntry.word, pos: wordEntry.pos, cefr: wordEntry.cefr || ex.cefr, freq: wordEntry.freq || ex.freq }])
+      : grWordBadgeReadonlyHtml(ex.targetWord, ex.cefr, ex.freq);
     el.innerHTML = `<div class="gr-verify-box">
       <div class="gr-verify-label"><span>Pratik yap (Cümle Kur havuzundan)</span><span class="gr-verify-counter">${s._progress}/${target} doğru</span></div>
       <div class="gr-quiz-q">"${sentence}" — bu cümle ${ex.tense} yapısını doğru kullanıyor mu?</div>
@@ -5523,19 +5536,101 @@ function grRenderVerify(t, j) {
         <div class="sg-grammar-title">${ex.tenseInfo.name}</div>
         <div class="sg-grammar-formula">${ex.tenseInfo.formula}</div>
       </div>
+      ${wordBadge}
     </div>`;
   }
 }
 
-function grAnswerQuiz(j, isCorrect) {
+function grAnswerQuiz(j, isCorrect, target) {
   const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
   const wrap = document.getElementById('gr-verify-'+j);
   wrap.querySelectorAll('.gr-quiz-opt').forEach(o => o.disabled = true);
   event.target.classList.add(isCorrect ? 'correct' : 'wrong');
-  const s = t.subs[j];
-  const rolesNote = `<div class="gr-tr-text show" style="margin-top:10px;">Doğru cevap: <b>${s.quiz.opts[s.quiz.correct]}</b></div>`;
+  const q = s.quizPool[s._progress % s.quizPool.length];
+  const rolesNote = `<div class="gr-tr-text show" style="margin-top:10px;">Doğru cevap: <b>${q.opts[q.correct]}</b></div>`;
   wrap.insertAdjacentHTML('beforeend', rolesNote +
-    `<button class="gr-tr-toggle" onclick="grMarkLearned('${t.topicId}','${s.id}');grRenderVerify(grTopicsFor('${grLevel}')[${grTopicIdx}],${j});document.getElementById('gr-dot-${j}').classList.add('done');grMarkAccDone(${j});">Devam et →</button>`);
+    `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j}, ${isCorrect}, ${target})">${target>1?'Sonraki →':'Devam et →'}</button>`);
+}
+
+function grAdvanceQuiz(j, wasCorrect, target) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  if (wasCorrect) s._progress++;
+  if (s._progress >= target) {
+    grMarkLearned(t.topicId, s.id);
+    grRenderVerify(t, j);
+    document.getElementById('gr-dot-'+j).classList.add('done');
+    grMarkAccDone(j);
+  } else {
+    grRenderVerify(t, j);
+  }
+}
+
+// Kelime rozeti — quiz/örnek cümlesinde word-data.json'da kayıtlı bir kelime
+// varsa gösterilir. Gerçek srsStore/favorites'a yazan mevcut fonksiyonları
+// (quickSetStatus, toggleFavFromRow) kullanır — ayrı bir depo değil.
+function grWordBadgeHtml(relatedWords) {
+  if (!relatedWords || relatedWords.length === 0) return '';
+  return relatedWords.slice(0, 2).map(rw => {
+    const w = { word: rw.word, pos: rw.pos };
+    const k = wkey(w);
+    const isKnown = progress[k] && progress[k].mastery === 'mastered';
+    const isLearning = progress[k] && progress[k].mastery === 'reviewing';
+    const isFav = !!favorites[k];
+    const cefrTag = rw.cefr ? `<span class="gr-word-tag">${rw.cefr}</span>` : '';
+    const freqTag = rw.freq ? `<span class="gr-word-tag">${rw.freq.replace(' Frequency','')}</span>` : '';
+    const posTag = rw.pos ? `<span class="gr-word-tag">${rw.pos}</span>` : '';
+    return `<div class="gr-word-badge">
+      <div class="gr-word-badge-top">
+        <b>${rw.word}</b>${cefrTag}${posTag}${freqTag}
+        <span onclick="event.stopPropagation();toggleFavFromRow('${rw.word.replace(/'/g,"\\'")}','${(rw.pos||'').replace(/'/g,"\\'")}');grRefreshWordBadges();" style="cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};font-size:16px;margin-left:auto;">${isFav?'★':'☆'}</span>
+      </div>
+      <div class="gr-word-badge-actions">
+        <button class="gr-word-btn ${isLearning?'on':''}" onclick="event.stopPropagation();quickSetStatus('${rw.word.replace(/'/g,"\\'")}','${(rw.pos||'').replace(/'/g,"\\'")}',false);grRefreshWordBadges();">${ico('repeat',13)}Öğreniyorum</button>
+        <button class="gr-word-btn ${isKnown?'on':''}" onclick="event.stopPropagation();quickSetStatus('${rw.word.replace(/'/g,"\\'")}','${(rw.pos||'').replace(/'/g,"\\'")}',true);grRefreshWordBadges();">${ico('check',13)}Biliyorum</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+// word-data'da bulunamayan hedef kelimeler için — Cümle Kur egzersizinin
+// kendi cefr/freq bilgisiyle salt-okunur bilgi satırı. Kelime Listem'de
+// izlenebilir bir kayıt olmadığı için Biliyorum/Öğreniyorum/Favorile
+// butonları göstermiyoruz (uydurma bir bağlantı kurmuş oluruz).
+function grWordBadgeReadonlyHtml(targetWord, cefr, freq) {
+  if (!targetWord) return '';
+  const cefrTag = cefr ? `<span class="gr-word-tag">${cefr}</span>` : '';
+  const freqTag = freq ? `<span class="gr-word-tag">${freq.replace(' Frequency','')}</span>` : '';
+  return `<div class="gr-word-badge">
+    <div class="gr-word-badge-top"><b>${targetWord}</b>${cefrTag}${freqTag}</div>
+  </div>`;
+}
+
+function grRefreshWordBadges() {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  if (t) t.subs.forEach((s, j) => { if (document.getElementById('gr-verify-'+j)) grRenderVerify(t, j); });
+}
+
+// targetWord (ör. "pushes") için word-data.json'da kök/çekim toleranslı POS
+// araması — sentence-exercises.json zaten cefr+freq veriyor, biz sadece
+// pos'u tamamlıyoruz (bulursa gerçek Kelime Listem kaydına bağlanır).
+function grLemmaCandidates(token) {
+  const t = token.toLowerCase();
+  const c = [t];
+  if (t.endsWith('ies') && t.length > 4) c.push(t.slice(0, -3) + 'y');
+  if (t.endsWith('es') && t.length > 3) { c.push(t.slice(0, -2)); c.push(t.slice(0, -1)); }
+  if (t.endsWith('s') && t.length > 3) c.push(t.slice(0, -1));
+  if (t.endsWith('ed') && t.length > 4) { c.push(t.slice(0, -2)); c.push(t.slice(0, -1)); }
+  if (t.endsWith('ing') && t.length > 5) { c.push(t.slice(0, -3)); c.push(t.slice(0, -3) + 'e'); }
+  return [...new Set(c)];
+}
+function grFindWordDataEntry(word) {
+  const pool = (window.WORD_DATA || []).concat(window.EXTRA_WORDS || []);
+  for (const lemma of grLemmaCandidates(word)) {
+    const hit = pool.find(w => w.word && w.word.toLowerCase() === lemma);
+    if (hit) return hit;
+  }
+  return null;
 }
 
 function grAnswerPractice(j, userSaidCorrect, target) {
