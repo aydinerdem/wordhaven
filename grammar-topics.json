@@ -1098,7 +1098,18 @@
       "why": "İngilizce'de olumsuzluk fiile doğrudan ek yerine yardımcı fiil ('do/does not') ile kurulur — Türkçe'nin fiile '-me/-ma' eklemesinden yapısal olarak farklıdır.",
       "mistakes": "'Doesn't' kullanılınca ana fiildeki -s takısı düşer — \"He doesn't likes\" yanlış, \"He doesn't like\" doğru; bu çifte olumsuzlama/ek hatası çok sık görülür.",
       "confusion": "'Don't' ile 'doesn't' seçimi özneye göre değişir (he/she/it → doesn't, diğerleri → don't) — bu ayrım bazen present continuous'un 'am/is/are not' yapısıyla karıştırılır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "She ___ like coffee.",
+       "opts": [
+        "doesn't",
+        "don't"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     }
    ]
   },
@@ -22342,7 +22353,34 @@
       "why": "Bir soruyu daha kibar veya dolaylı bir şekilde sormak için, genellikle 'Do you know...', 'Can you tell me...' gibi kalıplarla birlikte kullanılır.",
       "mistakes": "Öğrenciler dolaylı soruda da direkt soru sırasını kullanır; 'Do you know where does she live?' yanlıştır, doğrusu 'Do you know where she lives?' olmalıdır.",
       "confusion": "Direkt sorular (Where does she live?) ile karıştırılır; direkt soruda do/does yardımcı fiili öne gelir, dolaylı soruda ise özne fiilden önce gelir ve do/does kullanılmaz."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "Could you tell me ___ she lives?",
+       "opts": [
+        "where does",
+        "where"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "Do you know ___ time the shop opens?",
+       "opts": [
+        "what",
+        "what does"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "I'd like to know ___ he works here.",
+       "opts": [
+        "if",
+        "does"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-negative",
@@ -22386,7 +22424,34 @@
       "why": "Bir alışkanlığın, gerçeğin veya durumun olmadığını belirtmek için kullanılır.",
       "mistakes": "Öğrenciler doesn't kullanırken fiile de '-s' ekler; 'He doesn't likes' yanlıştır, doğrusu 'He doesn't like' olmalıdır.",
       "confusion": "'Don't' ve 'doesn't' seçimi karıştırılır; he/she/it ile 'doesn't', diğer özneler (I/you/we/they) ile 'don't' kullanılır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "She ___ like coffee.",
+       "opts": [
+        "doesn't",
+        "don't"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "I ___ eat meat.",
+       "opts": [
+        "doesn't",
+        "don't"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "They ___ live in this city.",
+       "opts": [
+        "doesn't",
+        "don't"
+       ],
+       "correct": 1
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -22412,7 +22477,34 @@
       "why": "Bir bilgiyi, alışkanlığı veya gerçeği sormak için kullanılır.",
       "mistakes": "Öğrenciler does ile fiile '-s' eklemeye devam eder; 'Does she speaks?' yanlıştır, doğrusu 'Does she speak?' olmalıdır.",
       "confusion": "Present continuous soruları (Is she speaking?) ile karıştırılır; do/does şu anki değil, genel/alışılmış bir eylemi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you like tea?",
+       "opts": [
+        "Do",
+        "Does"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "___ she speak French?",
+       "opts": [
+        "Do",
+        "Does"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "What time ___ the shops open?",
+       "opts": [
+        "do",
+        "does"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-with-adverbs-of-indefinite-frequency",
@@ -42303,7 +42395,34 @@
       "why": "Bir eylemin şu anda gerçekleşmediğini söylemek için kullanılır.",
       "mistakes": "Öğrenciler çoğu zaman 'not' kelimesini 'be' fiilinden önce koyar; örneğin 'She not is watching' yanlıştır, doğrusu 'She isn't watching' olmalıdır.",
       "confusion": "Present Simple olumsuzuyla karıştırılır: 'She doesn't watch' genel bir alışkanlığı, 'She isn't watching' ise şu anki durumu anlatır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "She ___ watching TV right now, she's studying.",
+       "opts": [
+        "isn't",
+        "doesn't"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "We ___ playing football today because it's raining.",
+       "opts": [
+        "not are",
+        "aren't"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "I ___ working at the moment, I'm having lunch.",
+       "opts": [
+        "am not",
+        "not am"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -42341,7 +42460,34 @@
       "why": "Şu anda yapılan bir eylem hakkında bilgi almak için kullanılır.",
       "mistakes": "Öğrenciler genellikle be fiilini unutur ve 'You studying?' gibi eksik sorular kurar; doğrusu 'Are you studying?' olmalıdır.",
       "confusion": "Present Simple sorularıyla karıştırılır: 'Do you study English?' alışkanlığı sorar, 'Are you studying English?' şu anki eylemi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you watching TV right now?",
+       "opts": [
+        "Are",
+        "Do"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "___ she studying at the moment?",
+       "opts": [
+        "Is",
+        "Does"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "What ___ they doing in the garden?",
+       "opts": [
+        "are",
+        "do"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-use-with-adverbs-of-indefinite-frequency",
@@ -45888,7 +46034,18 @@
       "why": "Bir eylemin geçmişte gerçekleşmediğini belirtmek için kullanılır.",
       "mistakes": "Öğrenciler fiili hem 'didn't' ile hem de geçmiş zaman ekiyle kullanma hatası yapar; örneğin 'didn't went' yanlıştır, doğrusu 'didn't go' olmalıdır.",
       "confusion": "'doesn't/don't' ile karıştırılır; bunlar şimdiki zaman içindir, geçmiş zaman için her zaman 'didn't' kullanılır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "She ___ to the party last night.",
+       "opts": [
+        "didn't go",
+        "didn't went"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -45938,7 +46095,18 @@
       "why": "Geçmişte bir şeyin olup olmadığını sormak için kullanılır.",
       "mistakes": "Öğrenciler 'did' kullandıktan sonra fiile yine de '-ed' ekleme hatası yapar; örneğin 'Did you called' yerine 'Did you call' doğrudur.",
       "confusion": "Present simple sorularıyla karıştırılır; 'Do you like' şimdiki alışkanlığı, 'Did you like' ise geçmiş bir deneyimi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you visit your grandmother last weekend?",
+       "opts": [
+        "Did",
+        "Were"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-with-when",
@@ -77610,7 +77778,34 @@
       "why": "Bu yapı, geçmişte gerçekleşmeyen bir eylemi ya da durumu belirtmek için kullanılır.",
       "mistakes": "Öğrenciler fiili hem 'did' hem de geçmiş zaman haliyle kullanır; örneğin 'didn't went' yanlıştır, doğrusu 'didn't go'dur.",
       "confusion": "'Wasn't/weren't' ile karıştırılır; 'be' fiili dışındaki fiillerde 'did not' kullanılır, 'be' fiilinde ise 'was not/were not' kullanılır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "She ___ to the party last night.",
+       "opts": [
+        "didn't go",
+        "didn't went"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "We ___ our homework yesterday.",
+       "opts": [
+        "not did finish",
+        "didn't finish"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "They ___ the truth about the accident.",
+       "opts": [
+        "didn't know",
+        "not knew"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -77654,7 +77849,34 @@
       "why": "Bu yapı, geçmişte bir olayın gerçekleşip gerçekleşmediğini öğrenmek için kullanılır.",
       "mistakes": "Öğrenciler 'did' kullanınca fiili yine de geçmiş zaman yapar; örneğin 'Did you called?' yanlıştır, doğrusu 'Did you call?'dır.",
       "confusion": "'Was/were' soruları ile karıştırılır; 'be' fiili olmayan cümlelerde 'did', 'be' fiilinin olduğu cümlelerde 'was/were' kullanılır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you visit your grandmother last weekend?",
+       "opts": [
+        "Did",
+        "Were"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "What time ___ the meeting start yesterday?",
+       "opts": [
+        "was",
+        "did"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "___ they finish the project on time?",
+       "opts": [
+        "Did",
+        "Do"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-habitual-states-or-actions",
@@ -90102,7 +90324,34 @@
       "why": "Geçmişte belirli bir anda bir şeyin yapılmadığını anlatmak için kullanılır.",
       "mistakes": "Öğrenciler genellikle 'not' kelimesini fiilin sonuna ya da yanlış yere koyar, örneğin 'She listening not' gibi hatalı cümleler kurar; doğrusu 'She wasn't listening' şeklindedir.",
       "confusion": "Simple Past olumsuzuyla karıştırılır: 'didn't listen' belirli bir olayı bütünüyle anlatırken, 'wasn't listening' o anda süren bir eylemi anlatır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "She ___ to the party last night.",
+       "opts": [
+        "didn't go",
+        "didn't went"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "They ___ their homework yesterday.",
+       "opts": [
+        "not did",
+        "didn't do"
+       ],
+       "correct": 1
+      },
+      {
+       "q": "We ___ him at the meeting.",
+       "opts": [
+        "didn't see",
+        "didn't saw"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -90164,7 +90413,34 @@
       "why": "Geçmişte belirli bir anda ne olduğunu sormak için kullanılır.",
       "mistakes": "Öğrenciler soru kurarken 'was/were'i unutup 'You were watching TV?' gibi ifadeleri devrik yapmadan bırakabilir; doğrusu 'Were you watching TV?' şeklindedir.",
       "confusion": "Simple Past soru yapısıyla karıştırılır: 'Did you watch TV?' tamamlanmış bir eylemi sorar, 'Were you watching TV?' ise o anda süren bir eylemi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you visit your grandmother last weekend?",
+       "opts": [
+        "Did",
+        "Were"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "Where ___ they go after the party?",
+       "opts": [
+        "did",
+        "does"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "___ she finish her homework on time?",
+       "opts": [
+        "Was",
+        "Did"
+       ],
+       "correct": 1
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-with-adverbs",
@@ -91457,7 +91733,34 @@
       "why": "Karşımızdaki kişiden onay almak veya söylediğimizin doğru olup olmadığını nazikçe kontrol etmek için kullanılır.",
       "mistakes": "Türkçe öğrenciler genelde tag'i cümlenin öznesi ve fiiliyle uyumlu yapmayı unutur; örneğin 'She likes coffee, doesn't it?' yerine 'doesn't she?' olmalıdır.",
       "confusion": "Olumsuz cümle + olumlu tag yapısıyla karıştırılır: 'You don't like it, do you?' Burada ana cümle olumsuzsa tag olumlu olur, kural tam tersine döner."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "You live near the school, ___?",
+       "opts": [
+        "don't you",
+        "aren't you"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "She works at a hospital, ___?",
+       "opts": [
+        "doesn't she",
+        "isn't she"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "They are your neighbors, ___?",
+       "opts": [
+        "don't they",
+        "aren't they"
+       ],
+       "correct": 1
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -91495,7 +91798,34 @@
       "why": "Günlük alışkanlıklar, gerçekler veya rutinler hakkında soru sormak için kullanılır.",
       "mistakes": "Öğrenciler genellikle does kullanırken fiile de -s eklemeye devam eder: 'Does she works?' yerine 'Does she work?' olmalıdır.",
       "confusion": "Present continuous soru yapısıyla karıştırılır: 'Is she working?' Present simple genel durumları, continuous ise şu an olan eylemi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "You live here, ___?",
+       "opts": [
+        "don't you",
+        "aren't you"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "She isn't coming, ___?",
+       "opts": [
+        "is she",
+        "isn't she"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "They have a car, ___?",
+       "opts": [
+        "don't they",
+        "haven't they"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-mental-process-verbs",
@@ -95773,7 +96103,18 @@
       "why": "Bir eylemin ne kadar süredir devam ettiğini veya hâlâ sürüp sürmediğini sormak için kullanılır.",
       "mistakes": "Öğrenciler 'been' kelimesini soru cümlesinde atlayarak 'Have you waiting?' gibi yanlış yapılar kurar; doğrusu 'Have you been waiting?' olmalıdır.",
       "confusion": "Present Continuous soruları ile karıştırılır; 'Are you waiting?' şu anki eylemi sorar, 'Have you been waiting?' ise süreyi vurgular."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you watching TV when I called?",
+       "opts": [
+        "Were",
+        "Did"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-repeated-continuing-events",
@@ -101939,7 +102280,18 @@
       "why": "Bu yapı, gelecekteki bir anda bir eylemin gerçekleşmeyeceğini net bir şekilde belirtmek için kullanılır.",
       "mistakes": "Öğrenciler sıklıkla 'be' fiilini atlayıp 'won't sleeping' gibi hatalı bir yapı kurar; doğru şekli 'won't be sleeping' olmalıdır.",
       "confusion": "Bu yapı, basit gelecek zamanın olumsuzu olan 'won't' ile karıştırılabilir; 'I won't sleep' sadece eylemin olmayacağını belirtirken, 'I won't be sleeping' belirli bir zamanda eylemin sürmeyeceğini vurgular."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "I ___ go to the party tonight because I feel sick.",
+       "opts": [
+        "won't",
+        "will"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     }
    ],
    "tense": "Future Continuous"
@@ -125802,7 +126154,34 @@
       "why": "Geçmişte gerçekleşmeyen bir eylemi belirtmek için kullanılır.",
       "mistakes": "Öğrenciler genellikle 'didn't' ile fiile yine de '-ed' ekler; örneğin 'didn't called' yanlıştır, doğrusu 'didn't call'dır.",
       "confusion": "'Doesn't/don't' ile karıştırılır; bunlar şimdiki zaman içindir, geçmişte sadece 'didn't' kullanılır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "Could you tell me why you ___ attend the meeting yesterday?",
+       "opts": [
+        "didn't",
+        "not"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "I was wondering if you ___ finish the report last night.",
+       "opts": [
+        "hadn't",
+        "not had"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "Would you mind explaining why she ___ call us back last week?",
+       "opts": [
+        "not did",
+        "didn't"
+       ],
+       "correct": 1
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-questions",
@@ -125834,7 +126213,34 @@
       "why": "Geçmişte gerçekleşen bir olay hakkında bilgi almak için kullanılır.",
       "mistakes": "Öğrenciler 'did' kullandıktan sonra fiile yine '-ed' ekleme hatası yapar; 'Did you saw' yanlış, 'Did you see' doğrudur.",
       "confusion": "'Was/were' ile soru kalıbıyla karıştırılır; 'did' normal fiillerle, 'was/were' ise 'to be' fiiliyle kullanılır, örneğin 'Were you there?' ile 'Did you go?' farklıdır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you mind telling me where you had been before the meeting?",
+       "opts": [
+        "Would",
+        "Did"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "___ you tell me what time the train had left, please?",
+       "opts": [
+        "Could",
+        "Do"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "I was wondering if you ___ mind explaining why the report hadn't been finished.",
+       "opts": [
+        "would",
+        "had"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-with-subordinating-conjunctions",
@@ -127335,7 +127741,34 @@
       "why": "Olumsuz yapı, geçmişte bir eylemin belirli bir süre boyunca gerçekleşmediğini ya da beklenen durumun tersinin yaşandığını belirtmek için kullanılır.",
       "mistakes": "Öğrenciler sıklıkla 'not' kelimesini 'been' den sonra koyar, örneğin yanlış olarak 'had been not feeling' der, doğrusu ise 'hadn't been feeling' şeklindedir.",
       "confusion": "Present perfect continuous olumsuzuyla karıştırılır; 'hasn't been feeling' şu ana kadar süren bir durumu, 'hadn't been feeling' ise geçmişteki başka bir olaydan önceki durumu anlatır."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "By the time we arrived, she ___ the meeting.",
+       "opts": [
+        "hadn't started",
+        "didn't started"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "He ___ his homework before dinner started.",
+       "opts": [
+        "hadn't finished",
+        "hasn't finished"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "They ___ that movie before, so they watched it again.",
+       "opts": [
+        "hadn't seen",
+        "haven't seen"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-with-adverbs",
@@ -133138,7 +133571,18 @@
       "why": "Bir eylemin gelecekteki bir noktaya kadar süregelmemiş olacağını vurgulamak için kullanılır.",
       "mistakes": "Öğrenciler 'not' ekini yanlış yere koyup 'will have not been' gibi sıralamalar yapabilir; doğru sıralama 'will not have been' şeklindedir.",
       "confusion": "Future Perfect olumsuz hâli (will not have done) ile karıştırılabilir; o yapı bir eylemin tamamlanmamış olacağını, bu yapı ise sürecin devam etmemiş olacağını anlatır. Örneğin 'will not have finished' ile 'will not have been working' arasındaki fark budur."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "By next month, she ___ finished the project.",
+       "opts": [
+        "will not have",
+        "will not had"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-looking-back-from-a-point-in-the-future",
@@ -134267,7 +134711,18 @@
       "why": "Bir eylemin belirli bir süreden beri yapılmadığını veya devam etmediğini vurgulamak için kullanılır.",
       "mistakes": "Türk öğrenciler genellikle 'not' kelimesini yanlış yere koyar, örneğin 'She has not been feeling' yerine 'She has been not feeling' gibi hatalı sıralamalar yapabilir.",
       "confusion": "Present Perfect Simple'ın olumsuzuyla karıştırılabilir; 'hasn't done' bitmiş bir eylemin hiç olmadığını, 'hasn't been doing' ise süreklilik içeren bir eylemin olmadığını belirtir. Örnek: 'She hasn't finished' (bitirmedi) vs 'She hasn't been working' (çalışmıyordu)."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "I ___ finished my homework yet, so I can't go out.",
+       "opts": [
+        "haven't",
+        "didn't"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-with-adverbs",
@@ -138088,7 +138543,18 @@
       "why": "Bu yapı, gelecekte belirli bir anda birinin ne yapıyor olacağını sorarken kullanılır.",
       "mistakes": "Türk öğrenciler genellikle 'will' ile 'be' arasındaki sırayı karıştırıp 'Will be you waiting?' gibi yanlış cümleler kurar; doğrusu 'Will you be waiting?' şeklindedir.",
       "confusion": "Future simple soru yapısıyla (Will you wait?) karıştırılır; future continuous soruda ekstra olarak 'be + -ing' bulunur ve belirli bir andaki eylemi vurgular."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "___ you be able to help me move this weekend?",
+       "opts": [
+        "Would",
+        "Do"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-politeness",
@@ -145860,7 +146326,34 @@
       "why": "Bu yapı geçmişte gerçekleşmiş bir eylem hakkında bilgi almak için kullanılır.",
       "mistakes": "Öğrenciler sıklıkla fiili de geçmiş zamana çevirme hatası yapar; örneğin 'Did you finished?' yanlıştır, doğrusu 'Did you finish?' olmalıdır.",
       "confusion": "Present perfect soru yapısıyla karıştırılabilir; 'Did you see him?' geçmişteki belirli bir zamanı sorarken, 'Have you seen him?' şu ana kadarki deneyimi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "I don't suppose you ___ happen to know why the meeting was cancelled, would you?",
+       "opts": [
+        "would",
+        "wouldn't"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "___ you by any chance have known about the changes beforehand?",
+       "opts": [
+        "Could",
+        "Did"
+       ],
+       "correct": 0
+      },
+      {
+       "q": "You wouldn't ___ known what time she left, would you?",
+       "opts": [
+        "have",
+        "had"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-complex-ordering-of-past-events",
@@ -153501,7 +153994,18 @@
       "why": "Karşındaki kişiyi doğrudan bir öneriyle köşeye sıkıştırmak yerine, onu kendi fikrine varmış gibi hissettirerek ikna etmek için kullanılır.",
       "mistakes": "Türk öğrenciler bu yapıyı gerçek bir bilgi sorusu gibi kullanıp tonunu kaybeder; örneğin 'Don't you like coffee?' cümlesini sadece merak sorusu gibi kurup ikna vurgusunu veremezler.",
       "confusion": "Düz olumlu sorularla (Do you think...?) karıştırılır; olumsuz form daha güçlü bir öneri/ikna hissi verirken, olumlu form sadece bilgi sorar."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "'You really ought to reconsider your decision.' ___ that this approach could save us both time and money?",
+       "opts": [
+        "Don't you think",
+        "Do you not thinking"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "form-use-negative-questions-opinion",
@@ -153593,7 +154097,18 @@
       "why": "Kendi görüşünü doğrudan dayatmadan, karşındakini de aynı fikre çekmek ve düşüncesini nazikçe sormak için kullanılır.",
       "mistakes": "Öğrenciler bu yapıyı Türkçedeki 'değil mi?' kalıbıyla birebir eşleştirip cümle sonuna 'right?' ekleyerek fazladan pekiştirme yapar; 'Doesn't it seem unfair, right?' gibi hatalı tekrarlar ortaya çıkar.",
       "confusion": "Basit 'What do you think?' sorusuyla karıştırılır; ancak olumsuz soru yapısı sadece görüş sormaz, aynı zamanda konuşmacının o görüşe zaten yakın olduğunu da ima eder."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "'This new policy is going to save the company a fortune.' ___ be more cost-effective to simply renegotiate the existing contracts instead?",
+       "opts": [
+        "Wouldn't it",
+        "Won't it"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     },
     {
      "id": "use-reporting-verbs",
@@ -159710,7 +160225,18 @@
       "why": "Bu kullanım, konuşmacının cevap beklemediği, sadece duygusal tepkisini vurgulamak istediği durumlarda tercih edilir.",
       "mistakes": "Türk öğrenciler genellikle bu tür sorularda 'always' gibi bir zarf eklemeyi unutur ve cümle sadece nötr bir soru gibi algılanır; oysa 'always/constantly' kelimesi sitemi güçlendiren anahtar unsurdur.",
       "confusion": "Bu yapı, bilgi almak için sorulan normal present continuous sorularıyla karıştırılabilir; farkı anlamak için tonlama ve 'always/constantly' gibi zarfların varlığına dikkat etmek gerekir, çünkü gerçek soru cevap beklerken retorik soru sadece tepki içerir."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "'Isn't it obvious that we need to change our approach?' Bu soru, gerçek bir bilgi talebinden ziyade ___ vurgulamak için sorulmuştur.",
+       "opts": [
+        "bir görüşü etkili biçimde",
+        "geçmişte olan bir olayı"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     }
    ],
    "tense": "Present Continuous"
@@ -175962,7 +176488,18 @@
       "why": "Bu yapı, geçmişteki bir noktadan önce belirli bir süre devam etmiş olan bir eylemin sürekliliğini veya süresini sorgulamak için kullanılır.",
       "mistakes": "Türk öğrenciler genellikle yardımcı fiili öne almayı unutup 'She had been waiting?' gibi düz cümleyi soru tonlamasıyla söylemeye çalışır; doğrusu 'Had she been waiting?' şeklinde devrik yapıdır. Ayrıca 'been' yerine yanlışlıkla 'be' kullanmak da sık görülen bir hatadır (Had she be waiting? yerine Had she been waiting?).",
       "confusion": "Past perfect simple sorularıyla (Had she waited?) karıştırılır; past perfect continuous, eylemin süresine ve devamlılığına vurgu yaparken, past perfect simple genellikle eylemin tamamlanmışlığına veya sonucuna odaklanır. Örneğin 'Had she finished the report?' tamamlanma sorarken, 'Had she been working on the report?' sürecin kendisini sorgular."
-     }
+     },
+     "quizPool": [
+      {
+       "q": "I don't suppose you ___ happen to know why she resigned so suddenly, would you?",
+       "opts": [
+        "would",
+        "wouldn't"
+       ],
+       "correct": 0
+      }
+     ],
+     "verifyType": "quiz"
     }
    ],
    "tense": "Past Perfect Continuous"
