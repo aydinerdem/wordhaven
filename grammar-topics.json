@@ -13636,6 +13636,162 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "I ___ cook Italian food quite well.",
+       "opts": [
+        "can",
+        "cans"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "cook",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "cook",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "food",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "quite",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "noun",
+         "cefr": "C1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "You ___ use my phone if you need to.",
+       "opts": [
+        "cans",
+        "can"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "use",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "use",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "phone",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "phone",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "need",
+         "pos": "modal verb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "need",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "need",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "My sister ___ paint beautiful pictures.",
+       "opts": [
+        "can",
+        "cant"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "sister",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "paint",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "paint",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "beautiful",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "picture",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "picture",
+         "pos": "verb",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -14068,6 +14224,222 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "I ___ hear you very well, could you speak louder please?",
+       "opts": [
+        "can't",
+        "can"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "hear",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adjective",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "noun",
+         "cefr": "C1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "speak",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "My grandmother ___ use a computer, she never learned how.",
+       "opts": [
+        "can",
+        "can't"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "grandmother",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "use",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "use",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "computer",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "never",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "learn",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "how",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "They ___ enter the museum after five o'clock because it closes early.",
+       "opts": [
+        "can't",
+        "can"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "enter",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "museum",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "after",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "after",
+         "pos": "conjunction",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "after",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "five",
+         "pos": "number",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "o'clock",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "because",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "close",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "close",
+         "pos": "adverb",
+         "cefr": "B1",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "close",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "close",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "early",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "early",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -14413,6 +14785,90 @@
          "word": "please",
          "pos": "verb",
          "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ you speak French fluently?",
+       "opts": [
+        "Can",
+        "Do"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "speak",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ I borrow your pen for a minute?",
+       "opts": [
+        "Am",
+        "Can"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "borrow",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "pen",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "minute",
+         "pos": "adjective",
+         "cefr": "C1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "minute",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ they visit the museum this weekend?",
+       "opts": [
+        "Can",
+        "Is"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "visit",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "visit",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "museum",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "weekend",
+         "pos": "noun",
+         "cefr": "A1",
          "freq": "High Frequency"
         }
        ]
@@ -14932,6 +15388,216 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "When I was younger, I ___ read very quickly.",
+       "opts": [
+        "could",
+        "can"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "when",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "read",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adjective",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "quickly",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "My uncle ___ paint amazing pictures when he was a teenager.",
+       "opts": [
+        "can",
+        "could"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "uncle",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "paint",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "paint",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "amazing",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "picture",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "picture",
+         "pos": "verb",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "when",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "teenager",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "As a little girl, she ___ sing beautiful songs without any lessons.",
+       "opts": [
+        "could",
+        "can"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "little",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "little",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "little",
+         "pos": "determiner",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "little",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "girl",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "sing",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "beautiful",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "song",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "without",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "any",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "any",
+         "pos": "determiner",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "any",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "lesson",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -15330,6 +15996,162 @@
         {
          "word": "little",
          "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ you close the door, please? It's cold in here.",
+       "opts": [
+        "Can",
+        "Do"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "close",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "close",
+         "pos": "adverb",
+         "cefr": "B1",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "close",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "close",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "door",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "cold",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "cold",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "here",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ I have a glass of water, please?",
+       "opts": [
+        "Am",
+        "Can"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "glass",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "water",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "water",
+         "pos": "verb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "please",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ you help me with this heavy box, please?",
+       "opts": [
+        "Can",
+        "Are"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "help",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "help",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "heavy",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "box",
+         "pos": "noun",
          "cefr": "A1",
          "freq": "High Frequency"
         },
@@ -15824,6 +16646,186 @@
          "pos": "noun",
          "cefr": "A1",
          "freq": "High Frequency"
+        },
+        {
+         "word": "instead",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "You're hungry and there's nothing at home. We ___ order some pizza.",
+       "opts": [
+        "can",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "hungry",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "nothing",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "home",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "home",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "home",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "order",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "order",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "some",
+         "pos": "determiner",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "some",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "Your room is very messy. You ___ clean it up a bit.",
+       "opts": [
+        "can",
+        "are"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "room",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adjective",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "messy",
+         "pos": "adjective",
+         "cefr": "",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "clean",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "clean",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "bit",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "The museum is closed today. We ___ visit the art gallery instead.",
+       "opts": [
+        "can",
+        "will"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "museum",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "closed",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "today",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "today",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "visit",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "visit",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "art",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "gallery",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "Medium Frequency"
         },
         {
          "word": "instead",
@@ -17012,6 +18014,238 @@
          "word": "year",
          "pos": "noun",
          "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "This hotel is 'the ___ (ideal)' place for our summer vacation.",
+       "opts": [
+        "most ideal",
+        "idealest"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "hotel",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "ideal",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "ideal",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "place",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "place",
+         "pos": "verb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "summer",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "vacation",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "That job offer was 'the ___ (ideal)' opportunity of my career.",
+       "opts": [
+        "idealest",
+        "most ideal"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "job",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "offer",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "offer",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "ideal",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "ideal",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "opportunity",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "career",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "This service fee is 'the ___ (included)' cost in the whole package.",
+       "opts": [
+        "most included",
+        "includedest"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "service",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "fee",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "included",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "cost",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "cost",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "whole",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "whole",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "package",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "package",
+         "pos": "verb",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "Breakfast is 'the ___ (included)' meal of all in this hotel deal.",
+       "opts": [
+        "includedest",
+        "most included"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "breakfast",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "included",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "meal",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "all",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "all",
+         "pos": "determiner",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "all",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "hotel",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "deal",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "deal",
+         "pos": "verb",
+         "cefr": "A2",
          "freq": "High Frequency"
         }
        ]
@@ -73400,6 +74634,152 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "When he was a teenager, he ___ solve difficult math problems quickly.",
+       "opts": [
+        "could",
+        "should"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "when",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "teenager",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "solve",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "difficult",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "math",
+         "pos": "noun",
+         "cefr": "",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "problem",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "quickly",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "As a young girl, she ___ ride a horse without any help.",
+       "opts": [
+        "must",
+        "could"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "young",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "young",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "girl",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "ride",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "ride",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "horse",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "without",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "any",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "any",
+         "pos": "determiner",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "any",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "help",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "help",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -73765,6 +75145,104 @@
          "word": "mind",
          "pos": "verb",
          "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ I take a look at your notes from yesterday's class?",
+       "opts": [
+        "May",
+        "Must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "take",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "look",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "look",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "not",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "from",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "class",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "Medium Frequency"
+        }
+       ]
+      },
+      {
+       "q": "___ I leave early today? I have a doctor's appointment.",
+       "opts": [
+        "Should",
+        "Could"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "leave",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "leave",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "early",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "early",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "today",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "today",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "appointment",
+         "pos": "noun",
+         "cefr": "B1",
          "freq": "High Frequency"
         }
        ]
@@ -74250,6 +75728,104 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "The train ___ be late because of the heavy traffic downtown.",
+       "opts": [
+        "might",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "train",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "train",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "late",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "late",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "because",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "heavy",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "traffic",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "downtown",
+         "pos": "adjective",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "downtown",
+         "pos": "adverb",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "downtown",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "They ___ be on vacation this week, but I haven't heard from them.",
+       "opts": [
+        "could",
+        "should"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "vacation",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "week",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "from",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -74698,6 +76274,116 @@
         {
          "word": "night",
          "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "If you can't sleep at night, you ___ avoid drinking coffee in the evening.",
+       "opts": [
+        "should",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "can't",
+         "pos": "",
+         "cefr": "",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "sleep",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "sleep",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "night",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "avoid",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "drink",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "drink",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "coffee",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "evening",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "You ___ apologize to her, she's been waiting for you to say something.",
+       "opts": [
+        "should",
+        "can"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "apologize",
+         "pos": "verb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "wait",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "wait",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "say",
+         "pos": "noun",
+         "cefr": "C1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "say",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "something",
+         "pos": "pronoun",
          "cefr": "A1",
          "freq": "High Frequency"
         }
@@ -76464,6 +78150,84 @@
         {
          "word": "early",
          "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "yes",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "Should he apologize to her? Yes, he ___.",
+       "opts": [
+        "should",
+        "shoulds"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "apologize",
+         "pos": "verb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "yes",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "Must I bring my passport? No, you ___.",
+       "opts": [
+        "mustn't",
+        "don't have to"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "bring",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "passport",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "Medium Frequency"
+        }
+       ]
+      },
+      {
+       "q": "Do you have to finish this by Friday? Yes, I ___.",
+       "opts": [
+        "do",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "finish",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "finish",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "friday",
+         "pos": "noun",
          "cefr": "A1",
          "freq": "High Frequency"
         },
@@ -115245,6 +117009,134 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "They ___ have missed the flight because I saw them at the gate an hour before departure.",
+       "opts": [
+        "can't",
+        "should"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "miss",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "flight",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "because",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "gate",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "hour",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "before",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "before",
+         "pos": "conjunction",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "before",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "departure",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "Medium Frequency"
+        }
+       ]
+      },
+      {
+       "q": "We ___ have brought an umbrella; we got soaked walking home in the rain.",
+       "opts": [
+        "should",
+        "can't"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "umbrella",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "soak",
+         "pos": "verb",
+         "cefr": "C1",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "walk",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "walk",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "home",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "home",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "home",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "rain",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "rain",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -115841,6 +117733,122 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "He ___ have taken the wrong train; he's not answering his phone and he's very late.",
+       "opts": [
+        "must",
+        "should"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "wrong",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "wrong",
+         "pos": "adverb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "wrong",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "train",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "train",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "answer",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "answer",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "phone",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "phone",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adjective",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "late",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "late",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "You ___ have told me you were coming; I would have prepared dinner for you.",
+       "opts": [
+        "might",
+        "could"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "come",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "prepared",
+         "pos": "adjective",
+         "cefr": "B1",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "dinner",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -116359,6 +118367,128 @@
          "freq": "High Frequency"
         }
        ]
+      },
+      {
+       "q": "The floor is wet, so someone ___ mopped it recently.",
+       "opts": [
+        "must have",
+        "should have"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "floor",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "wet",
+         "pos": "adjective",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "someone",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "recently",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "She looks exhausted. She ___ slept very well last night.",
+       "opts": [
+        "mustn't have",
+        "can't have"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "look",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "look",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adjective",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "very",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "exclamation",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "well",
+         "pos": "noun",
+         "cefr": "C1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "last",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "last",
+         "pos": "determiner",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "last",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "last",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "night",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
       }
      ]
     },
@@ -116717,6 +118847,200 @@
         {
          "word": "miss",
          "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "They ___ warned us about the storm, but the roads were already flooded when we left.",
+       "opts": [
+        "should have",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "warn",
+         "pos": "verb",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "about",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "about",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "storm",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "Low Frequency"
+        },
+        {
+         "word": "road",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "already",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "flood",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "flood",
+         "pos": "verb",
+         "cefr": "B1",
+         "freq": "Medium Frequency"
+        },
+        {
+         "word": "when",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "conjunction",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "when",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "left",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "left",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "left",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "I ___ locked the door before leaving; someone got into the house while we were away.",
+       "opts": [
+        "can",
+        "should have"
+       ],
+       "correct": 1,
+       "relatedWords": [
+        {
+         "word": "lock",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "lock",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "door",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "before",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "before",
+         "pos": "conjunction",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "before",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "leave",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "leave",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "someone",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "into",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "house",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "house",
+         "pos": "verb",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "while",
+         "pos": "conjunction",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "while",
+         "pos": "noun",
+         "cefr": "B1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "away",
+         "pos": "adverb",
          "cefr": "A1",
          "freq": "High Frequency"
         }
@@ -117099,6 +119423,146 @@
          "pos": "noun",
          "cefr": "B2",
          "freq": "Medium Frequency"
+        }
+       ]
+      },
+      {
+       "q": "She admitted she ___ have called her mother before making such a big decision on her own.",
+       "opts": [
+        "should",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "call",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "call",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "mother",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "before",
+         "pos": "adverb",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "before",
+         "pos": "conjunction",
+         "cefr": "A2",
+         "freq": ""
+        },
+        {
+         "word": "before",
+         "pos": "preposition",
+         "cefr": "A1",
+         "freq": ""
+        },
+        {
+         "word": "making",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": ""
+        },
+        {
+         "word": "such",
+         "pos": "determiner",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "such",
+         "pos": "pronoun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "big",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "decision",
+         "pos": "noun",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "own",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "own",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "own",
+         "pos": "verb",
+         "cefr": "A2",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "He said he ___ have missed the flight if the taxi hadn't been so late that morning.",
+       "opts": [
+        "would",
+        "must"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "miss",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "flight",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "taxi",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "late",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "late",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "morning",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
         }
        ]
       }
@@ -136011,6 +138475,70 @@
         {
          "word": "six",
          "pos": "number",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        }
+       ]
+      },
+      {
+       "q": "If someone leaves ___ umbrella here, I'll keep it at the front desk.",
+       "opts": [
+        "their",
+        "his"
+       ],
+       "correct": 0,
+       "relatedWords": [
+        {
+         "word": "someone",
+         "pos": "pronoun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "leave",
+         "pos": "noun",
+         "cefr": "B2",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "leave",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "umbrella",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "here",
+         "pos": "adverb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "keep",
+         "pos": "verb",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "front",
+         "pos": "adjective",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "front",
+         "pos": "noun",
+         "cefr": "A1",
+         "freq": "High Frequency"
+        },
+        {
+         "word": "desk",
+         "pos": "noun",
          "cefr": "A1",
          "freq": "High Frequency"
         }
