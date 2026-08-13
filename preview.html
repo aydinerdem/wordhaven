@@ -6716,6 +6716,11 @@ function grRenderVerify(t, j) {
       </div>`;
     }
 
+    // Bu quiz, tense'e bağlı bir konunun (t.tense var) sub-level override'lı
+    // alt maddesiyse (Negative/Question gibi) — kardeşi olan sentencekur
+    // alt maddesindeki formül kutusunu burada da göster, tutarlılık için.
+    const tenseCardHtml = grTenseFormulaCardHtml(t.tense);
+
     el.innerHTML = `<div class="gr-verify-box">
       <div class="gr-verify-label"><span>Kontrol et</span>${counterHtml}</div>
       <div class="gr-quiz-q">${q.q}</div>
@@ -6727,6 +6732,7 @@ function grRenderVerify(t, j) {
         <button class="gr-tr-toggle" onclick="grSkipQuiz(${j},-1)" style="opacity:.7;">← Önceki</button>
         <button class="gr-tr-toggle" onclick="grSkipQuiz(${j},1)" style="opacity:.7;">Sonraki →</button>
       </div>` : ''}
+      ${tenseCardHtml}
       ${grWordBadgeHtml(q.relatedWords)}
     </div>`;
   } else if (effectiveVerifyType === 'sentencekur') {
@@ -7004,6 +7010,20 @@ function grDesiredPolarity(sub) {
   if (/question|soru/.test(hay)) return 'question';
   if (/affirmat|olumlu/.test(hay)) return 'affirmative';
   return null;
+}
+
+// Sub-level 'quiz' override'lı bir alt madde, tense'e bağlı bir konuya
+// (t.tense) aitse — kardeşi olan sentencekur alt maddesindeki formül
+// kutusunu (ör. "Present Simple: Özne + Fiil...") burada da gösterir,
+// böylece Negative/Question gibi konularda da tense hatırlatması kalır.
+function grTenseFormulaCardHtml(tenseName) {
+  if (!tenseName) return '';
+  const ex = (window.SENTENCE_EXERCISES || []).find(e => e.tense === tenseName && e.tenseInfo);
+  if (!ex) return '';
+  return `<div class="sg-grammar-card">
+    <div class="sg-grammar-title">${ex.tenseInfo.name}</div>
+    <div class="sg-grammar-formula">${ex.tenseInfo.formula}</div>
+  </div>`;
 }
 
 function grFindWordDataEntry(word) {
