@@ -2576,7 +2576,7 @@ function endSession() {
 }
 
 function doExport() {
-  const data={progress,progressReverse,contentCache,streak,customProgress,customWords,customCache,srsStore,savedAt:new Date().toISOString()};
+  const data={progress,progressReverse,contentCache,streak,customProgress,customWords,customCache,srsStore,grItemStates,savedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='oxford_progress_'+todayStr()+'.json'; a.click();
@@ -2596,6 +2596,7 @@ function doImport(e){
       if(d.customWords) customWords=d.customWords;
       if(d.customCache) customCache=d.customCache;
       if(d.srsStore) srsStore=d.srsStore;
+      if(d.grItemStates) grItemStates=d.grItemStates;
       saveState();
       updateDashboard();
       renderCustomWordsList();
@@ -2745,6 +2746,14 @@ let modalCurrentWord = null; // {word, pos, cefr, speaking, writing, categories,
 // noun/verb) ayrı kartlar; srsStore ise POS'tan bağımsız, salt kelime/yapı bazlı.
 let srsStore = {};
 
+// Grammar modülü — soru bazlı kalıcı durum deposu (gr-state-dots). srsStore'dan
+// AYRI tutulur çünkü şekli farklı: srsStore anahtar başına tek obje tutarken,
+// burada her alt madde (topicId+subId) için idx→{status,selected,firstWrong}
+// şeklinde bir İÇ İÇE obje var. Anahtar: 'gr:'+topicId+':'+subId (grSrsKey ile
+// aynı format, ama farklı depoda olduğu için srsStore'daki 'learned' kaydıyla
+// çakışmaz). bkz. backlog #11.
+let grItemStates = {};
+
 function getSrsEntry(key) {
   return srsStore[key] || null;
 }
@@ -2765,7 +2774,7 @@ const STORAGE_KEY = 'oxford_flashcards_state_v1';
 
 function saveState() {
   try {
-    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, savedAt: new Date().toISOString() };
+    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, savedAt: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) { /* localStorage dolu veya erişilemez olabilir — sessizce geç */ }
 }
@@ -2786,6 +2795,7 @@ function loadState() {
     if (d.favorites) favorites = d.favorites;
     if (d.contactTrack) contactTrack = d.contactTrack;
     if (d.lookupCount) lookupCount = d.lookupCount;
+    if (d.grItemStates) grItemStates = d.grItemStates;
     return true;
   } catch (e) { return false; }
 }
@@ -5308,6 +5318,18 @@ function grMarkLearned(topicId, subId) {
   saveState();
 }
 
+// Bir alt maddenin soru/cümle durumlarını (gr-state-dots) kalıcı depodan getirir.
+// Aynı topicId+subId için HER ZAMAN aynı obje referansını döndürür — bu yüzden
+// grRenderVerify tarafında `s._itemStates = grGetItemStates(...)` yapıldıktan
+// sonra `s._itemStates[idx] = {...}` şeklindeki mevcut mutasyonlar otomatik
+// olarak grItemStates deposunu da günceller; ek bir senkron kod gerekmez,
+// sadece değişiklikten sonra saveState() çağrılması yeterli.
+function grGetItemStates(topicId, subId) {
+  const key = grSrsKey(topicId, subId);
+  if (!grItemStates[key]) grItemStates[key] = {};
+  return grItemStates[key];
+}
+
 function grInit() {
   const el = document.getElementById('gr-level-list');
   const levels = ['A1','A2','B1','B2','C1','C2'];
@@ -5574,7 +5596,9 @@ function grRenderVerify(t, j) {
       return;
     }
     const target = s.quizPool.length;
-    s._itemStates = s._itemStates || {};  // idx -> {status: 'unanswered'|'wrong'|'correct'|'correct-retry', selected, firstWrong}
+    // idx -> {status: 'unanswered'|'wrong'|'correct'|'correct-retry', selected, firstWrong}
+    // Kalıcı depoya (grItemStates) bağlı referans — bkz. grGetItemStates.
+    s._itemStates = grGetItemStates(t.topicId, s.id);
     if (s._viewIdx === undefined) s._viewIdx = 0;
     if (s._pending === undefined) s._pending = null;  // henüz "kontrol et"e basılmamış seçim
     if (s._retrying === undefined) s._retrying = null;
@@ -5657,7 +5681,8 @@ function grRenderVerify(t, j) {
     if (s._viewIdx === undefined) s._viewIdx = 0;
     if (s._pending === undefined) s._pending = null;
     if (s._retrying === undefined) s._retrying = null;
-    s._itemStates = s._itemStates || {};
+    // Kalıcı depoya (grItemStates) bağlı referans — bkz. grGetItemStates.
+    s._itemStates = grGetItemStates(t.topicId, s.id);
     const idx = s._viewIdx % target;  // sadece ilk `target` cümle kullanılıyor, tutarlı nokta sayısı için
     const item = s._itemStates[idx] || { status: 'unanswered' };
     const isRetrying = s._retrying === idx;
@@ -5770,6 +5795,7 @@ function grCheckQuizAnswer(j, target) {
   }
   s._pending = null;
   s._retrying = null;
+  saveState();  // gr-state-dots durumu kalıcı olsun (bkz. backlog #11)
   grRenderVerify(t, j);
 }
 
@@ -5969,6 +5995,7 @@ function grCheckPracticeAnswer(j, target) {
   }
   s._pending = null;
   s._retrying = null;
+  saveState();  // gr-state-dots durumu kalıcı olsun (bkz. backlog #11)
   grRenderVerify(t, j);
 }
 
