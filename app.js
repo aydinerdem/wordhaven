@@ -5315,17 +5315,73 @@ function grInit() {
     const topics = grTopicsFor(lv);
     const subCount = topics.reduce((s,t) => s + t.subs.length, 0);
     const learnedCount = topics.reduce((s,t) => s + t.subs.filter(sub => grIsLearned(t.topicId, sub.id)).length, 0);
+    const pct = subCount > 0 ? Math.round(learnedCount / subCount * 100) : 0;
     const metaText = topics.length === 0 ? 'yakında' : `${topics.length} konu · ${subCount} alt madde · ${learnedCount}/${subCount} öğrenildi`;
+    const barHtml = topics.length > 0 ? `
+      <div class="gr-lvl-bar"><div class="bar-fill" style="width:${pct}%;background:currentColor;"></div></div>` : '';
     return `
     <div class="gr-lvl-card h-${lv.toLowerCase()}" onclick="grShowTopics('${lv}')">
       <div class="gr-lvl-title">Grammar for ${lv==='A1'?'beginners':lv}</div>
       <div class="gr-lvl-meta">${metaText}</div>
+      ${barHtml}
       <div class="gr-lvl-badge">${lv}</div>
     </div>`;
   }).join('');
   document.getElementById('gr-levels-view').classList.remove('hidden');
   document.getElementById('gr-topics-view').classList.add('hidden');
   document.getElementById('gr-detail-view').classList.add('hidden');
+}
+
+// Tüm seviyelerdeki 397 konu arasında arama — başlık/EGP referansı/kategoriye göre.
+function grSearchTopics(query) {
+  const q = query.trim().toLowerCase();
+  const resultsEl = document.getElementById('gr-search-results');
+  const listEl = document.getElementById('gr-level-list');
+  if (!q) {
+    resultsEl.innerHTML = '';
+    resultsEl.classList.add('hidden');
+    listEl.classList.remove('hidden');
+    return;
+  }
+  listEl.classList.add('hidden');
+  resultsEl.classList.remove('hidden');
+  const levels = ['A1','A2','B1','B2','C1','C2'];
+  const matches = [];
+  levels.forEach(lv => {
+    grTopicsFor(lv).forEach(t => {
+      const hay = (t.title + ' ' + (t.ref||'') + ' ' + t.category).toLowerCase();
+      if (hay.includes(q)) matches.push({ lv, t });
+    });
+  });
+  if (matches.length === 0) {
+    resultsEl.innerHTML = `<p style="font-size:12.5px;color:var(--text3);padding:8px 2px;">"${query}" ile eşleşen konu bulunamadı.</p>`;
+    return;
+  }
+  resultsEl.innerHTML = matches.map(({lv, t}) => {
+    const color = grCategoryColor(t.category);
+    const gradient = grCategoryGradient(t.category);
+    return `
+    <div class="gr-topic-card" style="border-left:4px solid ${color};" onclick="grJumpFromSearch('${lv}','${t.topicId}')">
+      <div class="gr-topic-row">
+        <div class="gr-topic-icon" style="background:${gradient};color:#fff;">${ico(grCategoryIcon(t.category), 19, '#fff', false)}</div>
+        <div class="gr-topic-main">
+          <div class="gr-topic-name">${t.title}</div>
+          <div class="gr-topic-meta"><b style="color:${color};">${t.category.charAt(0)+t.category.slice(1).toLowerCase()}</b> · Grammar, ${lv}</div>
+        </div>
+        <span class="gr-topic-chevron">&#8250;</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function grJumpFromSearch(lv, topicId) {
+  grLevel = lv;
+  const idx = grTopicsFor(lv).findIndex(t => t.topicId === topicId);
+  if (idx === -1) return;
+  document.getElementById('gr-search-input').value = '';
+  document.getElementById('gr-search-results').classList.add('hidden');
+  document.getElementById('gr-level-list').classList.remove('hidden');
+  grOpenTopic(idx);
 }
 
 function grEstSeconds(text) {
@@ -5476,6 +5532,24 @@ function grMarkAccDone(j) {
   }
 }
 
+// Konunun TÜM alt maddeleri öğrenilince (tek bir alt madde değil) kısa bir
+// kutlama banner'ı gösterir — sekmeler görünümünün üstüne, birkaç saniye
+// sonra veya kapatınca kaybolur.
+function grShowTopicCelebration(t) {
+  const old = document.getElementById('gr-celebration');
+  if (old) old.remove();
+  const banner = document.createElement('div');
+  banner.id = 'gr-celebration';
+  banner.className = 'gr-celebration';
+  banner.innerHTML = `
+    <span class="gr-celebration-icon">🎉</span>
+    <div class="gr-celebration-text"><b>Tebrikler!</b> "${t.title}" konusunu bitirdin.</div>
+    <button class="gr-celebration-close" onclick="document.getElementById('gr-celebration').remove()">✕</button>`;
+  const anchor = document.getElementById('gr-summary-card');
+  anchor.parentNode.insertBefore(banner, anchor);
+  setTimeout(() => { const b = document.getElementById('gr-celebration'); if (b) b.remove(); }, 5000);
+}
+
 function grRenderVerify(t, j) {
   const s = t.subs[j];
   const el = document.getElementById('gr-verify-'+j);
@@ -5483,7 +5557,12 @@ function grRenderVerify(t, j) {
     el.innerHTML = `<div class="gr-verify-box"><div class="gr-mark-done">✓ Öğrenildi</div></div>`;
     return;
   }
-  if (t.verifyType === 'quiz') {
+  // Alt madde kendi verifyType'ını taşıyabilir (ör. "Negative"/"Question" gibi
+  // dar kapsamlı yapılar, konusu tense'e bağlı olsa bile kendi quiz'ini kullanır
+  // — Cümle Kur havuzunda olumsuz/soru örneği neredeyse hiç yok). Yoksa konudaki
+  // genel tipi kullanır (geriye dönük uyumlu).
+  const effectiveVerifyType = s.verifyType || t.verifyType;
+  if (effectiveVerifyType === 'quiz') {
     // Geriye dönük uyumluluk: eski tekil "quiz" alanı varsa quizPool'a çevir
     if (!s.quizPool && s.quiz) s.quizPool = [s.quiz];
     if (!s.quizPool || s.quizPool.length === 0) {
@@ -5550,10 +5629,19 @@ function grRenderVerify(t, j) {
       </div>` : ''}
       ${grWordBadgeHtml(q.relatedWords)}
     </div>`;
-  } else if (t.verifyType === 'sentencekur') {
+  } else if (effectiveVerifyType === 'sentencekur') {
     // Cümle Kur'un kendi havuzundan (SENTENCE_EXERCISES), aynı tense'e filtrelenmiş,
     // sayfa içi gömülü pratik. Yeni içerik üretmiyoruz, mevcut havuzu ödünç alıyoruz.
-    const pool = (window.SENTENCE_EXERCISES || []).filter(ex => ex.tense === t.tense);
+    // NOT: sentence-exercises.json'da olumlu/olumsuz/soru ayrımı için ayrı bir alan
+    // yok — alt madde adı ("Negative"/"Olumsuz" gibi) bunu istiyorsa, cümle
+    // metninden (doesn't/don't/isn't vb.) tahmin ederek ek süzme yapıyoruz.
+    // Uygun örnek yoksa sessizce tüm tense havuzuna geri dönüyoruz (boş ekran yerine).
+    let pool = (window.SENTENCE_EXERCISES || []).filter(ex => ex.tense === t.tense);
+    const desiredPolarity = grDesiredPolarity(s);
+    if (desiredPolarity) {
+      const filtered = pool.filter(ex => grExercisePolarity(ex) === desiredPolarity);
+      if (filtered.length > 0) pool = filtered;
+    }
     s._pool = s._pool || pool;
     if (s._pool.length === 0) {
       el.innerHTML = `<div class="gr-verify-box"><p style="font-size:12px;color:var(--text3);">Bu tense için Cümle Kur havuzunda örnek bulunamadı.</p></div>`;
@@ -5699,10 +5787,12 @@ function grAdvanceQuiz(j, target) {
   s._retrying = null;
   const progressCount = Object.values(s._itemStates).filter(x => x.status === 'correct' || x.status === 'correct-retry').length;
   if (progressCount >= target) {
+    const wasComplete = t.subs.every(s2 => grIsLearned(t.topicId, s2.id));
     grMarkLearned(t.topicId, s.id);
     grRenderVerify(t, j);
     document.getElementById('gr-dot-'+j).classList.add('done');
     grMarkAccDone(j);
+    if (!wasComplete && t.subs.every(s2 => grIsLearned(t.topicId, s2.id))) grShowTopicCelebration(t);
   } else {
     grRenderVerify(t, j);
   }
@@ -5788,6 +5878,33 @@ function grLemmaCandidates(token) {
   if (t.endsWith('ing') && t.length > 5) { c.push(t.slice(0, -3)); c.push(t.slice(0, -3) + 'e'); }
   return [...new Set(c)];
 }
+
+// sentence-exercises.json'da olumlu/olumsuz/soru ayrımı için ayrı bir alan
+// olmadığından, cümle metninden tahmin ediyoruz. Kesin değil ama "Negative"
+// alt maddesine olumlu örnek düşmesi gibi bariz uyumsuzlukları önler.
+function grExercisePolarity(ex) {
+  const text = (ex.root.join(' ') + ' ' + (ex.chunks||[]).map(c=>c.text).join(' ')).trim();
+  const lower = text.toLowerCase();
+  if (/\b(don't|doesn't|didn't|won't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't|can't|couldn't|shouldn't|wouldn't|not)\b/.test(lower) || /n't\b/.test(lower)) {
+    return 'negative';
+  }
+  const firstWord = (ex.root[0] || '').toLowerCase();
+  if (/\?\s*$/.test(text) || ['do','does','did','is','are','was','were','have','has','had','can','could','will','would','should','what','where','when','why','how','who','which'].includes(firstWord)) {
+    return 'question';
+  }
+  return 'affirmative';
+}
+
+// Alt madde adından ("Negative"/"Olumsuz", "Question"/"Soru" vb.) hangi
+// kutuplukta örnek istendiğini çıkarır. Belirsizse null (fark etmez).
+function grDesiredPolarity(sub) {
+  const hay = ((sub.guideword||'') + ' ' + (sub.title||'')).toLowerCase();
+  if (/negat|olumsuz/.test(hay)) return 'negative';
+  if (/question|soru/.test(hay)) return 'question';
+  if (/affirmat|olumlu/.test(hay)) return 'affirmative';
+  return null;
+}
+
 function grFindWordDataEntry(word) {
   const pool = (window.WORD_DATA || []).concat(window.EXTRA_WORDS || []);
   for (const lemma of grLemmaCandidates(word)) {
@@ -5854,10 +5971,12 @@ function grAdvancePractice(j, target) {
   s._retrying = null;
   const progressCount = Object.values(s._itemStates).filter(x => x.status === 'correct' || x.status === 'correct-retry').length;
   if (progressCount >= target) {
+    const wasComplete = t.subs.every(s2 => grIsLearned(t.topicId, s2.id));
     grMarkLearned(t.topicId, s.id);
     grRenderVerify(t, j);
     document.getElementById('gr-dot-'+j).classList.add('done');
     grMarkAccDone(j);
+    if (!wasComplete && t.subs.every(s2 => grIsLearned(t.topicId, s2.id))) grShowTopicCelebration(t);
   } else {
     grRenderVerify(t, j);
   }

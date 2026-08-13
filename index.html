@@ -408,6 +408,17 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-state-dot.correct-retry{background:var(--accent);border-color:var(--accent);color:#fff;}
 .gr-state-dot.wrong{background:var(--warn);border-color:var(--warn);color:#fff;}
 
+/* Seviye kartındaki ilerleme çubuğu — dash-lvl-bar/bar-fill ile aynı desen */
+.gr-lvl-bar{position:relative;height:6px;background:rgba(0,0,0,.15);border-radius:99px;overflow:hidden;margin-top:10px;max-width:220px;}
+.gr-lvl-bar .bar-fill{height:100%;border-radius:99px;transition:width .4s ease;opacity:.85;}
+
+/* Konu tamamlanma kutlaması */
+.gr-celebration{display:flex;align-items:center;gap:10px;background:var(--successbg);border:0.5px solid var(--success);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;animation:gr-celebration-in .3s ease;}
+@keyframes gr-celebration-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.gr-celebration-icon{font-size:22px;flex-shrink:0;}
+.gr-celebration-text{flex:1;font-size:13.5px;color:var(--success);}
+.gr-celebration-close{background:none;border:none;color:var(--success);opacity:.6;font-size:14px;cursor:pointer;flex-shrink:0;padding:2px 4px;}
+
 /* Quiz cümlesindeki kelimenin word-data.json karşılığı — CEFR/POS/frekans
    göstergesi + gerçek Biliyorum/Öğreniyorum/Favorile aksiyonları. Sadece
    kelime gerçekten kayıtlıysa görünür (uydurma bilgi göstermiyoruz). */
@@ -855,7 +866,9 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
           verisi). Açıklama, örnek ve pratik soruları WordHaven için orijinal üretildi.
         </p>
       </div>
+      <input type="text" id="gr-search-input" placeholder="397 konu arasında ara… (ör. 'past', 'articles')" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);margin-bottom:12px;box-sizing:border-box;" oninput="grSearchTopics(this.value)">
       <div id="gr-level-list"></div>
+      <div id="gr-search-results" class="hidden"></div>
     </div>
     <div id="gr-topics-view" class="hidden">
       <div class="sg-tense-row-label" style="display:flex;align-items:center;gap:8px;">
@@ -1080,7 +1093,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608131915';
+    s.src = 'app.js?v=202608132115';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
