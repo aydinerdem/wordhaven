@@ -5379,8 +5379,13 @@ function grBackToLevels() { grInit(); }
 function grOpenTopic(i) {
   grTopicIdx = i;
   const t = grTopicsFor(grLevel)[i];
-  document.getElementById('gr-detail-title').textContent = t.title + ' — ' + grLevel;
-  grRenderSummaryCard(t);
+  const color = grCategoryColor(t.category);
+  const gradient = grCategoryGradient(t.category);
+  const detailView = document.getElementById('gr-detail-view');
+  detailView.style.setProperty('--gr-accent', color);
+  document.getElementById('gr-detail-title').innerHTML =
+    `<span class="gr-detail-icon" style="background:${gradient};">${ico(grCategoryIcon(t.category), 15, '#fff', false)}</span>${t.title} — ${grLevel}`;
+  grRenderSummaryCard(t, color);
   grRenderPills(t);
   document.getElementById('gr-sections').innerHTML = t.subs.map((s, j) => {
     const nuanceHtml = s.nuance ? `
@@ -5412,17 +5417,17 @@ function grOpenTopic(i) {
   t.subs.forEach((s, j) => grRenderVerify(t, j));
   document.getElementById('gr-levels-view').classList.add('hidden');
   document.getElementById('gr-topics-view').classList.add('hidden');
-  document.getElementById('gr-detail-view').classList.remove('hidden');
+  detailView.classList.remove('hidden');
 }
 function grBackToTopics() { grShowTopics(grLevel); }
 
-function grRenderSummaryCard(t) {
+function grRenderSummaryCard(t, color) {
   const el = document.getElementById('gr-summary-card');
   if (!el) return;
   el.innerHTML = `
-    <div class="ts-card">
+    <div class="ts-card" style="border-left:3px solid ${color};">
       <div class="ts-row"><div class="ts-label">Konu</div><div class="ts-value">${t.title}<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:2px;">EGP: ${t.ref || t.title}</div></div></div>
-      <div class="ts-row"><div class="ts-label">Kategori</div><div class="ts-value">${t.category}</div></div>
+      <div class="ts-row"><div class="ts-label">Kategori</div><div class="ts-value" style="color:${color};font-weight:600;">${t.category}</div></div>
       <div class="ts-row"><div class="ts-label">Seviye</div><div class="ts-value"><span class="ts-level-badge">${grLevel}</span></div></div>
       <div class="ts-row"><div class="ts-label">Açıklama</div><div class="ts-value">${t.summary || ''}</div></div>
     </div>`;
@@ -5455,7 +5460,7 @@ function grJumpTo(j) {
 
 function grRenderPills(t) {
   document.getElementById('gr-sub-nav').innerHTML = t.subs.map((s, j) =>
-    `<button class="gr-sub-pill" onclick="grJumpTo(${j})"><span class="dot ${grIsLearned(t.topicId,s.id)?'done':''}" id="gr-dot-${j}"></span>${s.guideword}</button>`
+    `<button class="gr-sub-pill" onclick="grJumpTo(${j})"><span class="dot ${grIsLearned(t.topicId,s.id)?'done':''}" id="gr-dot-${j}"></span><span class="label">${s.guideword}</span></button>`
   ).join('');
 }
 
