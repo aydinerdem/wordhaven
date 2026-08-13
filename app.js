@@ -455,6 +455,119 @@ function dashToggleLevel(lv) {
   updateDashboard();
 }
 
+// ── Grammar özeti (backlog #13) ─────────────────────────────────────────────
+// Kelime ilerlemesinden BAĞIMSIZ bir hesap: her seviyedeki toplam alt madde
+// sayısı ve grIsLearned ile öğrenilmiş olan sayısı. Grammar A1-C2 kapsıyor,
+// kelime CEFR_LEVELS'ı C2 içermiyor — burada ayrı bir seviye listesi kullanılır.
+const GR_DASH_LEVELS = ['A1','A2','B1','B2','C1','C2'];
+function grOverallStats() {
+  let totalSubs = 0, learnedSubs = 0;
+  const perLevel = {};
+  GR_DASH_LEVELS.forEach(lv => {
+    const topics = grTopicsFor(lv);
+    const total = topics.reduce((s,t) => s + t.subs.length, 0);
+    const learned = topics.reduce((s,t) => s + t.subs.filter(sub => grIsLearned(t.topicId, sub.id)).length, 0);
+    perLevel[lv] = { total, learned };
+    totalSubs += total;
+    learnedSubs += learned;
+  });
+  return { totalSubs, learnedSubs, perLevel };
+}
+
+// SEÇENEK A (Birleşik) denendi, Erdem "B daha anlaşılır" dedi — kod
+// sadeleştirmesi için bu fonksiyon kaldırıldı, sadece B (ayrı kart) kalıcı.
+
+// Halka kartlarının üstündeki "Genel / A1 / A2 …" seçici — hem Kelimeler hem
+// Gramer kartında aynı görsel dille kullanılıyor. Erdem'in isteği: sadece
+// TOPLAM değil, "A1'de neredeyim" bakışı da olsun.
+function dashRingPillsHtml(levels, selected, setFnName) {
+  const pills = ['ALL', ...levels];
+  return `<div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;">${pills.map(lv =>
+    `<button class="gr-review-tab ${selected===lv?'active':''}" style="font-size:10.5px;padding:4px 9px;" onclick="${setFnName}('${lv}')">${lv==='ALL'?'Genel':lv}</button>`
+  ).join('')}</div>`;
+}
+
+let dashWordRingLevel = 'ALL';
+function dashSetWordRingLevel(lv) { dashWordRingLevel = lv; updateDashboard(); }
+let dashGrammarRingLevel = 'ALL';
+function dashSetGrammarRingLevel(lv) { dashGrammarRingLevel = lv; updateDashboard(); }
+
+function dashRingSvg(pct, color) {
+  return `<svg width="58" height="58" viewBox="0 0 58 58" style="flex-shrink:0;">
+    <circle cx="29" cy="29" r="24" fill="none" stroke="var(--surface2)" stroke-width="6"/>
+    <circle cx="29" cy="29" r="24" fill="none" stroke="${color}" stroke-width="6"
+      stroke-linecap="round" stroke-dasharray="${(2*Math.PI*24).toFixed(1)}"
+      stroke-dashoffset="${(2*Math.PI*24*(1-pct/100)).toFixed(1)}"
+      transform="rotate(-90 29 29)"/>
+    <text x="29" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${pct}%</text>
+  </svg>`;
+}
+
+// Gramer kartı ile aynı görsel dil (halka + başlık + alt satırlar), Erdem'in
+// isteğiyle Kelimeler bölümüne de uygulandı — bkz. dashWordSummaryHeaderHtml.
+function dashGrammarCardHtml() {
+  const gr = grOverallStats();
+  if (gr.totalSubs === 0) return '';  // Grammar verisi henüz yüklenmediyse hiç gösterme
+  const sel = dashGrammarRingLevel;
+  const ringLearned = sel === 'ALL' ? gr.learnedSubs : gr.perLevel[sel].learned;
+  const ringTotal = sel === 'ALL' ? gr.totalSubs : gr.perLevel[sel].total;
+  const pct = ringTotal ? Math.round(ringLearned / ringTotal * 100) : 0;
+  const subtitle = sel === 'ALL'
+    ? `${gr.learnedSubs} / ${gr.totalSubs} alt madde öğrenildi`
+    : `${sel}: ${ringLearned} / ${ringTotal} alt madde öğrenildi`;
+  const barsHtml = GR_DASH_LEVELS.map(lv => {
+    const g = gr.perLevel[lv];
+    if (g.total === 0) return '';
+    const p = g.total ? (g.learned / g.total * 100) : 0;
+    return `<div class="dash-lvl-row" onclick="showView('grammar');grShowTopics('${lv}')">
+      <span style="font-size:13px;font-weight:600;color:var(--accent);width:26px;flex-shrink:0;">${lv}</span>
+      <div class="dash-lvl-bar">
+        <div style="position:absolute;inset:0;width:${p}%;background:var(--accent);border-radius:99px;"></div>
+      </div>
+      <span style="flex-shrink:0;font-size:12px;color:var(--text2);white-space:nowrap;">${g.learned} / ${g.total}</span>
+      <span style="font-size:11px;color:var(--text3);flex-shrink:0;">›</span>
+    </div>`;
+  }).join('');
+  return `
+    <div class="dash-lvl-list" style="margin-top:14px;">
+      ${dashRingPillsHtml(GR_DASH_LEVELS, sel, 'dashSetGrammarRingLevel')}
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+        ${dashRingSvg(pct, 'var(--accent)')}
+        <div>
+          <div class="dash-lvl-title" style="margin:0;">Gramer</div>
+          <div style="font-size:11.5px;color:var(--text3);">${subtitle}</div>
+        </div>
+      </div>
+      ${barsHtml}
+    </div>`;
+}
+
+// Kelimeler bölümünün başına, Gramer kartıyla aynı halka+başlık dilini
+// taşıyan bir özet ekler. Erdem'in isteğiyle "Genel" toplamın yanında
+// seviye başına da bakılabiliyor (dashRingPillsHtml). Alttaki mevcut
+// dashLevelRows() (iki katmanlı çubuklar, "X çalışıldı" satırı) korunuyor —
+// sadece üstüne tutarlı bir başlık ekleniyor, detay kaybolmuyor.
+function dashWordSummaryHeaderHtml() {
+  const sel = dashWordRingLevel;
+  const words = sel === 'ALL' ? WORD_DATA : WORD_DATA.filter(w => w.cefr === sel);
+  const totalWords = words.length;
+  const mastered = words.filter(w => progress[wkey(w)]?.mastery === 'mastered').length;
+  const pct = totalWords ? Math.round(mastered / totalWords * 100) : 0;
+  const color = sel === 'ALL' ? 'var(--success)' : `var(${CEFR_COLORS[sel]})`;
+  const subtitle = sel === 'ALL'
+    ? `${mastered} / ${totalWords} kelime tam öğrenildi`
+    : `${sel}: ${mastered} / ${totalWords} kelime tam öğrenildi`;
+  return `
+    ${dashRingPillsHtml(CEFR_LEVELS, sel, 'dashSetWordRingLevel')}
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+      ${dashRingSvg(pct, color)}
+      <div>
+        <div class="dash-lvl-title" style="margin:0;">Kelimeler</div>
+        <div style="font-size:11.5px;color:var(--text3);">${subtitle}</div>
+      </div>
+    </div>`;
+}
+
 // ── Birincil eylem ─────────────────────────────────────────────────────────
 function dashStartStudy() {
   // Tekrar Et (view 'filter') eski modül — geliştirme yapılmıyor, menüde
@@ -529,14 +642,15 @@ function updateDashboard() {
     </div>
 
     <div class="dash-lvl-list">
-      <div class="dash-lvl-title">Seviyelerin</div>
+      ${dashWordSummaryHeaderHtml()}
       <div style="font-size:11px;color:var(--text3);line-height:1.6;padding:0 0 8px;">
         Koyu dolgu <b>tam öğrenildi</b>, soluk dolgu <b>çalıştıkların</b>.
         Bir kelime, 4 farklı günde doğru hatırlandığında (yaklaşık bir aya yayılarak)
         tam öğrenildi sayılır.
       </div>
       ${dashLevelRows()}
-    </div>`;
+    </div>
+    ${dashGrammarCardHtml()}`;
 }
 
 // Hedefi ekrandan hızlıca değiştir (Ayarlar'daki alanla aynı değeri yazar)
@@ -5249,7 +5363,17 @@ function hgLoadStats() {
 // ═══════════════════════════════════════════════════════════════════════════
 let grLevel = 'A1', grTopicIdx = 0;
 
-function grTopicsFor(lv) { return (window.GRAMMAR_TOPICS && window.GRAMMAR_TOPICS[lv]) || []; }
+// #15 — konular `order` alanı varsa (generate_topic_order.py ile üretilen
+// pedagojik önerilen sıra) ona göre sıralanır. `order` HİÇBİR konuda yoksa
+// (henüz üretilmediyse) orijinal EGP iskelet sırası aynen korunur — geriye
+// dönük kırılmaz. Kısmi doldurulmuşsa (bazı konularda var bazılarında yok),
+// order'ı olmayanlar sona (999) düşer.
+function grTopicsFor(lv) {
+  const topics = (window.GRAMMAR_TOPICS && window.GRAMMAR_TOPICS[lv]) || [];
+  const hasOrder = topics.some(t => typeof t.order === 'number');
+  if (!hasOrder) return topics;
+  return [...topics].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+}
 
 // Canlı/doygun renk paleti — kategoriye göre otomatik atanır. Her giriş
 // hafif gradyanlı (iki ton). Bilinen 17 EGP kategorisi için ÇAKIŞMASIZ elle
@@ -5352,6 +5476,7 @@ function grInit() {
   document.getElementById('gr-levels-view').classList.remove('hidden');
   document.getElementById('gr-topics-view').classList.add('hidden');
   document.getElementById('gr-detail-view').classList.add('hidden');
+  document.getElementById('gr-review-view').classList.add('hidden');
 }
 
 // Tüm seviyelerdeki 397 konu arasında arama — başlık/EGP referansı/kategoriye göre.
@@ -5406,6 +5531,20 @@ function grJumpFromSearch(lv, topicId) {
   grOpenTopic(idx);
 }
 
+// #14 — Nüans metnindeki "Karıştırılan yapılar" linkinden çağrılır. Hangi
+// seviyede olduğu bilinmiyor (confusionTopicId sadece topicId taşıyor),
+// bu yüzden tüm seviyeler taranıp bulunan ilk eşleşmeye gidilir — topicId'ler
+// tüm seviyelerde benzersiz (slugify edilmiş EGP referansından türetiliyor).
+function grJumpToConfusionTopic(topicId) {
+  const levels = ['A1','A2','B1','B2','C1','C2'];
+  for (const lv of levels) {
+    if (grTopicsFor(lv).some(t => t.topicId === topicId)) {
+      grJumpFromSearch(lv, topicId);
+      return;
+    }
+  }
+}
+
 function grEstSeconds(text) {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(20, Math.round(words / 200 * 60));
@@ -5452,6 +5591,7 @@ function grShowTopics(lv) {
   document.getElementById('gr-levels-view').classList.add('hidden');
   document.getElementById('gr-topics-view').classList.remove('hidden');
   document.getElementById('gr-detail-view').classList.add('hidden');
+  document.getElementById('gr-review-view').classList.add('hidden');
 }
 function grBackToLevels() { grInit(); }
 
@@ -5472,7 +5612,9 @@ function grOpenTopic(i) {
         <div class="c-section-label">Nüans</div>
         <div class="gr-nuance-block"><div class="gr-nuance-title">Neden kullanılır</div><div class="gr-nuance-text">${s.nuance.why}</div></div>
         <div class="gr-nuance-block"><div class="gr-nuance-title">Sık yapılan hatalar</div><div class="gr-nuance-text">${s.nuance.mistakes}</div></div>
-        <div class="gr-nuance-block"><div class="gr-nuance-title">Karıştırılan yapılar</div><div class="gr-nuance-text">${s.nuance.confusion}</div></div>
+        <div class="gr-nuance-block"><div class="gr-nuance-title">Karıştırılan yapılar</div><div class="gr-nuance-text">${s.nuance.confusion}</div>
+          ${s.nuance.confusionTopicId ? `<button class="gr-tr-toggle" onclick="grJumpToConfusionTopic('${s.nuance.confusionTopicId}')">→ İlgili konuya git</button>` : ''}
+        </div>
       </div>` : '';
     return `
     <div class="gr-acc" id="gr-sec-${j}">
@@ -5496,6 +5638,7 @@ function grOpenTopic(i) {
   t.subs.forEach((s, j) => grRenderVerify(t, j));
   document.getElementById('gr-levels-view').classList.add('hidden');
   document.getElementById('gr-topics-view').classList.add('hidden');
+  document.getElementById('gr-review-view').classList.add('hidden');
   detailView.classList.remove('hidden');
 }
 function grBackToTopics() { grShowTopics(grLevel); }
@@ -5936,6 +6079,110 @@ function grDesiredPolarity(sub) {
   if (/question|soru/.test(hay)) return 'question';
   if (/affirmat|olumlu/.test(hay)) return 'affirmative';
   return null;
+}
+
+// Bir alt maddenin toplam soru/cümle hedefini, havuzu MUTASYONA UĞRATMADAN
+// hesaplar (grRenderVerify'daki target hesaplama mantığının salt-okunur
+// kopyası). #12 ilerleme ekranı, henüz hiç açılmamış alt maddeler için de
+// "cevaplanmamış" sayısını bilmek zorunda; bu da s.quizPool/s._pool henüz
+// oluşmadan target'a ihtiyaç duyar.
+function grSubTargetCount(t, s) {
+  const effectiveVerifyType = s.verifyType || t.verifyType;
+  if (effectiveVerifyType === 'quiz') {
+    const pool = s.quizPool || (s.quiz ? [s.quiz] : []);
+    return pool.length;
+  } else if (effectiveVerifyType === 'sentencekur') {
+    let pool = (window.SENTENCE_EXERCISES || []).filter(ex => ex.tense === t.tense);
+    const desiredPolarity = grDesiredPolarity(s);
+    if (desiredPolarity) {
+      const filtered = pool.filter(ex => grExercisePolarity(ex) === desiredPolarity);
+      if (filtered.length > 0) pool = filtered;
+    }
+    return Math.min(5, pool.length);
+  }
+  return 0;
+}
+
+// #12 — Tüm seviye/konu/alt maddeler taranarak soru bazlı ilerleme dizini
+// kurulur: her soru 'unanswered' | 'wrong' | 'correct-retry' kovalarından
+// birine düşer (tam doğru bilinenler zaten grIsLearned ile ayrı gösteriliyor,
+// burada tekrar listelenmez — bu ekranın amacı GERİ KALANI görünür kılmak).
+function grBuildProgressIndex() {
+  const levels = ['A1','A2','B1','B2','C1','C2'];
+  const buckets = { wrong: [], retry: [], unanswered: [] };
+  levels.forEach(lv => {
+    grTopicsFor(lv).forEach((t, ti) => {
+      t.subs.forEach((s, si) => {
+        if (grIsLearned(t.topicId, s.id)) return;  // tamamlanmış alt madde — dahil değil
+        const effectiveVerifyType = s.verifyType || t.verifyType;
+        if (effectiveVerifyType !== 'quiz' && effectiveVerifyType !== 'sentencekur') return;
+        const target = grSubTargetCount(t, s);
+        if (target === 0) return;
+        const itemStates = grGetItemStates(t.topicId, s.id);
+        for (let idx = 0; idx < target; idx++) {
+          const st = (itemStates[idx] || { status: 'unanswered' }).status;
+          const entry = { level: lv, topicIdx: ti, subIdx: si, topicTitle: t.title, subTitle: s.title, idx };
+          if (st === 'wrong') buckets.wrong.push(entry);
+          else if (st === 'correct-retry') buckets.retry.push(entry);
+          else if (st === 'unanswered') buckets.unanswered.push(entry);
+        }
+      });
+    });
+  });
+  return buckets;
+}
+
+let grReviewTab = 'wrong';
+function grShowReview() {
+  grReviewTab = 'wrong';
+  grRenderReview();
+  document.getElementById('gr-levels-view').classList.add('hidden');
+  document.getElementById('gr-topics-view').classList.add('hidden');
+  document.getElementById('gr-detail-view').classList.add('hidden');
+  document.getElementById('gr-review-view').classList.remove('hidden');
+}
+function grBackFromReview() { grInit(); }
+
+function grSetReviewTab(tab) { grReviewTab = tab; grRenderReview(); }
+
+function grRenderReview() {
+  const idx = grBuildProgressIndex();
+  const tabDefs = [
+    { key: 'wrong', label: 'Yanlış kalmış', list: idx.wrong },
+    { key: 'retry', label: 'Tekrarlanmış', list: idx.retry },
+    { key: 'unanswered', label: 'Cevaplanmamış', list: idx.unanswered },
+  ];
+  const tabsHtml = tabDefs.map(td =>
+    `<button class="gr-review-tab ${grReviewTab===td.key?'active':''}" onclick="grSetReviewTab('${td.key}')">${td.label} <span class="gr-review-count">${td.list.length}</span></button>`
+  ).join('');
+  const active = tabDefs.find(td => td.key === grReviewTab);
+  const listHtml = active.list.length === 0
+    ? `<p style="font-size:12.5px;color:var(--text3);padding:12px 2px;">Bu kategoride şu an soru yok.</p>`
+    : active.list.map(e => `
+      <div class="gr-review-item" onclick="grJumpToReviewItem('${e.level}',${e.topicIdx},${e.subIdx},${e.idx})">
+        <div class="gr-review-item-main">
+          <div class="gr-review-item-title">${e.topicTitle} <span style="color:var(--text3);font-weight:400;">· ${e.subTitle}</span></div>
+          <div class="gr-review-item-meta">${e.level} · Soru ${e.idx+1}</div>
+        </div>
+        <span class="gr-topic-chevron">&#8250;</span>
+      </div>`).join('');
+  document.getElementById('gr-review-tabs').innerHTML = tabsHtml;
+  document.getElementById('gr-review-list').innerHTML = listHtml;
+}
+
+// Gözden geçirme listesinden bir soruya doğrudan atlar: ilgili konuyu açar,
+// alt madde accordion'ını genişletir ve o soru/cümle indeksine (_viewIdx) gider.
+function grJumpToReviewItem(level, topicIdx, subIdx, itemIdx) {
+  grLevel = level;
+  grOpenTopic(topicIdx);
+  const t = grTopicsFor(grLevel)[topicIdx];
+  const s = t.subs[subIdx];
+  s._viewIdx = itemIdx;
+  s._pending = null;
+  s._retrying = null;
+  grToggleAcc(subIdx, true);
+  grRenderVerify(t, subIdx);
+  setTimeout(() => grJumpTo(subIdx), 50);
 }
 
 // Sub-level 'quiz' override'lı bir alt madde, tense'e bağlı bir konuya
