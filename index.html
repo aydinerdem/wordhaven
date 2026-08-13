@@ -425,6 +425,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-word-badge{margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--rsm,8px);}
 .gr-word-badge-top{display:flex;align-items:center;gap:6px;font-size:13px;flex-wrap:wrap;}
 .gr-word-tag{font-size:10px;color:var(--text3);background:var(--surface);border:0.5px solid var(--border2);border-radius:8px;padding:1px 7px;}
+.gr-word-tag-voa{color:var(--gr-accent,var(--accent));border-color:var(--gr-accent,var(--accent));font-weight:600;}
 .gr-word-badge-actions{display:flex;gap:6px;margin-top:8px;}
 .gr-word-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;padding:6px 8px;border-radius:var(--rsm,8px);border:0.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;}
 .gr-word-btn.on{background:var(--successbg);border-color:var(--success);color:var(--success);font-weight:600;}
@@ -1093,7 +1094,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608132115';
+    s.src = 'app.js?v=202608132145';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();

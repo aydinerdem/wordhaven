@@ -5835,9 +5835,10 @@ function grWordBadgeHtml(relatedWords) {
     const posTag = rw.pos ? `<span class="gr-word-tag">${rw.pos}</span>` : '';
     const speakTag = rw.speaking ? `<span class="gr-word-tag">${rw.speaking}</span>` : '';
     const writeTag = rw.writing ? `<span class="gr-word-tag">${rw.writing}</span>` : '';
+    const voaTag = rw.voa ? `<span class="gr-word-tag gr-word-tag-voa">VOA</span>` : '';
     return `<div class="gr-word-badge">
       <div class="gr-word-badge-top">
-        <b>${rw.word}</b>${cefrTag}${posTag}${freqTag}${speakTag}${writeTag}
+        <b>${rw.word}</b>${cefrTag}${posTag}${freqTag}${speakTag}${writeTag}${voaTag}
         <span onclick="event.stopPropagation();toggleFavFromRow('${rw.word.replace(/'/g,"\\'")}','${(rw.pos||'').replace(/'/g,"\\'")}');grRefreshWordBadges();" style="cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};font-size:16px;margin-left:auto;">${isFav?'★':'☆'}</span>
       </div>
       <div class="gr-word-badge-actions">
