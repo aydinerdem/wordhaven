@@ -1563,6 +1563,7 @@ const ICO = {
   repeat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg>',
   alert: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 7v3.6"/><circle cx="10" cy="13.2" r=".15" fill="currentColor" stroke-width="2.4"/></svg>',
   check: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5 8 14l7.5-8.5"/></svg>',
+  x: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5L5 15"/></svg>',
   trend: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14 8 9.2l3 2.6 5.5-6.3"/><path d="M13.2 5.5H16.5V8.8"/></svg>',
   award: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.3 12 6.7l3.8.6-2.7 2.7.6 3.8L10 12.1l-3.7 1.7.6-3.8-2.7-2.7 3.8-.6z"/><path d="M7.3 10.2 9 12l3.7-4"/></svg>',
   upcoming: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4v5.2M13.5 6.6l-3.8 2.8-3.8-2.8"/><rect x="4" y="9.6" width="12" height="6.4" rx="1.4"/></svg>',
@@ -5493,18 +5494,60 @@ function grRenderVerify(t, j) {
       </div>`;
       return;
     }
-    s._progress = s._progress || 0;
     const target = s.quizPool.length;
-    const q = s.quizPool[s._progress % s.quizPool.length];
-    const counterHtml = target > 1
-      ? `<span class="gr-verify-counter">${s._progress}/${target} doğru</span>` : '';
+    s._itemStates = s._itemStates || {};  // idx -> {status: 'unanswered'|'wrong'|'correct'|'correct-retry', selected, firstWrong}
+    if (s._viewIdx === undefined) s._viewIdx = 0;
+    if (s._pending === undefined) s._pending = null;  // henüz "kontrol et"e basılmamış seçim
+    if (s._retrying === undefined) s._retrying = null;
+    const idx = s._viewIdx % target;
+    const item = s._itemStates[idx] || { status: 'unanswered' };
+    const q = s.quizPool[idx];
+    const isRetrying = s._retrying === idx;
+    const pendingSel = (s._pending && s._pending.idx === idx) ? s._pending.opt : null;
+    const checked = item.status !== 'unanswered' && !isRetrying;
+    const progressCount = Object.values(s._itemStates).filter(x => x.status === 'correct' || x.status === 'correct-retry').length;
+    const counterHtml = target > 1 ? `<span class="gr-verify-counter">${progressCount}/${target} doğru</span>` : '';
+
+    const optsHtml = q.opts.map((o, k) => {
+      let cls = 'gr-quiz-opt';
+      if (checked) {
+        if (k === q.correct) cls += ' correct';
+        else if (k === item.selected) cls += ' wrong';
+      } else if (pendingSel === k) cls += ' selected';
+      const dis = checked ? 'disabled' : '';
+      return `<button class="${cls}" ${dis} onclick="grSelectQuizOption(${j},${k})">${o}</button>`;
+    }).join('');
+
+    let feedbackHtml = '', navHtml = '';
+    if (!checked) {
+      navHtml = `<button class="gr-check-btn" ${pendingSel===null?'disabled':''} onclick="grCheckQuizAnswer(${j},${target})">Cevabı kontrol et</button>`;
+    } else if (item.status === 'correct') {
+      feedbackHtml = `<div class="gr-tr-text show">✓ Doğru!</div>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">Sonraki soru →</button>`;
+    } else if (item.status === 'correct-retry') {
+      const firstWrongNote = item.firstWrong !== undefined && item.firstWrong !== null
+        ? ` İlk denemende <b>${q.opts[item.firstWrong]}</b> demiştin.` : '';
+      feedbackHtml = `<div class="gr-tr-text show">Doğru — ama ilk denemede olmadığı için ilerlemeye sayılmadı.${firstWrongNote}</div>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">Sonraki soru →</button>`;
+    } else {
+      feedbackHtml = `<div class="gr-tr-text show">Doğru cevap: <b>${q.opts[q.correct]}</b></div>`;
+      navHtml = `<div style="display:flex;gap:14px;">
+        <button class="gr-tr-toggle" onclick="grRetryQuiz(${j})">↺ Tekrar dene</button>
+        <button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">Sonraki soru →</button>
+      </div>`;
+    }
+
     el.innerHTML = `<div class="gr-verify-box">
       <div class="gr-verify-label"><span>Kontrol et</span>${counterHtml}</div>
       <div class="gr-quiz-q">${q.q}</div>
-      <div class="gr-quiz-opts">
-        ${q.opts.map((o, k) => `<button class="gr-quiz-opt" onclick="grAnswerQuiz(${j}, ${k===q.correct}, ${target})">${o}</button>`).join('')}
-      </div>
-      ${target > 1 ? `<div class="gr-p-dots">${Array.from({length:target}).map((_,k)=>`<span class="gr-p-dot ${k<s._progress?'filled':''}"></span>`).join('')}</div>` : ''}
+      <div class="gr-quiz-opts">${optsHtml}</div>
+      ${feedbackHtml}
+      ${navHtml}
+      ${target > 1 ? grStateDotsHtml(s._itemStates, target, idx, `grJumpQuizItem(${j},`) : ''}
+      ${!checked && target > 1 ? `<div style="display:flex;gap:14px;margin-top:8px;">
+        <button class="gr-tr-toggle" onclick="grSkipQuiz(${j},-1)" style="opacity:.7;">← Önceki</button>
+        <button class="gr-tr-toggle" onclick="grSkipQuiz(${j},1)" style="opacity:.7;">Sonraki →</button>
+      </div>` : ''}
       ${grWordBadgeHtml(q.relatedWords)}
     </div>`;
   } else if (t.verifyType === 'sentencekur') {
@@ -5512,26 +5555,68 @@ function grRenderVerify(t, j) {
     // sayfa içi gömülü pratik. Yeni içerik üretmiyoruz, mevcut havuzu ödünç alıyoruz.
     const pool = (window.SENTENCE_EXERCISES || []).filter(ex => ex.tense === t.tense);
     s._pool = s._pool || pool;
-    s._progress = s._progress || 0;
-    const target = Math.min(5, s._pool.length || 5);
     if (s._pool.length === 0) {
       el.innerHTML = `<div class="gr-verify-box"><p style="font-size:12px;color:var(--text3);">Bu tense için Cümle Kur havuzunda örnek bulunamadı.</p></div>`;
       return;
     }
-    const ex = s._pool[s._progress % s._pool.length];
+    const target = Math.min(5, s._pool.length);
+    if (s._viewIdx === undefined) s._viewIdx = 0;
+    if (s._pending === undefined) s._pending = null;
+    if (s._retrying === undefined) s._retrying = null;
+    s._itemStates = s._itemStates || {};
+    const idx = s._viewIdx % target;  // sadece ilk `target` cümle kullanılıyor, tutarlı nokta sayısı için
+    const item = s._itemStates[idx] || { status: 'unanswered' };
+    const isRetrying = s._retrying === idx;
+    const pendingSel = (s._pending && s._pending.idx === idx) ? s._pending.opt : null;
+    const checked = item.status !== 'unanswered' && !isRetrying;
+    const ex = s._pool[idx];
     const sentence = ex.root.join(' ') + (ex.chunks[0] ? ' ' + ex.chunks[0].text : '');
     const wordEntry = grFindWordDataEntry(ex.targetWord);
     const wordBadge = wordEntry
-      ? grWordBadgeHtml([{ word: wordEntry.word, pos: wordEntry.pos, cefr: wordEntry.cefr || ex.cefr, freq: wordEntry.freq || ex.freq }])
+      ? grWordBadgeHtml([{ word: wordEntry.word, pos: wordEntry.pos, cefr: wordEntry.cefr || ex.cefr, freq: wordEntry.freq || ex.freq, speaking: wordEntry.speaking, writing: wordEntry.writing }])
       : grWordBadgeReadonlyHtml(ex.targetWord, ex.cefr, ex.freq);
+
+    // Bu havuzdaki cümleler zaten hep doğru üretildiği için "doğru" cevap her zaman true.
+    const optsHtml = [true, false].map(val => {
+      let cls = 'gr-quiz-opt';
+      if (checked) {
+        if (val === true) cls += ' correct';
+        else if (val === item.selected) cls += ' wrong';
+      } else if (pendingSel === val) cls += ' selected';
+      const dis = checked ? 'disabled' : '';
+      const label = val ? 'Evet, doğru' : 'Hayır, yanlış';
+      return `<button class="${cls}" ${dis} onclick="grSelectPracticeOption(${j},${val})">${label}</button>`;
+    }).join('');
+
+    const progressCount = Object.values(s._itemStates).filter(x => x.status === 'correct' || x.status === 'correct-retry').length;
+    let feedbackHtml = '', navHtml = '';
+    if (!checked) {
+      navHtml = `<button class="gr-check-btn" ${pendingSel===null?'disabled':''} onclick="grCheckPracticeAnswer(${j},${target})">Cevabı kontrol et</button>`;
+    } else if (item.status === 'correct') {
+      feedbackHtml = `<div class="gr-tr-text show">✓ Doğru!</div>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grAdvancePractice(${j},${target})">Sonraki cümle →</button>`;
+    } else if (item.status === 'correct-retry') {
+      feedbackHtml = `<div class="gr-tr-text show">Doğru — ama ilk denemede olmadığı için ilerlemeye sayılmadı. İlk cevabın: <b>${item.firstWrong === true ? 'Evet, doğru' : 'Hayır, yanlış'}</b> demiştin.</div>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grAdvancePractice(${j},${target})">Sonraki cümle →</button>`;
+    } else {
+      feedbackHtml = `<div class="gr-tr-text show">Bu cümle aslında doğru — WordHaven'ın havuzundaki örnekler her zaman geçerli kullanım gösterir.</div>`;
+      navHtml = `<div style="display:flex;gap:14px;">
+        <button class="gr-tr-toggle" onclick="grRetryPractice(${j})">↺ Tekrar dene</button>
+        <button class="gr-tr-toggle" onclick="grAdvancePractice(${j},${target})">Sonraki cümle →</button>
+      </div>`;
+    }
+
     el.innerHTML = `<div class="gr-verify-box">
-      <div class="gr-verify-label"><span>Pratik yap (Cümle Kur havuzundan)</span><span class="gr-verify-counter">${s._progress}/${target} doğru</span></div>
+      <div class="gr-verify-label"><span>Pratik yap (Cümle Kur havuzundan)</span><span class="gr-verify-counter">${progressCount}/${target} doğru</span></div>
       <div class="gr-quiz-q">"${sentence}" — bu cümle ${ex.tense} yapısını doğru kullanıyor mu?</div>
-      <div class="gr-quiz-opts">
-        <button class="gr-quiz-opt" onclick="grAnswerPractice(${j}, true, ${target})">Evet, doğru</button>
-        <button class="gr-quiz-opt" onclick="grAnswerPractice(${j}, false, ${target})">Hayır, yanlış</button>
-      </div>
-      <div class="gr-p-dots">${Array.from({length:target}).map((_,k)=>`<span class="gr-p-dot ${k<s._progress?'filled':''}"></span>`).join('')}</div>
+      <div class="gr-quiz-opts">${optsHtml}</div>
+      ${feedbackHtml}
+      ${navHtml}
+      ${grStateDotsHtml(s._itemStates, target, idx, `grJumpPracticeItem(${j},`)}
+      ${!checked ? `<div style="display:flex;gap:14px;margin-top:8px;">
+        <button class="gr-tr-toggle" onclick="grSkipPractice(${j},-1)" style="opacity:.7;">← Önceki</button>
+        <button class="gr-tr-toggle" onclick="grSkipPractice(${j},1)" style="opacity:.7;">Sonraki →</button>
+      </div>` : ''}
       <div class="sg-grammar-card">
         <div class="sg-grammar-title">${ex.tenseInfo.name}</div>
         <div class="sg-grammar-formula">${ex.tenseInfo.formula}</div>
@@ -5541,23 +5626,79 @@ function grRenderVerify(t, j) {
   }
 }
 
-function grAnswerQuiz(j, isCorrect, target) {
-  const t = grTopicsFor(grLevel)[grTopicIdx];
-  const s = t.subs[j];
-  const wrap = document.getElementById('gr-verify-'+j);
-  wrap.querySelectorAll('.gr-quiz-opt').forEach(o => o.disabled = true);
-  event.target.classList.add(isCorrect ? 'correct' : 'wrong');
-  const q = s.quizPool[s._progress % s.quizPool.length];
-  const rolesNote = `<div class="gr-tr-text show" style="margin-top:10px;">Doğru cevap: <b>${q.opts[q.correct]}</b></div>`;
-  wrap.insertAdjacentHTML('beforeend', rolesNote +
-    `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j}, ${isCorrect}, ${target})">${target>1?'Sonraki →':'Devam et →'}</button>`);
+// Nokta göstergesi — ikon tabanlı, tıklanabilir. Her nokta belirli bir
+// soruyu/cümleyi temsil eder ve tıklanınca doğrudan o soruya, verdiğin son
+// cevapla birlikte geri döner (jumpFnPrefix + "idx)" şeklinde onclick üretir).
+function grStateDotsHtml(itemStates, target, activeIdx, jumpFnPrefix) {
+  const dots = Array.from({length: target}).map((_, k) => {
+    const st = (itemStates[k] || { status: 'unanswered' }).status;
+    let inner = '';
+    let cls = 'gr-state-dot';
+    if (st === 'correct') { inner = ico('check', 11, '#fff', false); cls += ' correct'; }
+    else if (st === 'correct-retry') { inner = ico('repeat', 11, '#fff', false); cls += ' correct-retry'; }
+    else if (st === 'wrong') { inner = ico('x', 11, '#fff', false); cls += ' wrong'; }
+    if (k === activeIdx) cls += ' active';
+    return `<button class="${cls}" onclick="${jumpFnPrefix}${k})" title="${k+1}. soru">${inner}</button>`;
+  }).join('');
+  return `<div class="gr-state-dots">${dots}</div>`;
 }
 
-function grAdvanceQuiz(j, wasCorrect, target) {
+function grSelectQuizOption(j, optIdx) {
   const t = grTopicsFor(grLevel)[grTopicIdx];
   const s = t.subs[j];
-  if (wasCorrect) s._progress++;
-  if (s._progress >= target) {
+  const idx = s._viewIdx % s.quizPool.length;
+  const item = s._itemStates[idx];
+  if (item && item.status !== 'unanswered' && s._retrying !== idx) return;
+  s._pending = { idx, opt: optIdx };
+  grRenderVerify(t, j);
+}
+
+function grCheckQuizAnswer(j, target) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  const idx = s._viewIdx % s.quizPool.length;
+  if (!s._pending || s._pending.idx !== idx) return;
+  const q = s.quizPool[idx];
+  const wasAlreadyWrong = s._itemStates[idx] && s._itemStates[idx].status === 'wrong';
+  const isCorrect = s._pending.opt === q.correct;
+  if (isCorrect) {
+    s._itemStates[idx] = {
+      status: wasAlreadyWrong ? 'correct-retry' : 'correct',
+      selected: s._pending.opt,
+      firstWrong: wasAlreadyWrong ? s._itemStates[idx].firstWrong : undefined,
+    };
+  } else {
+    s._itemStates[idx] = {
+      status: 'wrong',
+      selected: s._pending.opt,
+      firstWrong: wasAlreadyWrong ? s._itemStates[idx].firstWrong : s._pending.opt,
+    };
+  }
+  s._pending = null;
+  s._retrying = null;
+  grRenderVerify(t, j);
+}
+
+// Yanlış cevaptan sonra AYNI soruyu tekrar dener — durum 'wrong' olarak
+// kalır ta ki doğru bilinceye kadar; doğru bilinirse 'correct-retry' olur
+// (ilerlemeye yine de sayılır, sadece ayrı bir ikonla — mor ↺✓ — işaretlenir).
+function grRetryQuiz(j) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  const idx = s._viewIdx % s.quizPool.length;
+  s._retrying = idx;
+  s._pending = null;
+  grRenderVerify(t, j);
+}
+
+function grAdvanceQuiz(j, target) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  s._viewIdx = (s._viewIdx + 1) % s.quizPool.length;
+  s._pending = null;
+  s._retrying = null;
+  const progressCount = Object.values(s._itemStates).filter(x => x.status === 'correct' || x.status === 'correct-retry').length;
+  if (progressCount >= target) {
     grMarkLearned(t.topicId, s.id);
     grRenderVerify(t, j);
     document.getElementById('gr-dot-'+j).classList.add('done');
@@ -5565,6 +5706,27 @@ function grAdvanceQuiz(j, wasCorrect, target) {
   } else {
     grRenderVerify(t, j);
   }
+}
+
+// Cevaplamadan sadece havuzdaki başka bir soruyu görmek için (dir: +1/-1).
+function grSkipQuiz(j, dir) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  const len = s.quizPool.length;
+  s._viewIdx = ((s._viewIdx + dir) % len + len) % len;
+  s._pending = null;
+  s._retrying = null;
+  grRenderVerify(t, j);
+}
+
+// Nokta göstergesine tıklayınca doğrudan o soruya git.
+function grJumpQuizItem(j, idx) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  s._viewIdx = idx;
+  s._pending = null;
+  s._retrying = null;
+  grRenderVerify(t, j);
 }
 
 // Kelime rozeti — quiz/örnek cümlesinde word-data.json'da kayıtlı bir kelime
@@ -5581,9 +5743,11 @@ function grWordBadgeHtml(relatedWords) {
     const cefrTag = rw.cefr ? `<span class="gr-word-tag">${rw.cefr}</span>` : '';
     const freqTag = rw.freq ? `<span class="gr-word-tag">${rw.freq.replace(' Frequency','')}</span>` : '';
     const posTag = rw.pos ? `<span class="gr-word-tag">${rw.pos}</span>` : '';
+    const speakTag = rw.speaking ? `<span class="gr-word-tag">${rw.speaking}</span>` : '';
+    const writeTag = rw.writing ? `<span class="gr-word-tag">${rw.writing}</span>` : '';
     return `<div class="gr-word-badge">
       <div class="gr-word-badge-top">
-        <b>${rw.word}</b>${cefrTag}${posTag}${freqTag}
+        <b>${rw.word}</b>${cefrTag}${posTag}${freqTag}${speakTag}${writeTag}
         <span onclick="event.stopPropagation();toggleFavFromRow('${rw.word.replace(/'/g,"\\'")}','${(rw.pos||'').replace(/'/g,"\\'")}');grRefreshWordBadges();" style="cursor:pointer;color:${isFav?'#e0a63c':'var(--border2)'};font-size:16px;margin-left:auto;">${isFav?'★':'☆'}</span>
       </div>
       <div class="gr-word-badge-actions">
@@ -5633,22 +5797,63 @@ function grFindWordDataEntry(word) {
   return null;
 }
 
-function grAnswerPractice(j, userSaidCorrect, target) {
+function grSelectPracticeOption(j, val) {
   const t = grTopicsFor(grLevel)[grTopicIdx];
   const s = t.subs[j];
-  const wrap = document.getElementById('gr-verify-'+j);
-  wrap.querySelectorAll('.gr-quiz-opt').forEach(o => o.disabled = true);
-  // Bu havuzdaki örnek cümleler zaten doğru üretildiği için "Evet" doğru kabul edilir.
-  const wasRight = userSaidCorrect === true;
-  event.target.classList.add(wasRight ? 'correct' : 'wrong');
-  wrap.insertAdjacentHTML('beforeend',
-    `<button class="gr-tr-toggle" style="margin-top:10px;" onclick="grAdvancePractice(${j}, ${wasRight}, ${target})">Sonraki →</button>`);
+  const target = Math.min(5, s._pool.length);
+  const idx = s._viewIdx % target;
+  const item = s._itemStates[idx];
+  if (item && item.status !== 'unanswered' && s._retrying !== idx) return;
+  s._pending = { idx, opt: val };
+  grRenderVerify(t, j);
 }
-function grAdvancePractice(j, wasRight, target) {
+
+function grCheckPracticeAnswer(j, target) {
   const t = grTopicsFor(grLevel)[grTopicIdx];
   const s = t.subs[j];
-  if (wasRight) s._progress++;
-  if (s._progress >= target) {
+  const idx = s._viewIdx % target;
+  if (!s._pending || s._pending.idx !== idx) return;
+  const prev = s._itemStates[idx];
+  const wasAlreadyWrong = prev && prev.status === 'wrong';
+  const isCorrect = s._pending.opt === true;  // havuzdaki cümleler hep doğru, "Evet" doğru cevaptır
+  if (isCorrect) {
+    s._itemStates[idx] = {
+      status: wasAlreadyWrong ? 'correct-retry' : 'correct',
+      selected: s._pending.opt,
+      firstWrong: wasAlreadyWrong ? prev.firstWrong : undefined,
+    };
+  } else {
+    s._itemStates[idx] = {
+      status: 'wrong',
+      selected: s._pending.opt,
+      firstWrong: wasAlreadyWrong ? prev.firstWrong : s._pending.opt,
+    };
+  }
+  s._pending = null;
+  s._retrying = null;
+  grRenderVerify(t, j);
+}
+
+// Yanlış cevaptan sonra AYNI cümleyi tekrar dener — doğru bilirse 'correct-retry'
+// olur (ilerlemeye sayılır ama ayrı bir ikonla — ↺✓ — işaretlenir).
+function grRetryPractice(j) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  const target = Math.min(5, s._pool.length);
+  const idx = s._viewIdx % target;
+  s._retrying = idx;
+  s._pending = null;
+  grRenderVerify(t, j);
+}
+
+function grAdvancePractice(j, target) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  s._viewIdx = (s._viewIdx + 1) % target;
+  s._pending = null;
+  s._retrying = null;
+  const progressCount = Object.values(s._itemStates).filter(x => x.status === 'correct' || x.status === 'correct-retry').length;
+  if (progressCount >= target) {
     grMarkLearned(t.topicId, s.id);
     grRenderVerify(t, j);
     document.getElementById('gr-dot-'+j).classList.add('done');
@@ -5656,6 +5861,25 @@ function grAdvancePractice(j, wasRight, target) {
   } else {
     grRenderVerify(t, j);
   }
+}
+// Cevaplamadan sadece havuzdaki başka bir cümleyi görmek için (dir: +1/-1).
+function grSkipPractice(j, dir) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  const target = Math.min(5, s._pool.length);
+  s._viewIdx = ((s._viewIdx + dir) % target + target) % target;
+  s._pending = null;
+  s._retrying = null;
+  grRenderVerify(t, j);
+}
+// Nokta göstergesine tıklayınca doğrudan o cümleye git.
+function grJumpPracticeItem(j, idx) {
+  const t = grTopicsFor(grLevel)[grTopicIdx];
+  const s = t.subs[j];
+  s._viewIdx = idx;
+  s._pending = null;
+  s._retrying = null;
+  grRenderVerify(t, j);
 }
 
 function grToggleTr(btn) {

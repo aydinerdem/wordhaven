@@ -389,10 +389,24 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-quiz-opt{text-align:left;padding:9px 12px;border-radius:var(--rsm,8px);border:0.5px solid var(--border2);background:none;font-size:13px;color:var(--text);cursor:pointer;}
 .gr-quiz-opt.correct{background:var(--successbg);border-color:var(--success);color:var(--success);font-weight:600;}
 .gr-quiz-opt.wrong{background:var(--warnbg);border-color:var(--warn);color:var(--warn);}
+.gr-quiz-opt.selected{border-color:var(--gr-accent,var(--accent));background:var(--accentbg);}
+.gr-quiz-opt:disabled{opacity:.85;cursor:default;}
+.gr-check-btn{margin-top:4px;width:100%;padding:11px;border-radius:var(--rsm,8px);border:none;background:var(--gr-accent,var(--accent));color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+.gr-check-btn:disabled{opacity:.35;cursor:not-allowed;}
 .gr-mark-done{margin-top:10px;font-size:12.5px;color:var(--success);font-weight:600;display:flex;align-items:center;gap:5px;}
 .gr-p-dots{display:flex;gap:4px;margin-top:8px;}
 .gr-p-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);}
 .gr-p-dot.filled{background:var(--accent);}
+
+/* İkon tabanlı, tıklanabilir soru durumu göstergesi — renkten çok ikon
+   şekliyle ayrışıyor: boş daire (hiç bakılmadı), × (yanlış/tekrar bekliyor),
+   ✓ yeşil (ilk seferde doğru), ↺✓ mor (tekrar deneyip doğru). */
+.gr-state-dots{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.gr-state-dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;color:var(--text3);}
+.gr-state-dot.active{border-color:var(--gr-accent,var(--accent));border-width:2px;}
+.gr-state-dot.correct{background:var(--success);border-color:var(--success);color:#fff;}
+.gr-state-dot.correct-retry{background:var(--accent);border-color:var(--accent);color:#fff;}
+.gr-state-dot.wrong{background:var(--warn);border-color:var(--warn);color:#fff;}
 
 /* Quiz cümlesindeki kelimenin word-data.json karşılığı — CEFR/POS/frekans
    göstergesi + gerçek Biliyorum/Öğreniyorum/Favorile aksiyonları. Sadece
@@ -1066,7 +1080,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608131530';
+    s.src = 'app.js?v=202608131915';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
