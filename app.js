@@ -5659,21 +5659,34 @@ function grRenderVerify(t, j) {
     }).join('');
 
     let feedbackHtml = '', navHtml = '';
+    // Havuzda tek soru varsa "Sonraki soru" YANLIŞ bir vaat — bu buton aslında
+    // bir sonraki soruya değil, alt maddeyi tamamlamaya götürüyor (bkz.
+    // grAdvanceQuiz: progressCount >= target olunca grMarkLearned çağrılıyor).
+    // Erdem'in bulduğu gerçek bug: buton hep "Sonraki soru →" diyordu, tek
+    // sorulu alt maddelerde (5'ten az alt maddeli konularda hedef 1 soru
+    // olduğu için bu ÇOK yaygın) bu yanıltıcıydı.
+    const isSingleQuestion = s.quizPool.length <= 1;
+    const advanceLabel = isSingleQuestion ? 'Devam et →' : 'Sonraki soru →';
     if (!checked) {
       navHtml = `<button class="gr-check-btn" ${pendingSel===null?'disabled':''} onclick="grCheckQuizAnswer(${j},${target})">Cevabı kontrol et</button>`;
     } else if (item.status === 'correct') {
       feedbackHtml = `<div class="gr-tr-text show">✓ Doğru!</div>`;
-      navHtml = `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">Sonraki soru →</button>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">${advanceLabel}</button>`;
     } else if (item.status === 'correct-retry') {
       const firstWrongNote = item.firstWrong !== undefined && item.firstWrong !== null
         ? ` İlk denemende <b>${q.opts[item.firstWrong]}</b> demiştin.` : '';
       feedbackHtml = `<div class="gr-tr-text show">Doğru — ama ilk denemede olmadığı için ilerlemeye sayılmadı.${firstWrongNote}</div>`;
-      navHtml = `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">Sonraki soru →</button>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">${advanceLabel}</button>`;
+    } else if (isSingleQuestion) {
+      // Tek sorulu alt maddede "Sonraki soru" seçeneği anlamsız (gidecek başka
+      // soru yok, aynı soruyu tekrar gösterirdi) — sadece tekrar deneme sunulur.
+      feedbackHtml = `<div class="gr-tr-text show">Doğru cevap: <b>${q.opts[q.correct]}</b></div>`;
+      navHtml = `<button class="gr-tr-toggle" onclick="grRetryQuiz(${j})">↺ Tekrar dene</button>`;
     } else {
       feedbackHtml = `<div class="gr-tr-text show">Doğru cevap: <b>${q.opts[q.correct]}</b></div>`;
       navHtml = `<div style="display:flex;gap:14px;">
         <button class="gr-tr-toggle" onclick="grRetryQuiz(${j})">↺ Tekrar dene</button>
-        <button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">Sonraki soru →</button>
+        <button class="gr-tr-toggle" onclick="grAdvanceQuiz(${j},${target})">${advanceLabel}</button>
       </div>`;
     }
 
