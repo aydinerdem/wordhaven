@@ -659,6 +659,15 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     getAuth, GoogleAuthProvider, signInWithCredential,
     signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  // ── Firebase: Storage (veri dosyaları) ──────────────────────────────────
+  // ÖNEMLİ: getDownloadURL() KASITLI OLARAK kullanılmıyor — o fonksiyon
+  // dosyaya kalıcı bir jeton ekleyip Storage güvenlik kuralını tamamen
+  // atlıyor (jetonu bilen HERKES, girişsiz bile, dosyayı indirebilir hale
+  // geliyor). getBytes() ise tarayıcının o anki Firebase Auth oturumunu
+  // kullanarak indiriyor — güvenlik kuralına gerçekten saygı gösteriyor.
+  import {
+    getStorage, ref as storageRef, getBytes
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBl7FGp_jJfyw1Qas90pDrPAwdBa5FYii0",
@@ -673,6 +682,12 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
+  const fbStorage = getStorage(fbApp);
+
+  // Alt taraftaki (body sonu) veri-yükleme script'i bu modülün dışında,
+  // sıradan bir <script> — ES modül import'larına doğrudan erişemez.
+  // Bu yüzden ihtiyacı olan üç şeyi window üzerinden paylaşıyoruz.
+  window.whStorage = { storage: fbStorage, ref: storageRef, getBytes: getBytes };
 
   setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
     console.error('Persistence ayarlanamadı:', e);
@@ -1361,43 +1376,86 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     el.appendChild(retry);
   }
 
-  Promise.all([
-    fetch('word-data.json').then(function(r){ if(!r.ok) throw new Error('word-data.json (' + r.status + ')'); return r.json(); }),
-    fetch('topic-words.json').then(function(r){ if(!r.ok) throw new Error('topic-words.json (' + r.status + ')'); return r.json(); }),
-    fetch('builtin-content.json').then(function(r){ if(!r.ok) throw new Error('builtin-content.json (' + r.status + ')'); return r.json(); }),
-    fetch('sentence-exercises.json').then(function(r){ if(!r.ok) throw new Error('sentence-exercises.json (' + r.status + ')'); return r.json(); }),
-    fetch('extra-words.json').then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-    fetch('grammar-topics.json').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
-  ]).then(function(results){
-    window.WORD_DATA = results[0];
-    window.TOPIC_WORDS = results[1];
-    window.BUILTIN_CONTENT = results[2];
-    window.SENTENCE_EXERCISES = results[3];
-    window.EXTRA_WORDS = results[4] || [];
-    window.GRAMMAR_TOPICS = results[5] || {};
-    setStatus('Uygulama başlatılıyor…');
-    var s = document.createElement('script');
-    // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
-    // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
-    // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141700';
-    s.onload = function(){
-      var el = document.getElementById('wh-loading-overlay');
-      if (el) el.remove();
-    };
-    s.onerror = function(){
-      showError('app.js yüklenemedi.');
-    };
-    // Emniyet: onload beklenmedik şekilde tetiklenmezse ekran kilitli kalmasın.
-    setTimeout(function(){
-      var el = document.getElementById('wh-loading-overlay');
-      if (el && typeof window.showView === 'function') el.remove();
-    }, 4000);
-    document.body.appendChild(s);
-  }).catch(function(err){
-    console.error('WordHaven veri yükleme hatası:', err);
-    showError('Veri yüklenemedi (' + err.message + '). İnternet bağlantınızı kontrol edip tekrar deneyin.');
-  });
+  // Veri dosyaları artık public değil, Firebase Storage'da (backlog #3) —
+  // okumak için girişli + allowlist'teki bir kullanıcı olmak gerekiyor.
+  // Bu yüzden yüklemeyi hemen değil, giriş kapısı KAPANIP (= allowlist'teki
+  // biri girişini tamamlayıp) window.whStorage hazır olduğunda başlatıyoruz.
+  var dataLoadStarted = false;
+
+  function decodeJson(bytes){
+    return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+  }
+
+  // 60MB üst sınır: en büyük dosyamız (builtin-content.json) ~15MB, bolca pay bırakıyoruz.
+  var MAX_BYTES = 60 * 1024 * 1024;
+
+  function fetchDataFile(name){
+    var st = window.whStorage;
+    return st.getBytes(st.ref(st.storage, 'data/' + name), MAX_BYTES).then(decodeJson);
+  }
+
+  function loadWordHavenData(){
+    if (dataLoadStarted) return;
+    dataLoadStarted = true;
+    setStatus('Kelime verileri yükleniyor…');
+
+    Promise.all([
+      fetchDataFile('word-data.json'),
+      fetchDataFile('topic-words.json'),
+      fetchDataFile('builtin-content.json'),
+      fetchDataFile('sentence-exercises.json'),
+      fetchDataFile('extra-words.json').catch(function(){ return []; }),
+      fetchDataFile('grammar-topics.json').catch(function(){ return {}; })
+    ]).then(function(results){
+      window.WORD_DATA = results[0];
+      window.TOPIC_WORDS = results[1];
+      window.BUILTIN_CONTENT = results[2];
+      window.SENTENCE_EXERCISES = results[3];
+      window.EXTRA_WORDS = results[4] || [];
+      window.GRAMMAR_TOPICS = results[5] || {};
+      setStatus('Uygulama başlatılıyor…');
+      var s = document.createElement('script');
+      // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
+      // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
+      // ile eşleşmediği için ekran boş kalır.
+      s.src = 'app.js?v=202608141700';
+      s.onload = function(){
+        var el = document.getElementById('wh-loading-overlay');
+        if (el) el.remove();
+      };
+      s.onerror = function(){
+        showError('app.js yüklenemedi.');
+      };
+      // Emniyet: onload beklenmedik şekilde tetiklenmezse ekran kilitli kalmasın.
+      setTimeout(function(){
+        var el = document.getElementById('wh-loading-overlay');
+        if (el && typeof window.showView === 'function') el.remove();
+      }, 4000);
+      document.body.appendChild(s);
+    }).catch(function(err){
+      console.error('WordHaven veri yükleme hatası:', err);
+      dataLoadStarted = false; // tekrar dene butonuyla yeniden denenebilsin
+      showError('Veri yüklenemedi (' + err.message + '). İnternet bağlantınızı kontrol edip tekrar deneyin.');
+    });
+  }
+
+  // Giriş kapısı (üstteki modül script) her auth durumu değişiminde bu
+  // olayı yayınlıyor. Sadece "girişli + allowlist'te" durumunda veri
+  // yüklemeyi başlatıyoruz — girişsizken veya izinsiz hesapta Storage
+  // zaten 403 dönerdi, o yüzden kapı kapanana kadar hiç denemiyoruz.
+  function checkAuthAndMaybeLoad(){
+    if (!window.whAuthResolved) return;
+    var user = window.whCurrentUser;
+    if (!user) return;
+    var allowed = window.WH_ALLOWED_EMAILS &&
+      window.WH_ALLOWED_EMAILS.includes((user.email || '').toLowerCase());
+    if (!allowed) return;
+    loadWordHavenData();
+  }
+
+  document.addEventListener('wh-auth-changed', checkAuthAndMaybeLoad);
+  // Nadir bir ihtimal: auth modülü bu script'ten önce çözülmüş olabilir.
+  checkAuthAndMaybeLoad();
 })();
 
 </script>
