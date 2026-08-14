@@ -642,7 +642,8 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   // kurallarındaki e-posta allowlist'inde uygulanıyor — burası değil.
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
   const firebaseConfig = {
@@ -657,6 +658,12 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
   const googleProvider = new GoogleAuthProvider();
+
+  // Oturumun localStorage'da kalıcı tutulmasını açıkça istiyoruz — bazı
+  // tarayıcı gizlilik modlarında varsayılan davranış tutarsız olabiliyor.
+  setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
+    console.error('Persistence ayarlanamadı:', e);
+  });
 
   // Tek kaynak: allowlist burada tanımlı, hem giriş kapısı hem Ayarlar>Hesap
   // paneli (app.js) buradan okuyor — iki yerde ayrı liste tutulmuyor.
@@ -674,9 +681,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // action is invalid" hatası popup'tan değil, yetkisiz domain'den
     // kaynaklanıyordu (Authorized domains'e aydinerdem.github.io eklendi).
     signIn: function () {
+      window.whLastAuthMethod = 'popup';
       return signInWithPopup(fbAuth, googleProvider).catch(function (err) {
+        console.error('Popup giriş hatası:', err);
+        window.whLastAuthError = (err.code || '') + ' — ' + (err.message || '');
         const fallbackCodes = ['auth/popup-blocked', 'auth/cancelled-popup-request', 'auth/operation-not-supported-in-this-environment'];
         if (fallbackCodes.includes(err.code)) {
+          window.whLastAuthMethod = 'redirect';
           return signInWithRedirect(fbAuth, googleProvider);
         }
         throw err;
@@ -687,10 +698,15 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
   // Google'dan redirect ile dönüldüğünde olası hataları yakala (örn. kullanıcı
   // giriş ekranını iptal ettiyse). Başarılı girişte onAuthStateChanged zaten
-  // otomatik tetiklenip renderAuthGate()'i çağıracak.
+  // otomatik tetiklenip renderAuthGate()'i çağıracak. Hata varsa hem konsola
+  // hem doğrudan ekrana yazdırıyoruz (mobilde devtools açmak zor olduğu için).
   getRedirectResult(fbAuth).catch(function (e) {
     console.error('Google redirect giriş hatası:', e);
+    window.whLastAuthError = (e.code || '') + ' — ' + (e.message || '');
+    const statusEl = document.getElementById('wh-auth-gate-status');
+    if (statusEl) statusEl.textContent = 'Redirect giriş hatası: ' + window.whLastAuthError;
   });
+
 
   function renderAuthGate() {
     const gate = document.getElementById('wh-auth-gate');
@@ -709,7 +725,9 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
     if (!user) {
       gate.style.display = 'flex';
-      statusEl.textContent = 'Devam etmek için Google hesabınla giriş yap.';
+      statusEl.textContent = window.whLastAuthError
+        ? 'Giriş tamamlanamadı: ' + window.whLastAuthError
+        : 'Devam etmek için Google hesabınla giriş yap.';
       actionsEl.innerHTML =
         '<button id="wh-gate-signin-btn" style="width:100%;padding:13px;border-radius:10px;' +
         'border:1px solid var(--border2);background:var(--surface);color:var(--text);' +
@@ -1337,7 +1355,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141200';
+    s.src = 'app.js?v=202608141300';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
