@@ -1630,6 +1630,43 @@ function wrRateWord(rating) {
   wrNextQuestion();
 }
 
+// ── Ayarlar: Google girişi (Firebase Auth) ─────────────────────────────────
+// Giriş kapısı (index.html, wh-auth-gate) zaten yetkisiz hesapları içeri
+// almıyor — bu panel sadece Ayarlar'dan çıkış yapabilmek ve hesabı görmek
+// için. Allowlist window.WH_ALLOWED_EMAILS'te TEK yerden geliyor (index.html
+// içindeki Firebase modülünde tanımlı) — burada ayrı bir kopyası yok.
+function renderAuthStatus() {
+  const statusEl = document.getElementById('auth-status');
+  const actionsEl = document.getElementById('auth-actions');
+  if (!statusEl || !actionsEl) return;
+  if (!window.whAuth) {
+    statusEl.innerHTML = '<span style="color:var(--text3);">Giriş sistemi yükleniyor…</span>';
+    actionsEl.innerHTML = '';
+    return;
+  }
+  const user = window.whCurrentUser;
+  if (!user) {
+    statusEl.innerHTML = '<span style="color:var(--text3);">Giriş yapılmadı.</span>';
+    actionsEl.innerHTML = `<button class="chip" onclick="whSignIn()">${ico('user',14,'currentColor',true)} Google ile giriş yap</button>`;
+    return;
+  }
+  const email = (user.email || '').toLowerCase();
+  const allowed = (window.WH_ALLOWED_EMAILS || []).includes(email);
+  statusEl.innerHTML = allowed
+    ? `<span style="color:var(--success);">${ico('check',14,'currentColor',true)} ${escHtml(user.email)} olarak giriş yapıldı</span>`
+    : `<span style="color:var(--danger);">${ico('ban',14,'currentColor',true)} ${escHtml(user.email)} yetkili listede değil</span>`;
+  actionsEl.innerHTML = `<button class="chip" onclick="whSignOut()">Çıkış yap</button>`;
+}
+function whSignIn() {
+  if (!window.whAuth) return;
+  window.whAuth.signIn().catch(function (e) { alert('Giriş başarısız: ' + e.message); });
+}
+function whSignOut() {
+  if (!window.whAuth) return;
+  window.whAuth.signOut();
+}
+document.addEventListener('wh-auth-changed', renderAuthStatus);
+
 // ── Ayarlar: Claude API anahtarı ───────────────────────────────────────────
 function renderClaudeKeyStatus() {
   const el = document.getElementById('claude-key-status');
@@ -1808,7 +1845,7 @@ function showView(v) {
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
   if (v==='writing') wrInit();
-  if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); }
+  if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); renderAuthStatus(); }
   if (v==='grammar') grInit();
 }
 
