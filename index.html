@@ -769,7 +769,16 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 
     const allowed = window.WH_ALLOWED_EMAILS.includes((user.email || '').toLowerCase());
     if (allowed) {
+      // Kapı az önce görünürken şimdi kapanıyorsa, bu taze bir giriş demek —
+      // arkada kalmış olabilecek eski ekranı (örn. Ayarlar, çıkış yapmadan
+      // önce açık kalan) görmezden gelip Panom'a dön. Kapı zaten kapalıyken
+      // (kullanıcı uygulama içinde geziniyorken) bu tetiklenmesin diye
+      // sadece gerçek geçiş anında çalışıyor.
+      const wasBlocking = gate.style.display !== 'none';
       gate.style.display = 'none';
+      if (wasBlocking && typeof window.showView === 'function') {
+        window.showView('dash');
+      }
       return;
     }
     gate.style.display = 'flex';
@@ -1371,7 +1380,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141600';
+    s.src = 'app.js?v=202608141700';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
