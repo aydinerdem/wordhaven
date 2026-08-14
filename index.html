@@ -663,9 +663,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   const fbAuth = getAuth(fbApp);
   const googleProvider = new GoogleAuthProvider();
 
-  // Oturumun localStorage'da kalıcı tutulmasını açıkça istiyoruz — bazı
-  // tarayıcı gizlilik modlarında varsayılan davranış tutarsız olabiliyor.
-  setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
+  // Oturumun localStorage'da kalıcı tutulmasını açıkça istiyoruz. KRİTİK:
+  // bu ayarın signInWithRedirect'ten VE getRedirectResult'tan önce tam
+  // olarak tamamlanmış olması gerekiyor — aksi halde "bekleyen redirect"
+  // kaydı bir depolama mekanizmasına yazılıp dönüşte başka bir mekanizmada
+  // aranabiliyor, sonuç sessizce kayboluyor (hata da vermeden). Bu yüzden
+  // hem signIn() hem getRedirectResult çağrısı bu promise'i bekliyor.
+  const persistenceReady = setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
     console.error('Persistence ayarlanamadı:', e);
   });
 
@@ -686,7 +690,9 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // yönlendirmesi kullanır, popup/COOP etkileşimine hiç girmez.
     signIn: function () {
       window.whLastAuthMethod = 'redirect';
-      return signInWithRedirect(fbAuth, googleProvider);
+      return persistenceReady.then(function () {
+        return signInWithRedirect(fbAuth, googleProvider);
+      });
     },
     signOut: function () { return signOut(fbAuth); }
   };
@@ -695,13 +701,18 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   // giriş ekranını iptal ettiyse). Başarılı girişte onAuthStateChanged zaten
   // otomatik tetiklenip renderAuthGate()'i çağıracak. Hata varsa hem konsola
   // hem doğrudan ekrana yazdırıyoruz (mobilde devtools açmak zor olduğu için).
-  getRedirectResult(fbAuth).catch(function (e) {
+  // persistenceReady'i bekliyoruz ki signIn() ile aynı depolama mekanizmasını
+  // kullansın (yukarıdaki yarış durumu notuna bakın).
+  persistenceReady.then(function () {
+    return getRedirectResult(fbAuth);
+  }).then(function (result) {
+    console.log('getRedirectResult sonucu:', result ? result.user.email : '(bekleyen redirect yok)');
+  }).catch(function (e) {
     console.error('Google redirect giriş hatası:', e);
     window.whLastAuthError = (e.code || '') + ' — ' + (e.message || '');
     const statusEl = document.getElementById('wh-auth-gate-status');
     if (statusEl) statusEl.textContent = 'Redirect giriş hatası: ' + window.whLastAuthError;
   });
-
 
   function renderAuthGate() {
     const gate = document.getElementById('wh-auth-gate');
@@ -1350,7 +1361,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141400';
+    s.src = 'app.js?v=202608141500';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
