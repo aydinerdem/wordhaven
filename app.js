@@ -2910,8 +2910,15 @@ loadState();
 updateDashboard();
 cloudSyncOnStartup();
 renderCustomWordsList();
-window.addEventListener('beforeunload', saveState);
-window.addEventListener('pagehide', saveState);
+// NOT (backlog #4 sırasında kaldırıldı): Burada eskiden 'beforeunload'/
+// 'pagehide' olaylarında da saveState() çağrılıyordu. Bu, İÇERİK
+// DEĞİŞMESE BİLE savedAt'i "şimdi"ye güncelliyordu — her sayfa
+// yenilemesi/kapanması, bulut senkronunun "son kaydeden kazanır"
+// karşılaştırmasını yapay olarak yerel lehine çeviriyordu (gerçek veri
+// değişmemiş olsa bile). Her anlamlı state değişikliği zaten kendi
+// noktasında saveState() çağırıyor (cevaplama, favori, grammar cevabı
+// vb. — bkz. yukarıdaki ~28 çağrı noktası), bu yüzden bu iki listener
+// gereksizdi ve veri kaybı riski olmadan kaldırıldı.
 
 // Build Oxford word set for fast lookup
 const OXFORD_WORD_SET = new Set(WORD_DATA.map(w => w.word.toLowerCase()));
