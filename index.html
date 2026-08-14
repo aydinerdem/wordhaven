@@ -642,7 +642,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   // kurallarındaki e-posta allowlist'inde uygulanıyor — burası değil.
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
   const firebaseConfig = {
@@ -668,11 +668,20 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   window.whAuthResolved = false;
 
   window.whAuth = {
-    // Not: signInWithPopup yerine signInWithRedirect kullanılıyor — mobil
-    // Safari'de popup akışı ITP (üçüncü taraf çerez kısıtlaması) yüzünden
-    // "The requested action is invalid" hatası veriyordu. Redirect akışı
-    // tam sayfa yönlendirme yaptığı için mobilde güvenilir çalışıyor.
-    signIn: function () { return signInWithRedirect(fbAuth, googleProvider); },
+    // Önce popup deneniyor (hızlı, tam sayfa yeniden yüklemesi yok, oturum
+    // kaybı riski yok). Popup gerçekten kullanılamıyorsa (engellendi ya da
+    // ortam desteklemiyor) redirect'e düşülüyor. Önceki "The requested
+    // action is invalid" hatası popup'tan değil, yetkisiz domain'den
+    // kaynaklanıyordu (Authorized domains'e aydinerdem.github.io eklendi).
+    signIn: function () {
+      return signInWithPopup(fbAuth, googleProvider).catch(function (err) {
+        const fallbackCodes = ['auth/popup-blocked', 'auth/cancelled-popup-request', 'auth/operation-not-supported-in-this-environment'];
+        if (fallbackCodes.includes(err.code)) {
+          return signInWithRedirect(fbAuth, googleProvider);
+        }
+        throw err;
+      });
+    },
     signOut: function () { return signOut(fbAuth); }
   };
 
@@ -1328,7 +1337,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141100';
+    s.src = 'app.js?v=202608141200';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
