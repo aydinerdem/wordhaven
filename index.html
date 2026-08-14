@@ -668,6 +668,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   import {
     getStorage, ref as storageRef, getBytes
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
+  // ── Firebase: Firestore (kullanıcı bazlı ilerleme senkronu, backlog #4) ──
+  // Her kullanıcının ilerlemesi users/{uid} dokümanında tutulur. Güvenlik
+  // kuralı: sadece request.auth.uid == userId kendi dokümanını okuyup
+  // yazabilir (bkz. proje_talimati.md FIRESTORE İLERLEME SENKRONU bölümü).
+  import {
+    getFirestore, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBl7FGp_jJfyw1Qas90pDrPAwdBa5FYii0",
@@ -683,11 +690,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
   const fbStorage = getStorage(fbApp);
+  const fbDb = getFirestore(fbApp);
 
-  // Alt taraftaki (body sonu) veri-yükleme script'i bu modülün dışında,
-  // sıradan bir <script> — ES modül import'larına doğrudan erişemez.
-  // Bu yüzden ihtiyacı olan üç şeyi window üzerinden paylaşıyoruz.
+  // Alt taraftaki (body sonu) veri-yükleme script'i ve app.js bu modülün
+  // dışında, sıradan <script>'ler — ES modül import'larına doğrudan erişemez.
+  // Bu yüzden ihtiyacı olan şeyleri window üzerinden paylaşıyoruz.
   window.whStorage = { storage: fbStorage, ref: storageRef, getBytes: getBytes };
+  window.whFirestore = { db: fbDb, doc: doc, getDoc: getDoc, setDoc: setDoc };
 
   setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
     console.error('Persistence ayarlanamadı:', e);
@@ -1418,7 +1427,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608141700';
+      s.src = 'app.js?v=202608141830';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

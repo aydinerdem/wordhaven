@@ -2789,10 +2789,17 @@ function setSrsEntry(key, correct) {
 // dışa/içe aktarma özelliği cihazlar arası taşıma/yedek için ayrıca duruyor.
 const STORAGE_KEY = 'oxford_flashcards_state_v1';
 
+// En son ne zaman kaydedildiği (yerel veya buluttan gelen, hangisi daha
+// yeniyse) — cloudSyncOnStartup()'ın çakışma çözümünde kullandığı zaman
+// damgası. ISO string olduğu için doğrudan string karşılaştırması yeterli.
+let lastSavedAt = null;
+
 function saveState() {
   try {
-    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, savedAt: new Date().toISOString() };
+    lastSavedAt = new Date().toISOString();
+    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, savedAt: lastSavedAt };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    cloudSaveState(lastSavedAt);
   } catch (e) { /* localStorage dolu veya erişilemez olabilir — sessizce geç */ }
 }
 
@@ -2813,8 +2820,78 @@ function loadState() {
     if (d.contactTrack) contactTrack = d.contactTrack;
     if (d.lookupCount) lookupCount = d.lookupCount;
     if (d.grItemStates) grItemStates = d.grItemStates;
+    if (d.savedAt) lastSavedAt = d.savedAt;
     return true;
   } catch (e) { return false; }
+}
+
+// ── BULUT SENKRONU (Firestore, backlog #4) ───────────────────────────────────
+// Sadece "ilerleme" niteliğindeki alanlar buluta yazılır. contentCache/
+// customCache (BYOK API'den üretilen cümle/tanım önbelleği) KASITLI OLARAK
+// dışarıda bırakılıyor — para karşılığı üretilen içerik, ayrı ve daha sonraki
+// bir backlog maddesinde ele alınacak (bkz. proje_talimati.md).
+// Yazma her zaman asenkron ve sessizdir: localStorage zaten birincil/güvenilir
+// kayıt yolu olmaya devam ediyor, bulut yazması başarısız olsa bile (offline,
+// izin hatası vb.) kullanıcı deneyimi hiç etkilenmiyor — sadece konsola log.
+function cloudSyncFields() {
+  return { progress, progressReverse, streak, customProgress, customWords, srsStore, favorites, contactTrack, lookupCount, grItemStates };
+}
+function cloudSaveState(savedAt) {
+  try {
+    const fs = window.whFirestore;
+    const user = window.whCurrentUser;
+    if (!fs || !user) return; // Firestore/giriş henüz hazır değil — sessizce geç
+    const data = cloudSyncFields();
+    data.savedAt = savedAt;
+    fs.setDoc(fs.doc(fs.db, 'users', user.uid), data).catch(function (e) {
+      console.error('Bulut kaydı başarısız (yerel kayıt etkilenmedi):', e);
+    });
+  } catch (e) { /* sessizce geç */ }
+}
+
+// Açılışta bir kez çalışır: yerel (localStorage, senkron olarak zaten
+// yüklendi) ile buluttaki durumu savedAt zaman damgasına göre karşılaştırır,
+// hangisi daha yeniyse o kazanır. Ağ isteği beklemeden önce ekran zaten yerel
+// veriyle çizilmiş oluyor; bulut daha yeniyse bu fonksiyon arka planda
+// state'i güncelleyip ilgili ekranları yeniden çizer.
+function cloudSyncOnStartup() {
+  try {
+    const fs = window.whFirestore;
+    const user = window.whCurrentUser;
+    if (!fs || !user) return;
+    fs.getDoc(fs.doc(fs.db, 'users', user.uid)).then(function (snap) {
+      if (!snap.exists()) { cloudSaveState(lastSavedAt || new Date().toISOString()); return; }
+      const cloud = snap.data();
+      const cloudNewer = !!cloud.savedAt && (!lastSavedAt || cloud.savedAt > lastSavedAt);
+      if (!cloudNewer) return; // yerel zaten güncel veya daha yeni, dokunma
+      if (cloud.progress) progress = cloud.progress;
+      if (cloud.progressReverse) progressReverse = cloud.progressReverse;
+      if (cloud.streak) streak = cloud.streak;
+      if (cloud.customProgress) customProgress = cloud.customProgress;
+      if (cloud.customWords) customWords = cloud.customWords;
+      if (cloud.srsStore) srsStore = cloud.srsStore;
+      if (cloud.favorites) favorites = cloud.favorites;
+      if (cloud.contactTrack) contactTrack = cloud.contactTrack;
+      if (cloud.lookupCount) lookupCount = cloud.lookupCount;
+      if (cloud.grItemStates) grItemStates = cloud.grItemStates;
+      lastSavedAt = cloud.savedAt;
+      // localStorage'ı da güncel tut — contentCache/customCache dokunulmadan kalır.
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const local = raw ? JSON.parse(raw) : {};
+        local.progress = progress; local.progressReverse = progressReverse; local.streak = streak;
+        local.customProgress = customProgress; local.customWords = customWords; local.srsStore = srsStore;
+        local.favorites = favorites; local.contactTrack = contactTrack; local.lookupCount = lookupCount;
+        local.grItemStates = grItemStates; local.savedAt = lastSavedAt;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+      } catch (e) { /* sessizce geç */ }
+      updateDashboard();
+      if (typeof renderCustomWordsList === 'function') renderCustomWordsList();
+      if (typeof refreshCurrentWordViews === 'function') refreshCurrentWordViews();
+    }).catch(function (e) {
+      console.error('Bulut senkronu okunamadı (yerel veriyle devam ediliyor):', e);
+    });
+  } catch (e) { /* sessizce geç */ }
 }
 
 const WELCOME_SEEN_KEY = 'wh_welcome_seen_v1';
@@ -2831,6 +2908,7 @@ if (!localStorage.getItem(WELCOME_SEEN_KEY)) {
 
 loadState();
 updateDashboard();
+cloudSyncOnStartup();
 renderCustomWordsList();
 window.addEventListener('beforeunload', saveState);
 window.addEventListener('pagehide', saveState);
