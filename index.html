@@ -642,7 +642,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   // kurallarındaki e-posta allowlist'inde uygulanıyor — burası değil.
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult,
     signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
@@ -675,23 +675,14 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   window.whAuthResolved = false;
 
   window.whAuth = {
-    // Önce popup deneniyor (hızlı, tam sayfa yeniden yüklemesi yok, oturum
-    // kaybı riski yok). Popup gerçekten kullanılamıyorsa (engellendi ya da
-    // ortam desteklemiyor) redirect'e düşülüyor. Önceki "The requested
-    // action is invalid" hatası popup'tan değil, yetkisiz domain'den
-    // kaynaklanıyordu (Authorized domains'e aydinerdem.github.io eklendi).
+    // Sadece redirect kullanılıyor — popup, Chrome'un Cross-Origin-Opener-
+    // Policy davranışıyla çakışıp Firebase'in "popup kapandı mı" kontrolünü
+    // engelliyordu (konsolda "window.closed call" hatası olarak görünen
+    // sorun buydu). Redirect bu sorunu tamamen atlıyor: tam sayfa
+    // yönlendirmesi kullanır, popup/COOP etkileşimine hiç girmez.
     signIn: function () {
-      window.whLastAuthMethod = 'popup';
-      return signInWithPopup(fbAuth, googleProvider).catch(function (err) {
-        console.error('Popup giriş hatası:', err);
-        window.whLastAuthError = (err.code || '') + ' — ' + (err.message || '');
-        const fallbackCodes = ['auth/popup-blocked', 'auth/cancelled-popup-request', 'auth/operation-not-supported-in-this-environment'];
-        if (fallbackCodes.includes(err.code)) {
-          window.whLastAuthMethod = 'redirect';
-          return signInWithRedirect(fbAuth, googleProvider);
-        }
-        throw err;
-      });
+      window.whLastAuthMethod = 'redirect';
+      return signInWithRedirect(fbAuth, googleProvider);
     },
     signOut: function () { return signOut(fbAuth); }
   };
@@ -1355,7 +1346,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141300';
+    s.src = 'app.js?v=202608141400';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
