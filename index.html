@@ -639,14 +639,24 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-nuance-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
 .gr-nuance-text{font-size:13px;line-height:1.6;color:var(--text2);}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer onload="window.whGisOnload && window.whGisOnload()"></script>
 <script type="module">
   // ── Firebase: Auth (Google Sign-In) ────────────────────────────────────
   // Bu modül sadece kimlik doğrulamayı yapar (auth != null). Gerçek
   // yetkilendirme (kimin veriye erişebileceği) Firestore güvenlik
   // kurallarındaki e-posta allowlist'inde uygulanıyor — burası değil.
+  //
+  // NOT (önemli geçmiş): Firebase'in kendi signInWithPopup/signInWithRedirect
+  // yardımcıları burada güvenilir çalışmadı — popup Chrome'un Cross-Origin-
+  // Opener-Policy davranışıyla çakıştı, redirect ise dönüşte "bekleyen giriş"
+  // kaydını bulamadı (muhtemelen tarayıcının üçüncü taraf depolama
+  // izolasyonu yüzünden). Bu yüzden Google'ın kendi güncel "Google Identity
+  // Services" kütüphanesi kullanılıyor: o bize doğrudan bir kimlik jetonu
+  // (ID token) veriyor, biz de onu signInWithCredential ile Firebase'e
+  // teslim ediyoruz — popup/redirect/COOP mekaniğine hiç girmiyoruz.
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult,
+    getAuth, GoogleAuthProvider, signInWithCredential,
     signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
@@ -659,17 +669,12 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     appId: "1:225681400695:web:9ef0ee1ae3a8aa0b19f772"
   };
 
+  const GIS_CLIENT_ID = "225681400695-u6h2ib737iacmnj9dfnnvbt9nj2eag63.apps.googleusercontent.com";
+
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
-  const googleProvider = new GoogleAuthProvider();
 
-  // Oturumun localStorage'da kalıcı tutulmasını açıkça istiyoruz. KRİTİK:
-  // bu ayarın signInWithRedirect'ten VE getRedirectResult'tan önce tam
-  // olarak tamamlanmış olması gerekiyor — aksi halde "bekleyen redirect"
-  // kaydı bir depolama mekanizmasına yazılıp dönüşte başka bir mekanizmada
-  // aranabiliyor, sonuç sessizce kayboluyor (hata da vermeden). Bu yüzden
-  // hem signIn() hem getRedirectResult çağrısı bu promise'i bekliyor.
-  const persistenceReady = setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
+  setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
     console.error('Persistence ayarlanamadı:', e);
   });
 
@@ -682,37 +687,51 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   window.whCurrentUser = null;
   window.whAuthResolved = false;
 
+  let gisInitialized = false;
+  function ensureGisInitialized() {
+    if (gisInitialized) return true;
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.initialize({
+        client_id: GIS_CLIENT_ID,
+        callback: handleGisCredentialResponse,
+        auto_select: false
+      });
+      gisInitialized = true;
+      return true;
+    }
+    return false;
+  }
+  // GIS script'i geç yüklenirse (ağ yavaşsa) bu callback devreye girer.
+  window.whGisOnload = function () {
+    ensureGisInitialized();
+    renderAuthGate();
+  };
+
+  function handleGisCredentialResponse(response) {
+    const credential = GoogleAuthProvider.credential(response.credential);
+    const statusEl = document.getElementById('wh-auth-gate-status');
+    if (statusEl) statusEl.textContent = 'Giriş yapılıyor…';
+    signInWithCredential(fbAuth, credential).catch(function (e) {
+      console.error('signInWithCredential hatası:', e);
+      window.whLastAuthError = (e.code || '') + ' — ' + (e.message || '');
+      renderAuthGate();
+    });
+  }
+
   window.whAuth = {
-    // Sadece redirect kullanılıyor — popup, Chrome'un Cross-Origin-Opener-
-    // Policy davranışıyla çakışıp Firebase'in "popup kapandı mı" kontrolünü
-    // engelliyordu (konsolda "window.closed call" hatası olarak görünen
-    // sorun buydu). Redirect bu sorunu tamamen atlıyor: tam sayfa
-    // yönlendirmesi kullanır, popup/COOP etkileşimine hiç girmez.
+    // Ayarlar>Hesap panelindeki (app.js) buton bu yolu kullanıyor. Normal
+    // akışta buraya hiç gelinmez çünkü giriş kapısı zaten girişsiz erişimi
+    // engelliyor — Ayarlar'a ulaşabilmen için zaten giriş yapmış olman
+    // gerekir. Yine de tanımlı: One Tap istemini tetikler.
     signIn: function () {
-      window.whLastAuthMethod = 'redirect';
-      return persistenceReady.then(function () {
-        return signInWithRedirect(fbAuth, googleProvider);
+      return new Promise(function (resolve, reject) {
+        if (!ensureGisInitialized()) { reject(new Error('Google giriş sistemi henüz hazır değil, birkaç saniye sonra tekrar dene.')); return; }
+        window.google.accounts.id.prompt();
+        resolve();
       });
     },
     signOut: function () { return signOut(fbAuth); }
   };
-
-  // Google'dan redirect ile dönüldüğünde olası hataları yakala (örn. kullanıcı
-  // giriş ekranını iptal ettiyse). Başarılı girişte onAuthStateChanged zaten
-  // otomatik tetiklenip renderAuthGate()'i çağıracak. Hata varsa hem konsola
-  // hem doğrudan ekrana yazdırıyoruz (mobilde devtools açmak zor olduğu için).
-  // persistenceReady'i bekliyoruz ki signIn() ile aynı depolama mekanizmasını
-  // kullansın (yukarıdaki yarış durumu notuna bakın).
-  persistenceReady.then(function () {
-    return getRedirectResult(fbAuth);
-  }).then(function (result) {
-    console.log('getRedirectResult sonucu:', result ? result.user.email : '(bekleyen redirect yok)');
-  }).catch(function (e) {
-    console.error('Google redirect giriş hatası:', e);
-    window.whLastAuthError = (e.code || '') + ' — ' + (e.message || '');
-    const statusEl = document.getElementById('wh-auth-gate-status');
-    if (statusEl) statusEl.textContent = 'Redirect giriş hatası: ' + window.whLastAuthError;
-  });
 
   function renderAuthGate() {
     const gate = document.getElementById('wh-auth-gate');
@@ -734,26 +753,17 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       statusEl.textContent = window.whLastAuthError
         ? 'Giriş tamamlanamadı: ' + window.whLastAuthError
         : 'Devam etmek için Google hesabınla giriş yap.';
-      actionsEl.innerHTML =
-        '<button id="wh-gate-signin-btn" style="width:100%;padding:13px;border-radius:10px;' +
-        'border:1px solid var(--border2);background:var(--surface);color:var(--text);' +
-        'font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;' +
-        'justify-content:center;gap:9px;">' +
-        '<svg width="18" height="18" viewBox="0 0 18 18">' +
-        '<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>' +
-        '<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.9v2.33A9 9 0 0 0 9 18z"/>' +
-        '<path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.28-1.72V4.95H.9A9 9 0 0 0 0 9c0 1.45.35 2.83.9 4.05l3.07-2.33z"/>' +
-        '<path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .9 4.95l3.07 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>' +
-        '</svg>Google ile giriş yap</button>';
-      const btn = document.getElementById('wh-gate-signin-btn');
-      if (btn) btn.onclick = function () {
-        statusEl.textContent = 'Giriş yapılıyor…';
-        actionsEl.innerHTML = '';
-        window.whAuth.signIn().catch(function (e) {
-          statusEl.textContent = 'Giriş başarısız: ' + e.message;
-          renderAuthGate();
-        });
-      };
+      actionsEl.innerHTML = '<div id="gis-btn-container" style="display:flex;justify-content:center;min-height:44px;align-items:center;"></div>';
+      if (ensureGisInitialized()) {
+        window.google.accounts.id.renderButton(
+          document.getElementById('gis-btn-container'),
+          { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', width: 280 }
+        );
+      } else {
+        document.getElementById('gis-btn-container').innerHTML =
+          '<span style="font-size:13px;color:var(--text3);">Google giriş sistemi yükleniyor…</span>';
+        setTimeout(renderAuthGate, 400);
+      }
       return;
     }
 
@@ -1361,7 +1371,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
     // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
     // ile eşleşmediği için ekran boş kalır.
-    s.src = 'app.js?v=202608141500';
+    s.src = 'app.js?v=202608141600';
     s.onload = function(){
       var el = document.getElementById('wh-loading-overlay');
       if (el) el.remove();
