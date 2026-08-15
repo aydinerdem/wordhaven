@@ -410,7 +410,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 .examples-card{border-radius:16px;overflow:hidden;border:0.5px solid var(--border2);}
 .examples-card-head{background:var(--surface2);padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--text2);}
 .examples-card-head svg{flex-shrink:0;color:var(--text3);}
-.examples-card-body{background:var(--surface);padding:14px 16px 4px;}
+.examples-card-body{background:var(--surface2);padding:14px 16px 4px;}
 .examples-card-body .c-example{border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:14px;}
 .examples-card-body .c-example:last-child{margin-bottom:10px;}
 .c-example p{font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;}
@@ -591,7 +591,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 .gr-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
 .gr-progress-fill.full{background:var(--success);}
 .gr-expl{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:12px;}
-.gr-ex{background:var(--surface2);border-radius:var(--rsm,8px);padding:10px 12px;font-size:13.5px;margin-bottom:6px;}
+.gr-ex{background:var(--surface);border-radius:var(--rsm,8px);padding:10px 12px;font-size:13.5px;margin-bottom:6px;}
 .gr-ex b{color:var(--accent);}
 .gr-tr-toggle{font-size:12px;color:var(--gr-accent,var(--accent));background:none;border:none;cursor:pointer;padding:8px 0 0;font-weight:500;}
 .gr-tr-switch{display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:8px 0 0;}
@@ -1599,7 +1599,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608172000';
+      s.src = 'app.js?v=202608172100';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
