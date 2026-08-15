@@ -2803,6 +2803,13 @@ function toggleFavFromRow(word, pos) {
 }
 let customCache = {};    // key: word.toLowerCase() → {definition,turkish,nuance,examples}
 let modalCurrentWord = null; // {word, pos, cefr, speaking, writing, categories, isCustom}
+// openWordModal() bazen asenkron (fetchContent bekliyor) — bu bekleme
+// sırasında başka bir view'a geçilip closeWordModal() çağrılırsa, GEÇ
+// TAMAMLANAN openWordModal() modalı tekrar görünür kılabiliyordu (Erdem'in
+// "aynı kelime iki kez görünüyor" bug raporu). Her açma/kapama bu sayacı
+// güncelliyor; asenkron kısım kendi jetonunun hâlâ güncel olduğunu
+// doğrulamadan içerik göstermiyor.
+let modalOpenToken = 0;
 
 // ── BİRLEŞİK SRS DEPOSU (tüm modüller arasında paylaşılan) ──────────────────
 // Cümle Genişletme / Adam Asmaca / Telaffuz Asistanı gibi diğer modüller
@@ -2840,7 +2847,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608172100';
+const APP_VERSION = '202608172300';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -4311,6 +4318,7 @@ function getWordProgress(wordLower) {
 }
 
 async function openWordModal(wordLower) {
+  const myToken = ++modalOpenToken;
   markLookup(wordLower);
   // Determine if Oxford, topic-list, or custom
   const oxWords = OXFORD_WORD_MAP[wordLower] || [];
@@ -4402,6 +4410,7 @@ async function openWordModal(wordLower) {
       return;
     }
     const c = await fetchContent(wordObj);
+    if (myToken !== modalOpenToken) return; // arada kapatıldı/başka kelime açıldı — bu sonucu artık gösterme
     cache[cacheKey] = c;
     renderModalContent(c, wordObj);
   }
@@ -4467,6 +4476,7 @@ function renderModalContent(c, wordObj) {
 }
 
 function closeWordModal() {
+  modalOpenToken++; // bekleyen openWordModal() asenkron kısımlarını geçersiz kılar
   document.getElementById('word-modal').classList.add('hidden');
   document.getElementById('word-modal').style.display = 'none';
   modalCurrentWord = null;
