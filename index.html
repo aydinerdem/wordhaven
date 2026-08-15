@@ -354,12 +354,39 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .dash-lvl-bar{position:relative;flex:1;height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;min-width:40px;}
 .dash-lvl-detail{padding:4px 0 12px;border-bottom:0.5px solid var(--border);}
 .band-label{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;}
-.gb-details{border-top:0.5px solid var(--border);padding-top:10px;}
-.gb-details summary{list-style:none;font-weight:600;color:var(--accent);}
-.gb-details summary::-webkit-details-marker{display:none;}
-.gb-details summary::before{content:'▸ ';font-size:11px;}
-.gb-details[open] summary::before{content:'▾ ';}
+.gb-details{margin-top:6px;}
 .band-label:first-child{margin-top:0;}
+
+/* ── Açılır tetikleyici (disclosure) — Longman/VOA filtresi ve Ayarlar'daki
+   API anahtarı rehberleri gibi <details><summary> bileşenleri için ortak
+   chip görünümü. Önceden düz metin linkiydi, şimdi diğer chip'lerle aynı
+   dili konuşuyor. ── */
+.disclosure-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-size:12.5px;font-weight:600;color:var(--text2);border:1.5px solid var(--border2);background:var(--surface2);transition:all .15s;}
+.disclosure-summary::-webkit-details-marker{display:none;}
+.disclosure-summary::marker{content:'';}
+.disclosure-summary .dchev{color:var(--text3);transition:transform .2s;flex-shrink:0;display:flex;}
+.disclosure-summary .dchev svg{width:12px;height:12px;display:block;}
+details[open]>.disclosure-summary{border-color:var(--accent);background:var(--accentbg);color:var(--accent);}
+details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--accent);}
+
+/* ── Küçük geri/breadcrumb chip'i — Grammar'daki "← Seviyeler"/"← Konular" ── */
+.crumb-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;flex-shrink:0;transition:all .15s;}
+.crumb-btn:hover{background:var(--surface);border-color:var(--accent);color:var(--accent);}
+.crumb-btn svg{width:11px;height:11px;display:block;}
+
+/* ── "Gözden geçir" ana çağrı butonu (Grammar) ── */
+.gr-review-cta{width:100%;padding:12px 14px;font-size:13px;font-weight:700;border-radius:var(--r);border:1.5px solid var(--accent);background:var(--accentbg);color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;margin-bottom:12px;transition:all .15s;}
+.gr-review-cta:hover{background:var(--accent);color:#fff;}
+.gr-review-cta svg{width:15px;height:15px;flex-shrink:0;}
+
+/* ── Ayarlar panel başlıkları — soluk gri çizgi ikon yerine, menüdeki gibi
+   renkli/gradyanlı rozet. Panel gövdeleri hâlâ sade (gradyan kart/hero
+   eklenmedi, bilinçli tercih) — sadece başlık ısındı. ── */
+.settings-panel-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.settings-panel-head.tight{margin-bottom:4px;}
+.settings-panel-ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 3px 8px -2px rgba(0,0,0,.22);}
+.settings-panel-ico svg{width:16px;height:16px;display:block;}
+.settings-panel-title{font-size:14.5px;font-weight:700;color:var(--text);}
 .b-s2,.b-s3,.b-w2,.b-w3{background:var(--surface2);color:var(--text2);}
 .divider{height:0.5px;background:var(--border);margin-bottom:14px;}
 .c-def{font-size:15px;color:var(--text2);line-height:1.6;}
@@ -638,6 +665,66 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .gr-nuance-block:last-child{margin-bottom:0;}
 .gr-nuance-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
 .gr-nuance-text{font-size:13px;line-height:1.6;color:var(--text2);}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GENİŞ EKRAN (iPad/Mac) — backlog #8. 3 kademe, sadece genişliğe göre
+   (cihaz tipine göre değil): ≤680px mobil (yukarısı, hiç değişmez),
+   681–1099px "tablet" (geniş tek sütun + Kelime Durumu 2 sütun),
+   ≥1100px "masaüstü" (sabit sol menü). Sınır sayıları ilk tahmin — gerçek
+   cihazda görülüp ince ayar yapılacak (bkz. proje_talimati.md).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tablet: 681–1099px ── */
+@media(min-width:681px){
+  .app{max-width:920px;}
+  #st-list{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+}
+
+/* ── Masaüstü: ≥1100px — sabit sol menü ── */
+@media(min-width:1100px){
+  .app{
+    max-width:1180px;
+    display:grid;
+    grid-template-columns:230px 1fr;
+    grid-template-areas:"header header" "nav content";
+    column-gap:32px;
+    align-items:start;
+  }
+  .header{grid-area:header;}
+  .main-nav-wrap{grid-area:nav;position:sticky;top:20px;margin-bottom:0;align-self:start;}
+  .app > div[id^="view-"]{grid-area:content;}
+
+  /* Hamburger yerine her zaman açık panel — toggle butonu gizleniyor,
+     panel .hidden sınıfı taşısa bile CSS ile zorla görünür tutuluyor. */
+  .main-menu-toggle{display:none;}
+  .main-menu-panel,.main-menu-panel.hidden{display:flex !important;}
+
+  /* nav-tile'lar (dikey ikon+etiket kutucukları) sidebar'da yatay liste
+     satırlarına dönüşüyor — HTML/JS değişmiyor, sadece CSS. */
+  .nav-tile-grid{grid-template-columns:1fr;gap:1px;padding:6px;}
+  .nav-tile{flex-direction:row;justify-content:flex-start;gap:10px;padding:8px 8px;border-radius:8px;}
+  .nav-tile:hover{background:var(--surface2);}
+  .nav-tile-ico{width:28px;height:28px;border-radius:8px;flex-shrink:0;}
+  .nav-tile-ico svg{width:15px;height:15px;}
+  .nav-tile-lbl{font-size:12.5px;text-align:left;}
+  .nav-feature-row:hover{background:var(--surface2);}
+
+  /* Grup kutuları (beyaz kart + kenarlık) sidebar'da göze batıyordu —
+     kaldırılıp tek akan liste haline getirildi, sadece etiketler ayırıyor. */
+  .menu-group{background:none;border:none;border-radius:0;}
+  .menu-group-label{margin:16px 8px 6px;}
+  .menu-group-label:first-child{margin-top:2px;}
+  .nav-feature-row{background:none;border-radius:8px;}
+
+  /* Aktif sayfa vurgusu — grid-tile modunda sadece ikon etrafında ince bir
+     halkaydı, sidebar'da hangi sayfada olunduğu daha net görünsün diye
+     dolu arka plan + kalın renkli etiket. */
+  .nav-tile.active{background:var(--accentbg) !important;}
+  .nav-tile.active .nav-tile-lbl{color:var(--accent);font-weight:700;}
+  .nav-tile.active .nav-tile-ico{box-shadow:none;}
+
+  #st-list{grid-template-columns:1fr 1fr;}
+}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window.whGisOnload && window.whGisOnload()"></script>
 <script type="module">
@@ -1159,13 +1246,13 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         </p>
       </div>
       <input type="text" id="gr-search-input" placeholder="397 konu arasında ara… (ör. 'past', 'articles')" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);margin-bottom:12px;box-sizing:border-box;" oninput="grSearchTopics(this.value)">
-      <button class="gr-tr-toggle" onclick="grShowReview()" style="width:100%;text-align:center;margin-bottom:12px;">Gözden geçir — yanlış / tekrarlanmış / cevaplanmamış sorular</button>
+      <button class="gr-review-cta" onclick="grShowReview()"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg>Gözden geçir — yanlış / tekrarlanmış / cevaplanmamış sorular</button>
       <div id="gr-level-list"></div>
       <div id="gr-search-results" class="hidden"></div>
     </div>
     <div id="gr-review-view" class="hidden">
       <div class="sg-tense-row-label" style="display:flex;align-items:center;gap:8px;">
-        <button class="sg-skip-btn" onclick="grBackFromReview()" style="padding:0;">&#8592; Seviyeler</button>
+        <button class="crumb-btn" onclick="grBackFromReview()"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 5 7 10l5.5 5"/></svg>Seviyeler</button>
         <span>Gözden Geçir</span>
       </div>
       <div id="gr-review-tabs" style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;"></div>
@@ -1173,14 +1260,14 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
     <div id="gr-topics-view" class="hidden">
       <div class="sg-tense-row-label" style="display:flex;align-items:center;gap:8px;">
-        <button class="sg-skip-btn" onclick="grBackToLevels()" style="padding:0;">&#8592; Seviyeler</button>
+        <button class="crumb-btn" onclick="grBackToLevels()"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 5 7 10l5.5 5"/></svg>Seviyeler</button>
         <span id="gr-topics-title"></span>
       </div>
       <div id="gr-topic-list" style="margin-top:10px;"></div>
     </div>
     <div id="gr-detail-view" class="hidden">
       <div class="sg-tense-row-label" style="display:flex;align-items:center;gap:8px;">
-        <button class="sg-skip-btn" onclick="grBackToTopics()" style="padding:0;">&#8592; Konular</button>
+        <button class="crumb-btn" onclick="grBackToTopics()"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 5 7 10l5.5 5"/></svg>Konular</button>
         <span id="gr-detail-title"></span>
       </div>
       <div id="gr-summary-card" style="margin-top:12px;"></div>
@@ -1238,7 +1325,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <!-- AYARLAR -->
   <div id="view-settings" class="hidden">
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.8" r="3.2"/><path d="M4 16.2c0-3.3 2.7-5.2 6-5.2s6 1.9 6 5.2"/></svg>Hesap</div>
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#64748b,#3f4b5c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.8" r="3.2"/><path d="M4 16.2c0-3.3 2.7-5.2 6-5.2s6 1.9 6 5.2"/></svg></span><span class="settings-panel-title">Hesap</span></div>
       <div id="auth-status" style="font-size:13px;color:var(--text2);margin-bottom:10px;">Kontrol ediliyor…</div>
       <div id="auth-actions"></div>
       <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6;">Giriş yaptığında ilerlemen (kelimeler, favoriler, gramer durumu vb.) otomatik olarak diğer cihazlarınla senkronize olur.</p>
@@ -1249,7 +1336,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/><path d="M4 14v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V14"/></svg>Veri</div>
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#f2994a,#c96f1e);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/><path d="M4 14v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V14"/></svg></span><span class="settings-panel-title">Veri</span></div>
       <div style="display:flex;gap:8px;">
         <button onclick="doExport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5"/><path d="M4 14v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V14"/></svg>Dışa aktar</button>
         <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a1 1 0 0 1 1-1h3.5l1.5 1.8H16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>İlerlemeyi yükle</button>
@@ -1259,7 +1346,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 10 3.5l6 5V16a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1z"/></svg>Ana Ekrana Ekle</div>
+      <div class="settings-panel-head tight"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#0f9b6e,#0a6b4c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 10 3.5l6 5V16a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1z"/></svg></span><span class="settings-panel-title">Ana Ekrana Ekle</span></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">WordHaven'ı ana ekranına eklersen normal bir uygulama gibi tek dokunuşla açılır, adres çubuğu görünmez.</p>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <button id="hs-tab-ios" class="chip on" onclick="hsSetTab('ios')">iPhone (Safari)</button>
@@ -1280,7 +1367,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v4h3l4 3.5V4.5L7 8z"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5.1a7 7 0 0 1 0 9.8"/></svg>Ses Ayarları</div>
+      <div class="settings-panel-head tight"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v4h3l4 3.5V4.5L7 8z"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5.1a7 7 0 0 1 0 9.8"/></svg></span><span class="settings-panel-title">Ses Ayarları</span></div>
       <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
       <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
       <div style="display:flex;gap:8px;">
@@ -1288,7 +1375,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         <button onclick="clearTtsUserKey()" style="padding:9px 14px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;">Kaldır</button>
       </div>
       <details style="margin-top:12px;">
-        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl ücretsiz API anahtarı alırım?</summary>
+        <summary class="disclosure-summary"><span>Nasıl ücretsiz API anahtarı alırım?</span><span class="dchev"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5l5 5-5 5"/></svg></span></summary>
         <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
           <li><a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>'ya git, ücretsiz hesap oluştur (Sign up)</li>
           <li>Platform seçimi çıkarsa <b>"ElevenCreative"</b>'i seç → Continue</li>
@@ -1304,7 +1391,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Günlük hedef</div>
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#ec4899,#be185d);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".4" fill="currentColor"/></svg></span><span class="settings-panel-title">Günlük hedef</span></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
         Panom ekranındaki halka bu hedefe göre dolar. Hedefe ulaşınca çalışmayı bırakman
         gerekmez — istediğin kadar devam edebilirsin.
@@ -1319,7 +1406,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Claude API Anahtarı (Cümle Yaz)</div>
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#ef4444,#b91c1c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="13" r="3.2"/><path d="M9.2 10.8 15.5 4.5M13 7l1.8 1.8M15.3 4.7l1.8 1.8"/></svg></span><span class="settings-panel-title">Claude API Anahtarı (Cümle Yaz)</span></div>
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
         Anahtar girersen <b>Cümle Yaz</b> modülünde yazdığın cümleler tam gramer kontrolünden
         geçer (hata listesi, düzeltilmiş cümle, alternatifler). Girmezsen modül kapanmaz —
@@ -1336,7 +1423,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
         Anahtar sadece bu cihazın tarayıcısında saklanır, hiçbir sunucuya gönderilmez.
       </p>
       <details style="margin-top:12px;">
-        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl API anahtarı alırım?</summary>
+        <summary class="disclosure-summary"><span>Nasıl API anahtarı alırım?</span><span class="dchev"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5l5 5-5 5"/></svg></span></summary>
         <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
           <li><a href="https://platform.claude.com" target="_blank" style="color:var(--accent);">platform.claude.com</a>'a git, hesap oluştur veya giriş yap (e-posta ya da Google ile)</li>
           <li>Sol menüden <b>Settings → API Keys</b>'e git</li>
@@ -1349,7 +1436,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 9v4.2"/><circle cx="10" cy="6.8" r=".15" fill="currentColor" stroke-width="2.2"/></svg>WordHaven Hakkında</div>
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,var(--accent),var(--accent2));"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 9v4.2"/><circle cx="10" cy="6.8" r=".15" fill="currentColor" stroke-width="2.2"/></svg></span><span class="settings-panel-title">WordHaven Hakkında</span></div>
       <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
         WordHaven, Oxford 3000/5000 kelime listesi ve binlerce konu bazlı kelimeyi aralıklı tekrar (spaced repetition) yöntemiyle öğretmek için tasarlanmış kişisel bir İngilizce kelime öğrenme uygulamasıdır.
       </p>
@@ -1463,7 +1550,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608151600';
+      s.src = 'app.js?v=202608152100';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

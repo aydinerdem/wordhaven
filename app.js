@@ -890,8 +890,9 @@ function gbRender(containerId) {
 
   el.innerHTML = `
     <details class="gb-details"${on ? ' open' : ''}>
-      <summary style="font-size:12px;color:var(--accent);cursor:pointer;">
-        Longman / VOA filtresi${on ? ` <span style="color:var(--warn);font-weight:600;">• açık</span>` : ''}
+      <summary class="disclosure-summary">
+        <span>Longman / VOA filtresi${on ? ` <span style="color:var(--warn);font-weight:700;">• açık</span>` : ''}</span>
+        <span class="dchev"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5l5 5-5 5"/></svg></span>
       </summary>
       <div style="margin-top:10px;">
         <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px;">
@@ -2798,7 +2799,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608151600';
+const APP_VERSION = '202608152100';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
