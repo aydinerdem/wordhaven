@@ -1692,6 +1692,14 @@ function clearClaudeKey() {
   wrRenderStatus();
 }
 
+// ── Ayarlar: Ana Ekrana Ekle rehberi (iOS/Android sekme geçişi) ────────────
+function hsSetTab(platform) {
+  document.getElementById('hs-tab-ios').classList.toggle('on', platform === 'ios');
+  document.getElementById('hs-tab-android').classList.toggle('on', platform === 'android');
+  document.getElementById('hs-steps-ios').classList.toggle('hidden', platform !== 'ios');
+  document.getElementById('hs-steps-android').classList.toggle('hidden', platform !== 'android');
+}
+
 const CEFR_LEVELS = ['A1','A2','B1','B2','C1'];
 const CEFR_COLORS = { A1:'--a1', A2:'--a2', B1:'--b1', B2:'--b2', C1:'--c1' };
 
@@ -2790,7 +2798,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608142000-debug';
+const APP_VERSION = '202608151600';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -2805,7 +2813,6 @@ let lastSavedAt = null;
 
 function saveState() {
   try {
-    console.trace('[TEŞHİS] saveState() çağrıldı, savedAt güncelleniyor'); // GEÇİCİ — sorun bulununca kaldırılacak
     lastSavedAt = new Date().toISOString();
     const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, savedAt: lastSavedAt };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));

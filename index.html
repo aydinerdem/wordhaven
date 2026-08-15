@@ -1259,6 +1259,27 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
 
     <div class="filter-panel">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 10 3.5l6 5V16a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1z"/></svg>Ana Ekrana Ekle</div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">WordHaven'ı ana ekranına eklersen normal bir uygulama gibi tek dokunuşla açılır, adres çubuğu görünmez.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="hs-tab-ios" class="chip on" onclick="hsSetTab('ios')">iPhone (Safari)</button>
+        <button id="hs-tab-android" class="chip" onclick="hsSetTab('android')">Android (Chrome)</button>
+      </div>
+      <ol id="hs-steps-ios" style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:0;padding-left:18px;">
+        <li>WordHaven'ı <b>Safari</b>'de aç (Chrome'da bu seçenek yok)</li>
+        <li>Alt ortadaki <b>Paylaş</b> ikonuna dokun (kare içinde yukarı ok)</li>
+        <li>Aşağı kaydır, <b>"Ana Ekrana Ekle"</b>'ye dokun</li>
+        <li>İsmi istersen değiştir, sağ üstteki <b>"Ekle"</b>'ye dokun</li>
+      </ol>
+      <ol id="hs-steps-android" class="hidden" style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:0;padding-left:18px;">
+        <li>WordHaven'ı <b>Chrome</b>'da aç</li>
+        <li>Sağ üstteki ⋮ (üç nokta) menüsüne dokun</li>
+        <li><b>"Ana ekrana ekle"</b> ya da <b>"Uygulamayı yükle"</b>'ye dokun</li>
+        <li>Çıkan onay kutusunda <b>"Ekle"</b>'ye dokun</li>
+      </ol>
+    </div>
+
+    <div class="filter-panel">
       <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v4h3l4 3.5V4.5L7 8z"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5.1a7 7 0 0 1 0 9.8"/></svg>Ses Ayarları</div>
       <div id="tts-status-line" style="font-size:12.5px;color:var(--text2);margin-bottom:12px;"></div>
       <input type="password" id="tts-key-input" placeholder="ElevenLabs API anahtarı (opsiyonel)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
@@ -1314,6 +1335,17 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6;">
         Anahtar sadece bu cihazın tarayıcısında saklanır, hiçbir sunucuya gönderilmez.
       </p>
+      <details style="margin-top:12px;">
+        <summary style="font-size:12.5px;color:var(--accent);cursor:pointer;">Nasıl API anahtarı alırım?</summary>
+        <ol style="font-size:12.5px;color:var(--text2);line-height:1.9;margin:10px 0 0;padding-left:18px;">
+          <li><a href="https://platform.claude.com" target="_blank" style="color:var(--accent);">platform.claude.com</a>'a git, hesap oluştur veya giriş yap (e-posta ya da Google ile)</li>
+          <li>Sol menüden <b>Settings → API Keys</b>'e git</li>
+          <li><b>Create Key</b>'e tıkla, anahtara bir isim ver (örn. "wordhaven")</li>
+          <li>Çıkan anahtarı (sk-ant- ile başlar) hemen kopyala — <u>bir daha tam haliyle gösterilmez</u>, kaybedersen yeni anahtar oluşturman gerekir</li>
+          <li>Buraya (yukarıdaki kutuya) yapıştır, <b>Kaydet</b>'e bas</li>
+        </ol>
+        <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">Bu anahtar kullanım bazlı ücretlendirilir (kalıcı ücretsiz kotası yok) — yeni hesaba küçük, tek seferlik bir deneme kredisi tanımlanır. Harcama sınırı koymak istersen Console'da <b>Settings → Limits</b>'ten ayarlayabilirsin.</p>
+      </details>
     </div>
 
     <div class="filter-panel">
@@ -1431,7 +1463,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608142000-debug';
+      s.src = 'app.js?v=202608151600';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
