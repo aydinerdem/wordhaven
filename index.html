@@ -726,6 +726,25 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 
   #st-list{grid-template-columns:1fr 1fr;}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COACH-MARK TURU (backlog #7) — spotlight + tooltip, her modülde gerçek
+   bir elemanı işaret eder. Eski statik "hoş geldin" listesinin yerine.
+   ═══════════════════════════════════════════════════════════════════════ */
+#tour-overlay{position:fixed;inset:0;z-index:99999;}
+#tour-overlay.hidden{display:none;}
+#tour-spotlight{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(20,18,15,.64);transition:top .35s cubic-bezier(.4,0,.2,1),left .35s cubic-bezier(.4,0,.2,1),width .35s cubic-bezier(.4,0,.2,1),height .35s cubic-bezier(.4,0,.2,1),opacity .2s;pointer-events:none;z-index:1;opacity:0;}
+#tour-tooltip{position:fixed;z-index:2;background:var(--surface);border-radius:var(--r);padding:16px 18px;width:290px;max-width:calc(100vw - 32px);box-shadow:0 14px 36px -10px rgba(0,0,0,.4);transition:top .35s cubic-bezier(.4,0,.2,1),left .35s cubic-bezier(.4,0,.2,1);}
+#tour-step-counter{font-size:10.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+#tour-tooltip-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+#tour-tooltip-text{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:14px;}
+#tour-tooltip-actions{display:flex;align-items:center;gap:8px;}
+#tour-skip-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:8px 4px;}
+#tour-skip-btn:hover{color:var(--text2);}
+#tour-back-btn{font-size:13px;font-weight:600;color:var(--text2);background:var(--surface2);border:1.5px solid var(--border2);border-radius:20px;padding:8px 14px;cursor:pointer;}
+#tour-back-btn:disabled{opacity:.3;cursor:not-allowed;}
+#tour-next-btn{font-size:13px;font-weight:700;color:#fff;background:var(--accent);border:none;border-radius:20px;padding:8px 16px;cursor:pointer;}
+#tour-next-btn:hover{opacity:.9;}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window.whGisOnload && window.whGisOnload()"></script>
 <script type="module">
@@ -1343,11 +1362,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
         <button onclick="triggerImport()" style="flex:1;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a1 1 0 0 1 1-1h3.5l1.5 1.8H16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>İlerlemeyi yükle</button>
       </div>
       <p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">İlerlemen (öğrendiğin kelimeler, streak, vs.) bu cihazda saklanıyor. Başka bir cihaza taşımak veya yedeklemek istersen "Dışa aktar"ı kullan.</p>
-      <button onclick="showWelcomeOverlay()" style="width:100%;margin-top:10px;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5v3.5M10 14v3.5M2.5 10H6M14 10h3.5M5 5l2.3 2.3M12.7 12.7L15 15M15 5l-2.3 2.3M7.3 12.7L5 15"/></svg>Uygulama turunu tekrar göster</button>
+      <button onclick="tourStart()" style="width:100%;margin-top:10px;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5v3.5M10 14v3.5M2.5 10H6M14 10h3.5M5 5l2.3 2.3M12.7 12.7L15 15M15 5l-2.3 2.3M7.3 12.7L5 15"/></svg>Uygulama turunu tekrar göster</button>
     </div>
 
-    <div class="filter-panel">
-      <div class="settings-panel-head tight"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#0f9b6e,#0a6b4c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5 10 3.5l6 5V16a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1z"/></svg></span><span class="settings-panel-title">Ana Ekrana Ekle</span></div>
+    <div class="filter-panel" id="settings-panel-home">
       <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">WordHaven'ı ana ekranına eklersen normal bir uygulama gibi tek dokunuşla açılır, adres çubuğu görünmez.</p>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <button id="hs-tab-ios" class="chip on" onclick="hsSetTab('ios')">iPhone (Safari)</button>
@@ -1461,24 +1479,18 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   </div>
 <input type="file" id="file-in" accept=".json" class="hidden" onchange="doImport(event)">
 
-<div id="welcome-overlay" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);border-radius:var(--r);padding:24px 20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;">
-    <div style="font-size:20px;font-weight:700;margin-bottom:4px;">WordHaven'a hoş geldin</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:18px;">Uygulama 11 bölümden oluşuyor, hepsine ☰ menüden ulaşırsın. Kısaca ne işe yaradıklarına bakalım:</div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 17V9M9 17V4M14 17v-6"/></svg><span><b>Panom</b> — <span style="color:var(--text2);">Genel ilerlemeni, seviyelere göre dağılımını görürsün.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="5" width="11" height="13" rx="2"/><path d="M8 3.5h7a2 2 0 0 1 2 2V15"/></svg><span><b>Kart Modu</b> — <span style="color:var(--text2);">Duolingo tarzı hızlı "Biliyorum / Öğreniyorum" akışı.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="5" y="4.5" width="10" height="13" rx="1.5"/><path d="M7.5 4.5V3.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"/><path d="M7.5 9h5M7.5 12h5M7.5 15h3"/></svg><span><b>Kelime Durumu</b> — <span style="color:var(--text2);">Öğrendiğin ve öğrenmekte olduğun kelimelerin tam listesi, elle ekle/çıkar.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M6 8h8M6 11h8M6 14h5"/></svg><span><b>Metin Analizi</b> — <span style="color:var(--text2);">Bir metin yapıştır, içindeki Oxford kelimeleri seviyeye göre renklenir.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="8.7" cy="8.7" r="5"/><path d="M15.5 15.5l-3.6-3.6"/></svg><span><b>Sözlüğüm</b> — <span style="color:var(--text2);">Günlük kelime arama ekranın — Oxford'da varsa direkt gösterir, yoksa dış sözlüklere yönlendirir.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 5h12M4 10h12M4 15h8"/></svg><span><b>Kelime Listem</b> — <span style="color:var(--text2);">Oxford 3000/5000, Konu Kelimeleri, Favorilerin ve Zorlandıkların — hepsi burada, göz atmak için.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M13 3l4 4-9.5 9.5L3 18l1.5-4.5z"/></svg><span><b>Cümle Kur</b> — <span style="color:var(--text2);">Gramer yapılarıyla cümle inşa egzersizi — istersen sadece öğrendiğin kelimelerle çalışabilirsin.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M14.1 2.9a1.7 1.7 0 0 1 2.4 2.4L7.6 14.2l-3.3.9.9-3.3z"/><path d="M12.4 4.6 15.4 7.6"/></svg><span><b>Cümle Yaz</b> — <span style="color:var(--text2);">Cümle Kur'un yazma versiyonu — cümleyi kendin yazarsın, anında kontrol edilir.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".4" fill="var(--text2)"/></svg><span><b>Asmaca</b> — <span style="color:var(--text2);">Kelime oyunuyla eğlenceli tekrar.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M4 4.5h7.5a3 3 0 0 1 3 3V16"/><path d="M4 4.5v10a1.5 1.5 0 0 0 1.5 1.5H16"/><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H14"/></svg><span><b>Grammar</b> — <span style="color:var(--text2);">A1-C2 arası gramer konuları — açıklama, örnek ve kendi kendini test eden sorularla.</span></span></div>
-      <div style="display:flex;align-items:flex-start;gap:9px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--text2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4M15.3 15.3l-1.4-1.4M6.1 6.1L4.7 4.7"/></svg><span><b>Ayarlar</b> — <span style="color:var(--text2);">Veri dışa/içe aktar, ElevenLabs anahtarı, bu turu tekrar izle.</span></span></div>
+<div id="tour-overlay" class="hidden">
+  <div id="tour-spotlight"></div>
+  <div id="tour-tooltip">
+    <div id="tour-step-counter"></div>
+    <div id="tour-tooltip-title"></div>
+    <div id="tour-tooltip-text"></div>
+    <div id="tour-tooltip-actions">
+      <button id="tour-skip-btn" onclick="tourEnd()">Atla</button>
+      <div style="flex:1;"></div>
+      <button id="tour-back-btn" onclick="tourBack()">‹ Geri</button>
+      <button id="tour-next-btn" onclick="tourNext()">Sonraki ›</button>
     </div>
-    <button onclick="closeWelcomeOverlay()" style="width:100%;padding:14px;border-radius:var(--rsm);border:none;background:var(--text);color:var(--bg);font-weight:600;font-size:15px;cursor:pointer;">Başla</button>
   </div>
 </div>
 
@@ -1551,7 +1563,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608152300';
+      s.src = 'app.js?v=202608160900';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

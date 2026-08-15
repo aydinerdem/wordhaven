@@ -592,7 +592,7 @@ function updateDashboard() {
             <div style="font-size:12px;opacity:.85;margin-top:1px;">A1'de <b>${a1}</b> kelime seni bekliyor — günde ${goal} kelime ile başla.</div>
           </div>
         </div>
-        <button class="start-btn" style="margin-top:0;" onclick="showView('cardmode')">İlk kelimelerini çalış →</button>
+        <button class="start-btn" id="dash-start-btn" style="margin-top:0;" onclick="showView('cardmode')">İlk kelimelerini çalış →</button>
       </div>
       ${dashWordTrackHtml()}
       ${dashGrammarTrackHtml()}
@@ -621,7 +621,7 @@ function updateDashboard() {
           <button class="dash-goal-btn" onclick="dashEditGoal()">Hedef: ${goal} kelime · değiştir</button>
         </div>
       </div>
-      <button class="start-btn" onclick="dashStartStudy()">${btnLabel}</button>
+      <button class="start-btn" id="dash-start-btn" onclick="dashStartStudy()">${btnLabel}</button>
     </div>
 
     ${dashStreakHtml()}
@@ -2799,7 +2799,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608152300';
+const APP_VERSION = '202608160900';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -2912,16 +2912,114 @@ function cloudSyncOnStartup() {
   } catch (e) { /* sessizce geç */ }
 }
 
-const WELCOME_SEEN_KEY = 'wh_welcome_seen_v1';
-function showWelcomeOverlay() {
-  document.getElementById('welcome-overlay').classList.remove('hidden');
+// ── Coach-mark turu (backlog #7) — spotlight + tooltip, her modülde gerçek
+// bir elemanı işaret eder. Eski statik "hoş geldin" listesinin yerine. ──────
+const TOUR_SEEN_KEY = 'wh_tour_seen_v1';
+const TOUR_STEPS = [
+  { view: null, selector: () => window.innerWidth >= 1100 ? '.main-nav-wrap' : '#main-menu-toggle',
+    title: 'Menü', text: 'Tüm bölümlere buradan ulaşırsın.' },
+  { view: 'dash', selector: '#dash-start-btn',
+    title: 'Panom', text: 'Günlük çalışmaya buradan başlarsın — hedefe göre halka dolar.' },
+  { view: 'cardmode', selector: '#cm-card-area',
+    title: 'Kart Modu', text: 'Kartı çevir, sonra Biliyorum / Öğreniyorum seç. Hızlı tekrar için ideal.' },
+  { view: 'status', selector: '#st-add-input',
+    title: 'Kelime Durumu', text: 'Oxford listesi dışından da kendi kelimeni ekleyebilirsin.' },
+  { view: 'news', selector: '#news-panels',
+    title: 'Metin Analizi', text: 'Bir metin yapıştır — bildiğin kelimeler seviyeye göre renklensin.' },
+  { view: 'wordadd', selector: '#global-search-input',
+    title: 'Sözlüğüm', text: 'Günlük kelime arama ekranın — Oxford\'da varsa direkt gösterir.' },
+  { view: 'list', selector: '#list-search-input',
+    title: 'Kelime Listem', text: 'Oxford, Konu, Favoriler ve Zorlandıkların — hepsi burada, göz atmak için.' },
+  { view: 'sentence', selector: '#sg-tense-filter .auto-tense-btn',
+    title: 'Cümle Kur', text: 'Varsayılan karışık zamanlarla çalışır — istersen buradan belirli bir zaman seçebilirsin.' },
+  { view: 'writing', selector: '#wr-tense-row',
+    title: 'Cümle Yaz', text: 'Türkçe cümleyi İngilizce yaz, anında kontrol al.' },
+  { view: 'hangman', selector: '#hg-levels',
+    title: 'Asmaca', text: 'Kelime bilgini oyunla eğlenceli şekilde test et.' },
+  { view: 'grammar', selector: '#gr-search-input',
+    title: 'Grammar', text: '397 konu, A1-C2 arası — açıklama, örnek ve kendi kendini test eden sorularla.' },
+  { view: 'settings', selector: '#settings-panel-home',
+    title: 'Ayarlar', text: 'Buradan uygulamayı ana ekrana ekleyebilir, bu turu tekrar izleyebilirsin.' },
+  { view: null, selector: null,
+    title: 'Hazırsın!', text: 'İstersen bu turu Ayarlar\'dan istediğin zaman tekrar izleyebilirsin.' }
+];
+let tourIdx = 0;
+function tourStart() {
+  tourIdx = 0;
+  document.getElementById('tour-overlay').classList.remove('hidden');
+  tourShowStep(0);
 }
-function closeWelcomeOverlay() {
-  document.getElementById('welcome-overlay').classList.add('hidden');
-  try { localStorage.setItem(WELCOME_SEEN_KEY, '1'); } catch (e) {}
+function tourEnd() {
+  document.getElementById('tour-overlay').classList.add('hidden');
+  try { localStorage.setItem(TOUR_SEEN_KEY, '1'); } catch (e) {}
 }
-if (!localStorage.getItem(WELCOME_SEEN_KEY)) {
-  showWelcomeOverlay();
+function tourNext() {
+  if (tourIdx >= TOUR_STEPS.length - 1) { tourEnd(); return; }
+  tourIdx++; tourShowStep(tourIdx);
+}
+function tourBack() {
+  if (tourIdx <= 0) return;
+  tourIdx--; tourShowStep(tourIdx);
+}
+function tourShowStep(i) {
+  const step = TOUR_STEPS[i];
+  if (step.view) showView(step.view);
+  requestAnimationFrame(() => requestAnimationFrame(() => tourRenderStep(step, i)));
+}
+function tourRenderStep(step, i) {
+  document.getElementById('tour-step-counter').textContent = `${i + 1} / ${TOUR_STEPS.length}`;
+  document.getElementById('tour-tooltip-title').textContent = step.title;
+  document.getElementById('tour-tooltip-text').textContent = step.text;
+  document.getElementById('tour-back-btn').disabled = (i === 0);
+  document.getElementById('tour-next-btn').textContent = (i === TOUR_STEPS.length - 1) ? 'Bitir' : 'Sonraki ›';
+
+  const spot = document.getElementById('tour-spotlight');
+  const tip = document.getElementById('tour-tooltip');
+  const selector = typeof step.selector === 'function' ? step.selector() : step.selector;
+  const target = selector ? document.querySelector(selector) : null;
+
+  if (!target) {
+    spot.style.opacity = '0';
+    tip.style.top = '50%';
+    tip.style.left = '50%';
+    tip.style.marginTop = (-tip.offsetHeight / 2) + 'px';
+    tip.style.marginLeft = (-tip.offsetWidth / 2) + 'px';
+    return;
+  }
+  tip.style.marginTop = '0';
+  tip.style.marginLeft = '0';
+  target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  setTimeout(() => tourPositionAt(target), 260);
+}
+function tourPositionAt(target) {
+  const spot = document.getElementById('tour-spotlight');
+  const tip = document.getElementById('tour-tooltip');
+  const r = target.getBoundingClientRect();
+  const pad = 8;
+  spot.style.opacity = '1';
+  spot.style.top = (r.top - pad) + 'px';
+  spot.style.left = (r.left - pad) + 'px';
+  spot.style.width = (r.width + pad * 2) + 'px';
+  spot.style.height = (r.height + pad * 2) + 'px';
+
+  const tipH = tip.offsetHeight, tipW = tip.offsetWidth;
+  const spaceBelow = window.innerHeight - r.bottom;
+  const placeBelow = spaceBelow > (tipH + 24) || r.top < (tipH + 24);
+  tip.style.top = placeBelow ? (r.bottom + pad + 12) + 'px' : Math.max(12, r.top - pad - 12 - tipH) + 'px';
+  let left = r.left + r.width / 2 - tipW / 2;
+  left = Math.max(12, Math.min(left, window.innerWidth - tipW - 12));
+  tip.style.left = left + 'px';
+}
+window.addEventListener('resize', () => {
+  const overlay = document.getElementById('tour-overlay');
+  if (overlay.classList.contains('hidden')) return;
+  const step = TOUR_STEPS[tourIdx];
+  const selector = typeof step.selector === 'function' ? step.selector() : step.selector;
+  const target = selector ? document.querySelector(selector) : null;
+  if (target) tourPositionAt(target);
+});
+if (!localStorage.getItem(TOUR_SEEN_KEY)) {
+  setTimeout(tourStart, 400);
 }
 
 loadState();
