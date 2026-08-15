@@ -344,6 +344,15 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .dash-summary-row>div{flex:1;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rsm);padding:10px 8px;text-align:center;}
 .dash-sum-n{display:block;font-size:19px;font-weight:700;line-height:1.2;}
 .dash-sum-l{display:block;font-size:10.5px;color:var(--text3);margin-top:3px;line-height:1.3;}
+.band-row{display:flex;align-items:center;gap:11px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rsm);padding:11px 12px;margin-bottom:8px;cursor:pointer;transition:background .12s;}
+.band-row:active{background:var(--surface2);}
+.band-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.band-mid{flex:1;min-width:0;}
+.band-name{font-size:13px;font-weight:600;color:var(--text);}
+.band-desc{font-size:10.5px;color:var(--text3);margin-top:1px;}
+.band-n{font-size:16px;font-weight:700;flex-shrink:0;}
+.band-chev{color:var(--text3);font-size:14px;flex-shrink:0;}
+.chip.due-on{background:var(--warn) !important;border-color:var(--warn) !important;color:#fff !important;}
 .dash-lvl-list{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:6px 12px 10px;}
 .dash-lvl-title{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 4px;}
 .dash-module-head{display:flex;align-items:center;gap:14px;cursor:pointer;padding:2px 0;}
@@ -1286,6 +1295,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       <div class="f-row" id="st-dir-row"></div>
       <div class="f-label" style="margin:14px 0 8px;">Sırala</div>
       <div class="f-row" id="st-sort-row"></div>
+      <div class="f-row hidden" id="st-answer-row" style="margin-top:8px;"></div>
+      <div class="f-row" style="margin-top:8px;">
+        <button class="chip" id="st-due-chip" onclick="stToggleDueOnly()">Sadece bugün tekrarı gelenler</button>
+      </div>
     </div>
     <div class="filter-panel" style="border-style:dashed;">
       <div class="f-label" style="margin-bottom:8px;">+ Yeni kelime ekle</div>
@@ -1586,7 +1599,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608171500';
+      s.src = 'app.js?v=202608172000';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

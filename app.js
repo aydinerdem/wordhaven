@@ -563,6 +563,41 @@ function dashStartStudy() {
   showView('cardmode');
 }
 
+// Panom ilerleme bantları — eski 2x2 dash-summary-row'un yerine geçen,
+// tıklanabilir tek sütun. Her satır Kelime Durumu'nu doğru sekme+filtreyle
+// açar. "Tekrar bekliyor" diğer üçünden farklı bir eksendir (nextReview<=bugün,
+// mastery'den bağımsız) — bilinçli olarak Öğreniliyor sekmesi + due-only
+// anahtarına yönlendiriyoruz; nadir "mastered ama bugün tekrarı gelen"
+// kelimeler bu görünümde görünmez (bkz. proje_talimati.md sınırlama notu).
+function dashBandListHtml(due, learningNow, knownNow, mastered) {
+  const rows = [
+    { key:'due', label:'Tekrar bekliyor', desc:'Tarihi gelmiş kelimeler', n:due, color:'var(--warn)', bg:'var(--warnbg)',
+      icon:'<path d="M5 3h10M5 17h10M6 3c0 4 2.5 5 4 7-1.5 2-4 3-4 7M14 3c0 4-2.5 5-4 7 1.5 2 4 3 4 7"/>' },
+    { key:'learningNow', label:'Öğreniyorum dedin', desc:'Yeni öğrenilmeye başlanan', n:learningNow, color:'#a05000', bg:'#fdeee0',
+      icon:'<path d="M4 4.5c2-1 4.5-1 6 0v11c-1.5-1-4-1-6 0v-11zM16 4.5c-2-1-4.5-1-6 0v11c1.5-1 4-1 6 0v-11z"/>' },
+    { key:'knownNow', label:'Biliyorum dedin', desc:'Pekişme sürecinde', n:knownNow, color:'var(--accent)', bg:'var(--accentbg)',
+      icon:'<path d="M17 3c-7 0-13 3-13 10 0 2 .5 3 .5 3S6 15 9 13c4-2.5 8-3.5 8-10z"/><path d="M4.5 16 10 10.5"/>' },
+    { key:'mastered', label:'Tam öğrenildi', desc:'21+ gün aralık, pekişmiş', n:mastered, color:'var(--success)', bg:'var(--successbg)',
+      icon:'<path d="M2 8 10 4l8 4-8 4-8-4z"/><path d="M5.5 9.7V13c0 1 2 2.2 4.5 2.2S14.5 14 14.5 13V9.7"/>' },
+  ];
+  return rows.map(r => `
+    <div class="band-row" onclick="dashBandClick('${r.key}')">
+      <div class="band-ico" style="background:${r.bg};color:${r.color};">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${r.icon}</svg>
+      </div>
+      <div class="band-mid"><div class="band-name">${r.label}</div><div class="band-desc">${r.desc}</div></div>
+      <div class="band-n" style="color:${r.color};">${r.n}</div>
+      <div class="band-chev">›</div>
+    </div>`).join('');
+}
+function dashBandClick(key) {
+  if (key==='mastered')     { stTab='known';    stAnswerFilter='all';      stDueOnly=false; }
+  if (key==='knownNow')     { stTab='learning'; stAnswerFilter='known';    stDueOnly=false; }
+  if (key==='learningNow')  { stTab='learning'; stAnswerFilter='learning'; stDueOnly=false; }
+  if (key==='due')          { stTab='learning'; stAnswerFilter='all';      stDueOnly=true;  }
+  showView('status');
+}
+
 // ── Ana çizim ──────────────────────────────────────────────────────────────
 function updateDashboard() {
   const el = document.getElementById('dash-body');
@@ -626,12 +661,7 @@ function updateDashboard() {
 
     ${dashStreakHtml()}
 
-    <div class="dash-summary-row">
-      <div><span class="dash-sum-n" style="color:var(--success);">${mastered}</span><span class="dash-sum-l">tam öğrenildi</span></div>
-      <div><span class="dash-sum-n" style="color:var(--accent);">${knownNow}</span><span class="dash-sum-l">biliyorum dedin</span></div>
-      <div><span class="dash-sum-n" style="color:#a05000;">${learningNow}</span><span class="dash-sum-l">öğreniyorum</span></div>
-      <div><span class="dash-sum-n" style="color:var(--warn);">${due}</span><span class="dash-sum-l">tekrar bekliyor</span></div>
-    </div>
+    <div id="dash-band-list">${dashBandListHtml(due, learningNow, knownNow, mastered)}</div>
 
     ${dashWordTrackHtml()}
     ${dashGrammarTrackHtml()}
@@ -2810,7 +2840,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608171500';
+const APP_VERSION = '202608172000';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3665,6 +3695,10 @@ function cmUndo() {
 // Öğreniyorum/Biliyorum listelerini ayrı, gezinilebilir bir sekmede gösterir.
 // Aynı `progress` verisini kullanır (Tekrar Et + Kart Modu ile ortak).
 let stTab = 'learning';
+// Panom'daki 4 bandın 3'ünü (due/learningNow/knownNow) ayırt edebilmek için
+// eklenen iki ek filtre — 'known' sekmesinde stAnswerFilter'ın anlamı yok.
+let stAnswerFilter = 'all'; // 'all' | 'learning' | 'known'
+let stDueOnly = false;
 // bkz. cmSelectedLevels üstündeki not — aynı mantık: boş = tümü dahil.
 let stSelectedLevels = new Set();
 let stSort = 'az';
@@ -3683,6 +3717,9 @@ function stInit() {
   stRenderLevels();
   stRenderDirection();
   stRenderSort();
+  stRenderAnswerFilter();
+  const dueBtn = document.getElementById('st-due-chip');
+  if (dueBtn) dueBtn.classList.toggle('due-on', stDueOnly);
   stSetTab(stTab);
 }
 
@@ -3704,8 +3741,30 @@ function stSetDirection(dir) {
 
 function stSetTab(tab) {
   stTab = tab;
+  if (tab === 'known') stAnswerFilter = 'all'; // known sekmesinde anlamı yok
   document.getElementById('st-tab-learning').classList.toggle('active', tab==='learning');
   document.getElementById('st-tab-known').classList.toggle('active', tab==='known');
+  stRenderAnswerFilter();
+  stRenderList();
+}
+
+// Panom'dan gelen bant tıklamaları stTab/stAnswerFilter/stDueOnly'yi zaten
+// ayarlamış oluyor (bkz. dashBandClick) — burada sadece UI'ı o duruma göre çiziyoruz.
+function stRenderAnswerFilter() {
+  const row = document.getElementById('st-answer-row');
+  if (!row) return;
+  if (stTab !== 'learning') { row.innerHTML = ''; row.classList.add('hidden'); return; }
+  row.classList.remove('hidden');
+  const opts = [['all','Tümü'],['learning','Öğreniyorum dedin'],['known','Biliyorum dedin']];
+  row.innerHTML = opts.map(([v,l]) =>
+    `<button class="chip${stAnswerFilter===v?' on':''}" onclick="stSetAnswerFilter('${v}')">${l}</button>`
+  ).join('');
+}
+function stSetAnswerFilter(v) { stAnswerFilter = v; stRenderAnswerFilter(); stRenderList(); }
+function stToggleDueOnly() {
+  stDueOnly = !stDueOnly;
+  const btn = document.getElementById('st-due-chip');
+  if (btn) btn.classList.toggle('due-on', stDueOnly);
   stRenderList();
 }
 
@@ -3891,7 +3950,9 @@ function stRenderList() {
   let items = WORD_DATA
     .filter(w => stLevelOk(w.cefr) && gbPasses(w))
     .map(w => ({ w, p: stProgressStore()[wkey(w)] }))
-    .filter(x => x.p && (stTab==='known' ? x.p.mastery==='mastered' : x.p.mastery!=='mastered'));
+    .filter(x => x.p && (stTab==='known' ? x.p.mastery==='mastered' : x.p.mastery!=='mastered'))
+    .filter(x => stTab!=='learning' || stAnswerFilter==='all' || x.p.lastAnswer===stAnswerFilter)
+    .filter(x => !stDueOnly || x.p.nextReview <= todayStr());
 
   if (stSort==='az') items.sort((a,b) => a.w.word.localeCompare(b.w.word));
   else if (stSort==='recent') items.sort((a,b) => (b.p.lastSeen||'').localeCompare(a.p.lastSeen||''));
@@ -3913,6 +3974,7 @@ function stRenderList() {
           <span style="font-size:15px;font-weight:700;">${escHtml(w.word)}</span>
           <span style="font-size:11px;color:var(--text3);font-style:italic;">${w.pos}</span>
           <span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>
+          ${p.nextReview <= todayStr() ? '<span style="font-size:9.5px;font-weight:700;color:var(--warn);background:var(--warnbg);padding:2px 6px;border-radius:5px;">tekrar zamanı</span>' : ''}
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
