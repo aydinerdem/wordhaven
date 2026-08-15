@@ -398,6 +398,12 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 .c-cats{display:flex;gap:5px;flex-wrap:wrap;}
 .c-cat{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--accentbg);color:var(--accent);}
 .c-example{border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:10px;}
+.examples-card{border-radius:16px;overflow:hidden;border:0.5px solid var(--border2);}
+.examples-card-head{background:var(--surface2);padding:11px 16px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--text2);}
+.examples-card-head svg{flex-shrink:0;color:var(--text3);}
+.examples-card-body{background:var(--surface);padding:14px 16px 4px;}
+.examples-card-body .c-example{border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:14px;}
+.examples-card-body .c-example:last-child{margin-bottom:10px;}
 .c-example p{font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;}
 .tr-toggle{display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:6px 0;margin-top:4px;}
 .tr-switch{position:relative;width:32px;height:19px;border-radius:20px;background:var(--border2);transition:background .2s;flex-shrink:0;}
@@ -1477,13 +1483,15 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
         <div id="modal-nuance" style="font-size:14px;color:var(--text);line-height:1.65;"></div>
       </div>
       <div style="margin-bottom:18px;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Örnekler</div>
-        <div id="modal-examples"></div>
+        <div class="examples-card">
+          <div class="examples-card-head"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2z"/><path d="M8.3 8.2a1.7 1.7 0 1 1 2.2 1.6c-.5.2-.7.5-.7 1"/><circle cx="10" cy="12.6" r=".15" fill="currentColor" stroke-width="2"/></svg>Örnekler</div>
+          <div class="examples-card-body" id="modal-examples"></div>
+        </div>
         <div id="modal-other-pos"></div>
       </div>
-      <div id="modal-actions" style="display:flex;gap:10px;">
-        <button id="modal-btn-know" onclick="modalAnswer(true)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--success);color:var(--success);background:none;">✓ Biliyorum</button>
-        <button id="modal-btn-again" onclick="modalAnswer(false)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--danger);color:var(--danger);background:none;">↩ Tekrar bak</button>
+      <div id="modal-actions" class="cm-answer-row">
+        <button id="modal-btn-again" onclick="modalAnswer(false)" class="cm-answer-btn learning"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="var(--b2)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8.2A6 6 0 0 0 5.6 5.4L4 7"/><path d="M4 11.8A6 6 0 0 0 14.4 14.6L16 13"/><path d="M4 3.8v3.4h3.4M16 16.2v-3.4h-3.4"/></svg>Öğreniyorum</button>
+        <button id="modal-btn-know" onclick="modalAnswer(true)" class="cm-answer-btn known"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10.5 8 14l7.5-8.5"/></svg>Biliyorum</button>
       </div>
       <div id="modal-restart-wrap" class="hidden" style="margin-top:10px;">
         <button onclick="modalRestart()" style="width:100%;padding:11px;font-size:13px;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Sıfırla ve tekrar başla</button>
@@ -1578,7 +1586,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608161800';
+      s.src = 'app.js?v=202608171500';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

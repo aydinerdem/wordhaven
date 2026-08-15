@@ -1833,6 +1833,10 @@ document.addEventListener('click', function (e) {
   panel.classList.add('hidden');
 });
 function showView(v) {
+  // Kelime tanımı paneli artık .app'in doğrudan çocuğu (bkz. word-modal
+  // taşıma düzeltmesi) — herhangi bir view-* div'ine bağlı değil, bu yüzden
+  // view değişince otomatik kapanmıyordu. Burada açıkça kapatıyoruz.
+  closeWordModal();
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
@@ -2211,7 +2215,12 @@ function renderListDefHTML(c,w){
     ${wordSourceInfoHtml(w)}
     ${catsHtml}
     <div class="c-section"><div class="c-section-label">Nüans</div>${nuanceHtml}</div>
-    <div class="c-section"><div class="c-section-label">Örnekler</div>${exHtml}</div>
+    <div class="c-section">
+      <div class="examples-card">
+        <div class="examples-card-head"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2z"/><path d="M8.3 8.2a1.7 1.7 0 1 1 2.2 1.6c-.5.2-.7.5-.7 1"/><circle cx="10" cy="12.6" r=".15" fill="currentColor" stroke-width="2"/></svg>Örnekler</div>
+        <div class="examples-card-body">${exHtml}</div>
+      </div>
+    </div>
     ${statsToggleHtml}
     <div style="text-align:right;margin:10px 0;">${copyBtnHtml}</div>
     ${statusHtml}`;
@@ -2801,7 +2810,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608161800';
+const APP_VERSION = '202608171500';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -5761,7 +5770,7 @@ function grOpenTopic(i) {
       <div class="gr-acc-body" id="gr-body-${j}">
         <div class="gr-acc-ref">EGP referansı: ${s.guideword}</div>
         <div class="gr-expl">${s.en}</div>
-        ${s.ex.map(e => `<div class="gr-ex">${e.w}</div>`).join('')}
+        ${s.ex.length ? `<div class="examples-card" style="margin-bottom:10px;"><div class="examples-card-head"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2z"/><path d="M8.3 8.2a1.7 1.7 0 1 1 2.2 1.6c-.5.2-.7.5-.7 1"/><circle cx="10" cy="12.6" r=".15" fill="currentColor" stroke-width="2"/></svg>Örnekler</div><div class="examples-card-body">${s.ex.map(e => `<div class="gr-ex">${e.w}</div>`).join('')}</div></div>` : ''}
         <button class="gr-tr-switch" onclick="grToggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini göster</span></button>
         <div class="gr-tr-text">${s.tr}<br><br>${s.ex.map(e => e.tr).join('<br>')}</div>
         ${nuanceHtml}
