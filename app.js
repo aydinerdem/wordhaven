@@ -2787,6 +2787,15 @@ function setSrsEntry(key, correct) {
 // "Dışa aktar / İçe aktar" idi (sayfa kapanınca/yenilenince veri kaybı riski).
 // Artık her cevaptan sonra otomatik olarak localStorage'a yazılıyor; JSON
 // dışa/içe aktarma özelliği cihazlar arası taşıma/yedek için ayrıca duruyor.
+// Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
+// yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
+// Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
+const APP_VERSION = '202608142000-debug';
+(function () {
+  const el = document.getElementById('app-version-label');
+  if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
+})();
+
 const STORAGE_KEY = 'oxford_flashcards_state_v1';
 
 // En son ne zaman kaydedildiği (yerel veya buluttan gelen, hangisi daha
@@ -2796,6 +2805,7 @@ let lastSavedAt = null;
 
 function saveState() {
   try {
+    console.trace('[TEŞHİS] saveState() çağrıldı, savedAt güncelleniyor'); // GEÇİCİ — sorun bulununca kaldırılacak
     lastSavedAt = new Date().toISOString();
     const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, savedAt: lastSavedAt };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));

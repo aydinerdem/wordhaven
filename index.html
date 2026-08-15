@@ -1241,7 +1241,11 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       <div style="font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.8" r="3.2"/><path d="M4 16.2c0-3.3 2.7-5.2 6-5.2s6 1.9 6 5.2"/></svg>Hesap</div>
       <div id="auth-status" style="font-size:13px;color:var(--text2);margin-bottom:10px;">Kontrol ediliyor…</div>
       <div id="auth-actions"></div>
-      <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6;">Giriş şu an sadece hesabının tanınıp tanınmadığını gösteriyor — ilerlemeni senkronize etmek için değil, o adım daha sonra gelecek.</p>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6;">Giriş yaptığında ilerlemen (kelimeler, favoriler, gramer durumu vb.) otomatik olarak diğer cihazlarınla senkronize olur.</p>
+    </div>
+
+    <div class="filter-panel" style="margin-top:14px;">
+      <p id="app-version-label" style="font-size:11px;color:var(--text3);text-align:center;margin:0;"></p>
     </div>
 
     <div class="filter-panel">
@@ -1427,7 +1431,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608141940';
+      s.src = 'app.js?v=202608142000-debug';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
