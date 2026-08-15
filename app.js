@@ -2799,7 +2799,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608152100';
+const APP_VERSION = '202608152300';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -4497,14 +4497,14 @@ function sgRenderTenseFilter() {
     return `<button class="tense-chip ${active ? 'active' : ''}" data-tense="${t}">${t}</button>`;
   }).join('')}</div>` : '';
   el.innerHTML = `
-    <button class="auto-tense-btn ${isAuto ? 'active' : ''}" data-tense="__auto__">
+    <div class="auto-tense-btn ${isAuto ? 'active' : ''}" data-tense="__auto__">
       ${ico('sparkle', 20, isAuto ? '#fff' : 'var(--a1)', false)}
       <span class="auto-tense-txt">
         <div class="auto-tense-title">${activeLabel}</div>
         <div class="auto-tense-sub">${isAuto ? 'Seviyene göre karışık zamanlar' : 'Manuel seçildi'}</div>
       </span>
       <button class="auto-tense-toggle" onclick="event.stopPropagation();sgToggleTenseManual();">${sgTenseManualOpen ? 'Gizle ⌃' : 'Belirli bir zaman seç ›'}</button>
-    </button>
+    </div>
     ${gridHtml}`;
   el.querySelector('.auto-tense-btn').onclick = (e) => {
     if (e.target.classList.contains('auto-tense-toggle')) return;
