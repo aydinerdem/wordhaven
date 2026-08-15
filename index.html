@@ -694,6 +694,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   .header{grid-area:header;}
   .main-nav-wrap{grid-area:nav;position:sticky;top:20px;margin-bottom:0;align-self:start;}
   .app > div[id^="view-"]{grid-area:content;}
+  #word-modal{grid-area:content;align-self:start;}
 
   /* Hamburger yerine her zaman açık panel — toggle butonu gizleniyor,
      panel .hidden sınıfı taşısa bile CSS ile zorla görünür tutuluyor. */
@@ -1085,62 +1086,6 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
     </div>
     <div id="search-result-panel" class="hidden" style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);padding:16px;margin-bottom:14px;"></div>
 
-    <!-- Word lookup panel (inline, no fixed positioning) -->
-    <div id="word-modal-overlay" class="hidden" onclick="closeWordModal()" style="display:none;"></div>
-    <div id="word-modal" class="hidden dict-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
-        <div>
-          <div class="wordfont" style="font-size:28px;" id="modal-word"></div>
-          <div style="font-size:13px;color:var(--text3);font-style:italic;" id="modal-pos"></div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;">
-          <span id="modal-cefr-badge"></span>
-          <span id="modal-sp-badge"></span>
-          <span id="modal-wr-badge"></span>
-          <span id="modal-custom-badge" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--warnbg);color:var(--warn);">Özel</span>
-          <span id="modal-fav-btn" onclick="modalToggleFavorite()" title="Favori" style="font-size:20px;cursor:pointer;line-height:1;padding-top:2px;color:var(--text3);">☆</span>
-          <button onclick="closeWordModal()" style="background:none;border:none;cursor:pointer;margin-left:4px;color:var(--text3);display:inline-flex;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
-        </div>
-      </div>
-      <div id="modal-sr-status" class="hidden" style="background:var(--accentbg);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--accent);"></div>
-      <div class="c-section" style="margin-bottom:14px;">
-        <div onclick="document.getElementById('modal-contact-row').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V9M9 17V4M14 17v-6"/></svg>İstatistikler <span style="color:var(--text3);">▸</span></div>
-        <div id="modal-contact-row" class="hidden" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
-      </div>
-      <div style="height:0.5px;background:var(--border);margin-bottom:14px;"></div>
-      <div id="modal-loading" style="text-align:center;padding:20px 0;">
-        <div style="width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;"></div>
-        <p style="font-size:13px;color:var(--text3);">Yükleniyor...</p>
-      </div>
-      <div id="modal-content" class="hidden">
-        <div style="font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:14px;" id="modal-def"></div>
-        <div style="margin-bottom:14px;">
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Türkçe anlam</div>
-          <div style="font-size:16px;font-weight:500;background:var(--surface2);padding:10px 14px;border-radius:var(--rsm);" id="modal-turkish"></div>
-        </div>
-        <div id="modal-cats-wrap" class="hidden" style="margin-bottom:14px;">
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Kategoriler</div>
-          <div id="modal-cats" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
-        </div>
-        <div style="margin-bottom:14px;">
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Nüans</div>
-          <div id="modal-nuance" style="font-size:14px;color:var(--text);line-height:1.65;"></div>
-        </div>
-        <div style="margin-bottom:18px;">
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Örnekler</div>
-          <div id="modal-examples"></div>
-          <div id="modal-other-pos"></div>
-        </div>
-        <div id="modal-actions" style="display:flex;gap:10px;">
-          <button id="modal-btn-know" onclick="modalAnswer(true)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--success);color:var(--success);background:none;">✓ Biliyorum</button>
-          <button id="modal-btn-again" onclick="modalAnswer(false)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--danger);color:var(--danger);background:none;">↩ Tekrar bak</button>
-        </div>
-        <div id="modal-restart-wrap" class="hidden" style="margin-top:10px;">
-          <button onclick="modalRestart()" style="width:100%;padding:11px;font-size:13px;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Sıfırla ve tekrar başla</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Manual word add -->
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;">
       <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px;">Manuel kelime ekle (Oxford dışı havuz)</div>
@@ -1476,6 +1421,67 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
     </div>
   </div>
 
+  <!-- Word lookup panel (inline, no fixed positioning) — .app'in DOĞRUDAN
+       çocuğu, herhangi bir view-* div'inin İÇİNDE DEĞİL. Böylece hangi
+       modülden açılırsa açılsın (Metin Analizi, Kelime Listem, vb.)
+       görünür kalır — eskiden view-wordadd içine gömülüydü, başka bir
+       view aktifken (view-wordadd .hidden olduğunda) modal de görünmez
+       oluyordu. -->
+  <div id="word-modal-overlay" class="hidden" onclick="closeWordModal()" style="display:none;"></div>
+  <div id="word-modal" class="hidden dict-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div class="wordfont" style="font-size:28px;" id="modal-word"></div>
+        <div style="font-size:13px;color:var(--text3);font-style:italic;" id="modal-pos"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;">
+        <span id="modal-cefr-badge"></span>
+        <span id="modal-sp-badge"></span>
+        <span id="modal-wr-badge"></span>
+        <span id="modal-custom-badge" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;background:var(--warnbg);color:var(--warn);">Özel</span>
+        <span id="modal-fav-btn" onclick="modalToggleFavorite()" title="Favori" style="font-size:20px;cursor:pointer;line-height:1;padding-top:2px;color:var(--text3);">☆</span>
+        <button onclick="closeWordModal()" style="background:none;border:none;cursor:pointer;margin-left:4px;color:var(--text3);display:inline-flex;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+      </div>
+    </div>
+    <div id="modal-sr-status" class="hidden" style="background:var(--accentbg);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--accent);"></div>
+    <div class="c-section" style="margin-bottom:14px;">
+      <div onclick="document.getElementById('modal-contact-row').classList.toggle('hidden')" style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V9M9 17V4M14 17v-6"/></svg>İstatistikler <span style="color:var(--text3);">▸</span></div>
+      <div id="modal-contact-row" class="hidden" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+    </div>
+    <div style="height:0.5px;background:var(--border);margin-bottom:14px;"></div>
+    <div id="modal-loading" style="text-align:center;padding:20px 0;">
+      <div style="width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;"></div>
+      <p style="font-size:13px;color:var(--text3);">Yükleniyor...</p>
+    </div>
+    <div id="modal-content" class="hidden">
+      <div style="font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:14px;" id="modal-def"></div>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Türkçe anlam</div>
+        <div style="font-size:16px;font-weight:500;background:var(--surface2);padding:10px 14px;border-radius:var(--rsm);" id="modal-turkish"></div>
+      </div>
+      <div id="modal-cats-wrap" class="hidden" style="margin-bottom:14px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Kategoriler</div>
+        <div id="modal-cats" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Nüans</div>
+        <div id="modal-nuance" style="font-size:14px;color:var(--text);line-height:1.65;"></div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:500;">Örnekler</div>
+        <div id="modal-examples"></div>
+        <div id="modal-other-pos"></div>
+      </div>
+      <div id="modal-actions" style="display:flex;gap:10px;">
+        <button id="modal-btn-know" onclick="modalAnswer(true)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--success);color:var(--success);background:none;">✓ Biliyorum</button>
+        <button id="modal-btn-again" onclick="modalAnswer(false)" style="flex:1;padding:12px;font-size:14px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--danger);color:var(--danger);background:none;">↩ Tekrar bak</button>
+      </div>
+      <div id="modal-restart-wrap" class="hidden" style="margin-top:10px;">
+        <button onclick="modalRestart()" style="width:100%;padding:11px;font-size:13px;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Sıfırla ve tekrar başla</button>
+      </div>
+    </div>
+  </div>
+
   </div>
 <input type="file" id="file-in" accept=".json" class="hidden" onchange="doImport(event)">
 
@@ -1563,7 +1569,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608160900';
+      s.src = 'app.js?v=202608161500';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
