@@ -2188,7 +2188,7 @@ function renderListDefHTML(c,w){
   const exHtml=(c.examples||[]).map((ex,i)=>{
     const en=typeof ex==='object'?ex.en:ex;
     const tr=typeof ex==='object'?ex.tr:null;
-    const trHtml=tr?`<button class="tr-toggle" onclick="event.stopPropagation();toggleTr(this)">Türkçeyi gör ▾</button><div class="tr-text">${tr}</div>`:'';
+    const trHtml=tr?`<button class="tr-toggle" onclick="event.stopPropagation();toggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button><div class="tr-text">${tr}</div>`:'';
     return `<div class="c-example"><p>${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
   }).join('');
   const catsHtml=(w.categories&&w.categories.length)?`<div class="c-section"><div class="c-section-label">Kategoriler</div><div class="c-cats">${w.categories.map(cat=>`<span class="c-cat">${cat}</span>`).join('')}</div></div>`:'';
@@ -2564,10 +2564,12 @@ document.getElementById('global-search-input').addEventListener('input', perform
 document.getElementById('global-search-input').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); performGlobalSearch(); } });
 
 function toggleTr(btn) {
-  const trDiv=btn.nextElementSibling;
-  const showing=trDiv.style.display==='block';
-  trDiv.style.display=showing?'none':'block';
-  btn.textContent=showing?'Türkçeyi gör ▾':'Türkçeyi gizle ▴';
+  const trDiv = btn.nextElementSibling;
+  const showing = trDiv.style.display === 'block';
+  trDiv.style.display = showing ? 'none' : 'block';
+  btn.classList.toggle('on', !showing);
+  const label = btn.querySelector('.tr-toggle-label');
+  if (label) label.textContent = showing ? 'Türkçesini gör' : 'Türkçesini gizle';
 }
 
 async function fetchContent(w) {
@@ -2799,7 +2801,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608161500';
+const APP_VERSION = '202608161800';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -4387,7 +4389,7 @@ function renderModalContent(c, wordObj) {
   document.getElementById('modal-examples').innerHTML = (c.examples || []).map((ex, i) => {
     const en = typeof ex === 'object' ? ex.en : ex;
     const tr = typeof ex === 'object' ? ex.tr : null;
-    const trHtml = tr ? `<button class="tr-toggle" onclick="toggleTr(this)">Türkçeyi gör ▾</button><div class="tr-text">${tr}</div>` : '';
+    const trHtml = tr ? `<button class="tr-toggle" onclick="toggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button><div class="tr-text">${tr}</div>` : '';
     return `<div style="border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:10px;"><p style="font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;">${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
   }).join('');
   ttsWireButtons(document.getElementById('modal-examples'));
@@ -5760,7 +5762,7 @@ function grOpenTopic(i) {
         <div class="gr-acc-ref">EGP referansı: ${s.guideword}</div>
         <div class="gr-expl">${s.en}</div>
         ${s.ex.map(e => `<div class="gr-ex">${e.w}</div>`).join('')}
-        <button class="gr-tr-toggle" onclick="grToggleTr(this)">Türkçesini göster</button>
+        <button class="gr-tr-switch" onclick="grToggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini göster</span></button>
         <div class="gr-tr-text">${s.tr}<br><br>${s.ex.map(e => e.tr).join('<br>')}</div>
         ${nuanceHtml}
         <div id="gr-verify-${j}"></div>
@@ -6444,7 +6446,9 @@ function grJumpPracticeItem(j, idx) {
 function grToggleTr(btn) {
   const box = btn.nextElementSibling;
   const showing = box.classList.toggle('show');
-  btn.textContent = showing ? 'Türkçesini gizle' : 'Türkçesini göster';
+  btn.classList.toggle('on', showing);
+  const label = btn.querySelector('.tr-toggle-label');
+  if (label) label.textContent = showing ? 'Türkçesini gizle' : 'Türkçesini göster';
 }
 
 hgRenderLevels();

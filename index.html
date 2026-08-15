@@ -399,8 +399,14 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 .c-cat{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--accentbg);color:var(--accent);}
 .c-example{border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:10px;}
 .c-example p{font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;}
-.tr-toggle{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 0;margin-top:3px;display:block;}
-.tr-text{font-size:13px;color:var(--text2);margin-top:3px;font-style:normal;display:none;}
+.tr-toggle{display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:6px 0;margin-top:4px;}
+.tr-switch{position:relative;width:32px;height:19px;border-radius:20px;background:var(--border2);transition:background .2s;flex-shrink:0;}
+.tr-switch-knob{position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s;}
+.tr-toggle.on .tr-switch{background:var(--accent);}
+.tr-toggle.on .tr-switch-knob{transform:translateX(13px);}
+.tr-toggle-label{font-size:12.5px;font-weight:600;color:var(--text2);}
+.tr-toggle.on .tr-toggle-label{color:var(--accent);}
+.tr-text{font-size:13px;color:var(--text2);margin-top:5px;font-style:normal;display:none;}
 .save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border2);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;z-index:10;}
 .save-bar button{padding:9px 18px;font-size:13px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;}
 .save-bar button:hover{background:var(--surface2);}
@@ -573,6 +579,9 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 .gr-ex{background:var(--surface2);border-radius:var(--rsm,8px);padding:10px 12px;font-size:13.5px;margin-bottom:6px;}
 .gr-ex b{color:var(--accent);}
 .gr-tr-toggle{font-size:12px;color:var(--gr-accent,var(--accent));background:none;border:none;cursor:pointer;padding:8px 0 0;font-weight:500;}
+.gr-tr-switch{display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:8px 0 0;}
+.gr-tr-switch.on .tr-switch{background:var(--gr-accent,var(--accent));}
+.gr-tr-switch.on .tr-toggle-label{color:var(--gr-accent,var(--accent));}
 .gr-tr-text{display:none;font-size:13px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:0.5px dashed var(--border2);}
 .gr-review-tab{font-size:12.5px;font-weight:600;padding:8px 12px;border-radius:12px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;}
 .gr-review-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -1569,7 +1578,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608161500';
+      s.src = 'app.js?v=202608161800';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
