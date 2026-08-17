@@ -2862,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182400';
+const APP_VERSION = '202608182600';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -7219,12 +7219,29 @@ function unitsPathHtml(u, prog) {
     const onclick = s.disabled ? `unitsShowSoonToast()` : `unitsStartStep('${u.id}',${i})`;
     return `${lineHtml}<div class="unit-step ${cls}" onclick="event.stopPropagation();${onclick}">${ico(s.icon,17,'currentColor',false)}${done?'<span style="position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--success);color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);">✓</span>':''}</div>`;
   }).join('');
+  // Ünitedeki kelimeleri, başlamadan önce göz atabilmek için açılır bir
+  // liste — Erdem'in isteğiyle eklendi. Mevcut .disclosure-summary bileşeni
+  // (Ayarlar/Longman-VOA filtresinde zaten kullanılan açılır-chip) tekrar
+  // kullanılıyor, tutarlılık için yeni bir bileşen icat edilmedi.
+  const wordListHtml = `<details class="unit-word-details" onclick="event.stopPropagation();">
+    <summary class="disclosure-summary">Kelimeleri gör (${u.words.length})</summary>
+    <div class="unit-word-list">${u.words.map(w => {
+      const c = BUILTIN_CONTENT[w.word + '|' + w.pos];
+      const tr = (c && c.turkish) ? c.turkish.split(/[;,]/)[0].trim() : '';
+      // Kelime zaten "Öğrenildi" durumundaysa küçük bir ✓ rozeti gösteriliyor
+      // (Erdem'in isteğiyle) — kelime ATLANMIYOR, sadece bilgi amaçlı işaret.
+      const known = progress[wkey(w)]?.mastery === 'mastered';
+      const badge = known ? `<span style="margin-left:4px;color:var(--success);" title="Zaten öğrenildi">${ico('check',11,'currentColor',false)}</span>` : '';
+      return `<span class="unit-word-chip" onclick="event.stopPropagation();openWordModal('${w.word.toLowerCase().replace(/'/g,"\\'")}')"><b>${escHtml(w.word)}</b>${tr ? ' — ' + escHtml(tr) : ''}${badge}</span>`;
+    }).join('')}</div>
+  </details>`;
   return `<div class="unit-path-wrap">
     <div class="unit-path">${stepsHtml}</div>
     <div class="unit-actions">
       <span class="unit-progress-txt">${UNIT_STEP_DEFS[curStep].label}</span>
       <button class="unit-start-btn" onclick="event.stopPropagation();unitsStartStep('${u.id}',${curStep})">${ico('play',14,'#fff',false)}Başla</button>
     </div>
+    ${wordListHtml}
   </div>`;
 }
 function unitsShowSoonToast() { alert('Telaffuz pratiği yakında geliyor — önce diğer 4 adım tamamlanıyor.'); }
@@ -7419,6 +7436,20 @@ function unitsQuizPick(word, pos) {
     else if (btn.dataset.word === word && !correct) btn.classList.add('wrong');
     btn.onclick = null;
   });
+  // SRS'e yaz — BİLİNÇLİ OLARAK SADECE Test adımı (Eşleştirme/Yazım pratik
+  // kalıyor, SRS'i etkilemiyor; aksi halde aynı kelime bir oturumda üç kez
+  // "doğru cevaplandı" sayılıp tekrar aralığını yapay şişirirdi — spaced
+  // repetition'ın "gerçek günlere yayılma" ilkesini bozardı). Kart Modu'nun
+  // cmAnswer() ile AYNI motor (getNextReview) — yeni bir sistem icat
+  // edilmedi. Tek oturumda "Öğrenildi"ye asla atlanmaz (SRS ÖLÇÜTÜ: 4 doğru
+  // + 21+ gün aralık gerekiyor) — bu, quickSetStatus()'un elle "Biliyorum"
+  // basınca anında mastered yapmasından FARKLI, kademeli bir sinyal.
+  const k = wkey(w);
+  const cur = progress[k] || {};
+  const next = getNextReview(cur, correct);
+  progress[k] = { ...next, nextReview: next.nextReview || getNextDate(next.interval), lastSeen: todayStr() };
+  saveState();
+  updateDashboard();
   setTimeout(() => {
     if (unitsStepIdx + 1 < unit.words.length) { unitsStepIdx++; unitsRenderQuizStep(unit); }
     else unitsCompleteStep(3);
