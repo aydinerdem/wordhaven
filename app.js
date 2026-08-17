@@ -2862,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182100';
+const APP_VERSION = '202608182300';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3213,9 +3213,15 @@ function hikStoryLevelCounts(story) {
     if (!clean) return;
     const arr = OXFORD_WORD_MAP[clean];
     if (arr && arr.length) {
-      let matched = false;
-      arr.forEach(function (w) { if (w.cefr && perLevel[w.cefr]) { perLevel[w.cefr].add(clean); matched = true; } });
-      if (matched) seenAny.add(clean);
+      // hikColorizeParagraph ile AYNI "tek temsili anlam" mantığı — aksi
+      // halde "time" gibi çok anlamlı kelimeler birden fazla seviye
+      // kovasına birden ekleniyor, üstteki "A1 (74)" gibi rozet sayıları
+      // gerçekte boyanan kelimelerle tutarsız çıkıyordu.
+      const priority = ['S1', 'S2', 'S3', ''];
+      const primary = arr.slice().sort(function (a, b) {
+        return priority.indexOf(a.speaking) - priority.indexOf(b.speaking);
+      })[0];
+      if (primary.cefr && perLevel[primary.cefr]) { perLevel[primary.cefr].add(clean); seenAny.add(clean); }
     }
   });
   const counts = {};
@@ -3250,7 +3256,18 @@ function hikColorizeParagraph(text, level) {
     const isCustom = !!customWords[clean];
     if (oxWords && oxWords.length) {
       markContact(clean, 'read');
-      const matches = oxWords.some(function (w) { return w.cefr === level; });
+      // TEK bir "temsili" anlam seçiliyor (openWordModal ile AYNI öncelik
+      // sırası: S1 > S2 > S3 > diğer) — aksi halde "time" gibi birden fazla
+      // sözcük türü olan kelimelerde (isim A1, fiil B2 gibi) "herhangi bir
+      // anlamı eşleşiyorsa boyanır" mantığı, tıklayınca modalda görülen
+      // seviyeyle (her zaman en sık kullanılan anlamı gösterir) çelişen bir
+      // renklendirmeye yol açıyordu (gerçek cihazda "time" örneğiyle
+      // yakalandı — hikayede B2 gibi boyanmış ama modalda A1 çıkıyordu).
+      const priority = ['S1', 'S2', 'S3', ''];
+      const primary = oxWords.slice().sort(function (a, b) {
+        return priority.indexOf(a.speaking) - priority.indexOf(b.speaking);
+      })[0];
+      const matches = primary.cefr === level;
       if (matches) {
         const prog = getWordProgress(clean);
         let cls = 'news-oxford news-' + level.toLowerCase();
@@ -7236,83 +7253,63 @@ function unitsIntroNext() {
   else unitsCompleteStep(0);
 }
 
-// ── ADIM 2: Eşleştirme — EN kelime ↔ TR anlam eşleştirme oyunu ─────────────
-// Çeldiriciler aynı kategorideki başka kelimelerin GERÇEK Türkçe
-// karşılıklarından seçiliyor — sadece N'e N eşleştirme sona doğru eleme
-// yöntemiyle kolay çözülüyordu (gerçek cihazda yakalandı).
+// ── ADIM 2: Eşleştirme — kelime kelime, sırayla: İngilizce kelime gösterilir,
+// 3 Türkçe seçenekten (1 doğru + 2 yanlış) doğrusu seçilir. Yazım/Test
+// adımlarıyla AYNI kadans (unitsStepIdx ile tek tek ilerleme, "Sonraki"
+// yok, doğru/yanlış sonrası otomatik geçiş) — Erdem'in isteğiyle önceki
+// board+tur tasarımından (aynı anda tüm kelimeler görünür, sona doğru
+// eleme yöntemiyle kolay çözülüyordu) buna geçildi.
+// YÖN FARKI (Test'le birebir aynı olmasın diye BİLİNÇLİ): Eşleştirme
+// İngilizce→Türkçe yönünde (3 seçenek), Test Türkçe→İngilizce yönünde
+// (4 seçenek) — ikisi aynı mekanik ama ters yönde pekiştirme yapıyor.
+let unitsMatchWords = [];
 function unitsRenderMatchStep(u) {
-  const withContent = u.words.filter(w => {
+  unitsMatchWords = u.words.filter(w => {
     const c = BUILTIN_CONTENT[w.word + '|' + w.pos];
     return c && c.turkish && c.turkish.trim();
   });
-  if (withContent.length < 2) { unitsRenderStepTooFew(1); return; }
-  // TURLAR: ünite 6'dan fazla kelime içeriyorsa (chunk mantığından sonra
-  // artık normal, ~17 kelime/ünite), eşleştirme 6'şar kelimelik turlara
-  // bölünüyor — aksi halde ilk 6 dışındaki kelimeler bu adımda HİÇ test
-  // edilmiyordu (gerçek cihazda 15 kelimelik bir ünitede fark edildi).
-  // unitsStepIdx burada "kaçıncı kelimeden başlıyoruz" ofseti olarak kullanılıyor.
-  const roundStart = unitsStepIdx;
-  const words = withContent.slice(roundStart, roundStart + 6);
-  const trOf = w => BUILTIN_CONTENT[w.word+'|'+w.pos].turkish;
-
-  const chosenKeys = new Set(withContent.map(w => w.word + '|' + w.pos)); // TÜM tur kelimeleri hariç
-  const decoyPool = (u.cat ? ALL_CATEGORY_WORDS.filter(w => (w.categories||[])[0] === u.cat) : [])
-    .filter(w => !chosenKeys.has(w.word + '|' + w.pos))
-    .filter(w => { const c = BUILTIN_CONTENT[w.word+'|'+w.pos]; return c && c.turkish && c.turkish.trim(); });
-  const shuffledDecoys = decoyPool.sort(() => Math.random() - 0.5).slice(0, 2);
-
-  const enTiles = words.map((w,i) => ({ id:'en'+i, wIdx:i, text: w.word }));
-  const trTiles = words.map((w,i) => ({ id:'tr'+i, wIdx:i, text: trOf(w) }));
-  shuffledDecoys.forEach((w,i) => trTiles.push({ id:'dec'+i, wIdx:-1, text: BUILTIN_CONTENT[w.word+'|'+w.pos].turkish }));
-  for (let i = trTiles.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [trTiles[i],trTiles[j]]=[trTiles[j],trTiles[i]]; }
-  unitsMatchState = { words, enTiles, trTiles, selectedEn:null, selectedTr:null, matched:new Set(), wrongPair:null, totalWithContent: withContent.length, roundStart };
-  unitsRenderMatchBoard();
+  if (unitsMatchWords.length < 1) { unitsRenderStepTooFew(1); return; }
+  unitsRenderMatchCard(u);
 }
-function unitsRenderMatchBoard() {
-  const s = unitsMatchState;
-  const body = document.getElementById('unit-step-body');
-  const tileHtml = (t, side) => {
-    const isMatched = s.matched.has(t.wIdx) && t.wIdx !== -1;
-    const isSel = (side==='en' ? s.selectedEn : s.selectedTr) === t.id;
-    const isWrong = s.wrongPair && (s.wrongPair.en === t.id || s.wrongPair.tr === t.id);
-    const cls = isMatched ? ' correct' : (isWrong ? ' wrong' : '');
-    return `<button class="unit-quiz-option${cls}" style="${isSel && !isWrong?'border-color:var(--accent);':''}${isMatched?'pointer-events:none;opacity:.55;':''}" onclick="unitsMatchPick('${side}','${t.id}')">${t.text}</button>`;
-  };
-  body.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>${s.enTiles.map(t=>tileHtml(t,'en')).join('')}</div>
-      <div>${s.trTiles.map(t=>tileHtml(t,'tr')).join('')}</div>
-    </div>
-    <p class="unit-progress-txt" style="margin-top:10px;">${s.roundStart + s.matched.size} / ${s.totalWithContent} eşleşti</p>`;
-}
-function unitsMatchPick(side, id) {
-  const s = unitsMatchState;
-  if (s.wrongPair) return;
-  if (side==='en') s.selectedEn = (s.selectedEn===id?null:id); else s.selectedTr = (s.selectedTr===id?null:id);
-  if (s.selectedEn && s.selectedTr) {
-    const enT = s.enTiles.find(t=>t.id===s.selectedEn);
-    const trT = s.trTiles.find(t=>t.id===s.selectedTr);
-    const isCorrect = trT.wIdx !== -1 && enT.wIdx === trT.wIdx;
-    if (isCorrect) {
-      s.matched.add(enT.wIdx);
-      s.selectedEn = null; s.selectedTr = null;
-      if (s.matched.size === s.words.length) {
-        unitsRenderMatchBoard();
-        const nextRoundStart = s.roundStart + s.words.length;
-        if (nextRoundStart < s.totalWithContent) {
-          setTimeout(() => { unitsStepIdx = nextRoundStart; unitsRenderMatchStep(unitsStepView.unit); }, 500);
-        } else {
-          setTimeout(()=>unitsCompleteStep(1), 500);
-        }
-        return;
-      }
-    } else {
-      s.wrongPair = { en: s.selectedEn, tr: s.selectedTr };
-      unitsRenderMatchBoard();
-      setTimeout(() => { s.wrongPair = null; s.selectedEn = null; s.selectedTr = null; unitsRenderMatchBoard(); }, 550);
-      return;
-    }
+function unitsRenderMatchCard(u) {
+  const w = unitsMatchWords[unitsStepIdx];
+  const correctTr = BUILTIN_CONTENT[w.word + '|' + w.pos].turkish;
+
+  // Yanlış seçenekler: önce bu ünitenin İÇERİKLİ diğer kelimelerinden,
+  // yeterli yoksa (küçük ünite) aynı kategorideki başka kelimelerden.
+  let wrongPool = unitsMatchWords.filter(x => x !== w);
+  if (wrongPool.length < 2 && u.cat) {
+    const inUnit = new Set(unitsMatchWords.map(x => x.word + '|' + x.pos));
+    const extra = ALL_CATEGORY_WORDS.filter(x => (x.categories||[])[0] === u.cat && !inUnit.has(x.word + '|' + x.pos))
+      .filter(x => { const c = BUILTIN_CONTENT[x.word+'|'+x.pos]; return c && c.turkish && c.turkish.trim(); });
+    wrongPool = wrongPool.concat(extra);
   }
-  unitsRenderMatchBoard();
+  const wrongs = wrongPool.sort(() => Math.random() - 0.5).slice(0, 2)
+    .map(x => BUILTIN_CONTENT[x.word + '|' + x.pos].turkish);
+  const options = [correctTr, ...wrongs].sort(() => Math.random() - 0.5);
+
+  const body = document.getElementById('unit-step-body');
+  body.innerHTML = `<div class="sg-card">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Bu kelimenin Türkçe anlamı hangisi?</div>
+      <div style="font-size:22px;font-weight:600;">${w.word}</div>
+    </div>
+    <div id="unit-match-options">${options.map(opt => `<button class="unit-quiz-option" data-opt="${escAttr(opt)}" onclick="unitsMatchPickOption(this)">${opt}</button>`).join('')}</div>
+    <p class="unit-progress-txt" style="margin-top:6px;">${unitsStepIdx+1} / ${unitsMatchWords.length}</p>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function unitsMatchPickOption(btn) {
+  const w = unitsMatchWords[unitsStepIdx];
+  const correctTr = BUILTIN_CONTENT[w.word + '|' + w.pos].turkish;
+  const picked = btn.dataset.opt;
+  document.querySelectorAll('#unit-match-options .unit-quiz-option').forEach(b => {
+    if (b.dataset.opt === correctTr) b.classList.add('correct');
+    else if (b.dataset.opt === picked && picked !== correctTr) b.classList.add('wrong');
+    b.onclick = null;
+  });
+  setTimeout(() => {
+    if (unitsStepIdx + 1 < unitsMatchWords.length) { unitsStepIdx++; unitsRenderMatchCard(unitsStepView.unit); }
+    else unitsCompleteStep(1);
+  }, 700);
 }
 
 // ── ADIM 3: Yazım — TR anlamı verilir, İngilizce kelime yazılır ───────────
@@ -7323,6 +7320,7 @@ function unitsRenderSpellCard(u) {
   const body = document.getElementById('unit-step-body');
   body.innerHTML = `<div class="sg-card">
       <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Türkçe anlamı</div>
+
       <div style="font-size:17px;font-weight:600;margin-bottom:16px;">${c?.turkish || '—'}</div>
       <input id="unit-spell-input" type="text" placeholder="İngilizce kelimeyi yaz" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:15px;box-sizing:border-box;" autocapitalize="off" autocorrect="off" spellcheck="false">
       <div id="unit-spell-feedback" style="margin-top:8px;font-size:13px;"></div>
