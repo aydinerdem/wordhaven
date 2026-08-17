@@ -2862,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608181900';
+const APP_VERSION = '202608182000';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -7236,10 +7236,16 @@ function unitsRenderMatchStep(u) {
     return c && c.turkish && c.turkish.trim();
   });
   if (withContent.length < 2) { unitsRenderStepTooFew(1); return; }
-  const words = withContent.slice(0, 6);
+  // TURLAR: ünite 6'dan fazla kelime içeriyorsa (chunk mantığından sonra
+  // artık normal, ~17 kelime/ünite), eşleştirme 6'şar kelimelik turlara
+  // bölünüyor — aksi halde ilk 6 dışındaki kelimeler bu adımda HİÇ test
+  // edilmiyordu (gerçek cihazda 15 kelimelik bir ünitede fark edildi).
+  // unitsStepIdx burada "kaçıncı kelimeden başlıyoruz" ofseti olarak kullanılıyor.
+  const roundStart = unitsStepIdx;
+  const words = withContent.slice(roundStart, roundStart + 6);
   const trOf = w => BUILTIN_CONTENT[w.word+'|'+w.pos].turkish;
 
-  const chosenKeys = new Set(words.map(w => w.word + '|' + w.pos));
+  const chosenKeys = new Set(withContent.map(w => w.word + '|' + w.pos)); // TÜM tur kelimeleri hariç
   const decoyPool = (u.cat ? ALL_CATEGORY_WORDS.filter(w => (w.categories||[])[0] === u.cat) : [])
     .filter(w => !chosenKeys.has(w.word + '|' + w.pos))
     .filter(w => { const c = BUILTIN_CONTENT[w.word+'|'+w.pos]; return c && c.turkish && c.turkish.trim(); });
@@ -7249,7 +7255,7 @@ function unitsRenderMatchStep(u) {
   const trTiles = words.map((w,i) => ({ id:'tr'+i, wIdx:i, text: trOf(w) }));
   shuffledDecoys.forEach((w,i) => trTiles.push({ id:'dec'+i, wIdx:-1, text: BUILTIN_CONTENT[w.word+'|'+w.pos].turkish }));
   for (let i = trTiles.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [trTiles[i],trTiles[j]]=[trTiles[j],trTiles[i]]; }
-  unitsMatchState = { words, enTiles, trTiles, selectedEn:null, selectedTr:null, matched:new Set(), wrongPair:null };
+  unitsMatchState = { words, enTiles, trTiles, selectedEn:null, selectedTr:null, matched:new Set(), wrongPair:null, totalWithContent: withContent.length, roundStart };
   unitsRenderMatchBoard();
 }
 function unitsRenderMatchBoard() {
@@ -7266,7 +7272,7 @@ function unitsRenderMatchBoard() {
       <div>${s.enTiles.map(t=>tileHtml(t,'en')).join('')}</div>
       <div>${s.trTiles.map(t=>tileHtml(t,'tr')).join('')}</div>
     </div>
-    <p class="unit-progress-txt" style="margin-top:10px;">${s.matched.size} / ${s.words.length} eşleşti</p>`;
+    <p class="unit-progress-txt" style="margin-top:10px;">${s.roundStart + s.matched.size} / ${s.totalWithContent} eşleşti</p>`;
 }
 function unitsMatchPick(side, id) {
   const s = unitsMatchState;
@@ -7279,7 +7285,16 @@ function unitsMatchPick(side, id) {
     if (isCorrect) {
       s.matched.add(enT.wIdx);
       s.selectedEn = null; s.selectedTr = null;
-      if (s.matched.size === s.words.length) { unitsRenderMatchBoard(); setTimeout(()=>unitsCompleteStep(1), 500); return; }
+      if (s.matched.size === s.words.length) {
+        unitsRenderMatchBoard();
+        const nextRoundStart = s.roundStart + s.words.length;
+        if (nextRoundStart < s.totalWithContent) {
+          setTimeout(() => { unitsStepIdx = nextRoundStart; unitsRenderMatchStep(unitsStepView.unit); }, 500);
+        } else {
+          setTimeout(()=>unitsCompleteStep(1), 500);
+        }
+        return;
+      }
     } else {
       s.wrongPair = { en: s.selectedEn, tr: s.selectedTr };
       unitsRenderMatchBoard();
