@@ -819,8 +819,13 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   // Her kullanıcının ilerlemesi users/{uid} dokümanında tutulur. Güvenlik
   // kuralı: sadece request.auth.uid == userId kendi dokümanını okuyup
   // yazabilir (bkz. proje_talimati.md FIRESTORE İLERLEME SENKRONU bölümü).
+  // collection/addDoc/getDocs/query/where: Hikayeler modülü (backlog #22)
+  // için eklendi — stories koleksiyonu, users/{uid}'den FARKLI bir kural
+  // deseni kullanıyor (görünürlük bazlı: shared/private, bkz. proje_talimati.md
+  // HİKAYELER FIRESTORE KURULUMU bölümü).
   import {
-    getFirestore, doc, getDoc, setDoc
+    getFirestore, doc, getDoc, setDoc,
+    collection, addDoc, getDocs, query, where
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -843,7 +848,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   // dışında, sıradan <script>'ler — ES modül import'larına doğrudan erişemez.
   // Bu yüzden ihtiyacı olan şeyleri window üzerinden paylaşıyoruz.
   window.whStorage = { storage: fbStorage, ref: storageRef, getBytes: getBytes };
-  window.whFirestore = { db: fbDb, doc: doc, getDoc: getDoc, setDoc: setDoc };
+  window.whFirestore = {
+    db: fbDb, doc: doc, getDoc: getDoc, setDoc: setDoc,
+    collection: collection, addDoc: addDoc, getDocs: getDocs, query: query, where: where
+  };
 
   setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
     console.error('Persistence ayarlanamadı:', e);
@@ -854,6 +862,12 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   // NOT: Bu, GERÇEK güvenlik değil, sadece erken UI mesajı. Gerçek
   // yetkilendirme Firestore güvenlik kurallarındaki allowlist'te.
   window.WH_ALLOWED_EMAILS = ['erdem.aydin@gmail.com', 'gozdeetturan@gmail.com', 'gozdeeaaydin@gmail.com'];
+  // Hikayeler modülünde kim hikaye EKLEYEBİLİR (admin). NOT: WH_ALLOWED_EMAILS
+  // gibi bu da sadece erken UI mesajı/panel gösterme kararı için — gerçek
+  // yetkilendirme Firestore güvenlik kuralındaki admin listesinde. Admin
+  // sayısı artırılacaksa BURAYA ve Firestore Rules'daki admin listesine
+  // birlikte eklenmeli (proje_talimati.md HİKAYELER FIRESTORE KURULUMU).
+  window.WH_ADMIN_EMAILS = ['erdem.aydin@gmail.com', 'gozdeetturan@gmail.com', 'gozdeeaaydin@gmail.com'];
 
   window.whCurrentUser = null;
   window.whAuthResolved = false;
@@ -1032,6 +1046,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       <button class="nav-btn main-nav-btn nav-tile" id="nav-hangman" onclick="showView('hangman')">
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.3"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span>
         <span class="nav-tile-lbl">Asmaca</span>
+      </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-stories" onclick="showView('stories')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#d97706,#b45309);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.8c1.6-.9 3.7-1.1 6-.4v11c-2.3-.7-4.4-.5-6 .4z"/><path d="M16 4.8c-1.6-.9-3.7-1.1-6-.4v11c2.3-.7 4.4-.5 6 .4z"/></svg></span>
+        <span class="nav-tile-lbl">Hikayeler</span>
       </button>
     </div>
 
@@ -1260,6 +1278,44 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
     <div id="hg-content"></div>
   </div>
 
+  <!-- HİKAYELER VIEW (yeni modül) -->
+  <div id="view-stories" class="hidden">
+    <div style="font-size:14px;color:var(--text2);margin-bottom:12px;line-height:1.6;">
+      Kısa İngilizce-Türkçe hikayeler. Bir seviye seç — o seviyenin kelimelerini içeren hikayeler listelenir (hesaplama otomatik, kelime listesine göre yapılır).
+    </div>
+    <button class="chip" id="hik-report-btn" onclick="hikToggleReport()" style="margin-bottom:14px;">Kapsam Raporu</button>
+
+    <div id="hik-normal-wrap">
+      <div class="filter-panel" style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Seviye seç</div>
+        <div class="f-row3" id="hik-level-row"></div>
+      </div>
+      <div id="hik-list"></div>
+    </div>
+
+    <div id="hik-report-wrap" class="hidden">
+      <div class="filter-panel" style="margin-bottom:14px;">
+        <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+          Bir seviyedeki her kelimenin en az kaç hikayede geçtiğini gösterir. Amaç: her kelimeye
+          farklı bağlamlarda birden fazla kez maruz kalınması. Hedefin altında kalan kelimeler
+          aşağıda listelenir — bu kelimeleri içeren yeni bir hikaye ekleyerek boşluğu kapatabilirsin.
+        </p>
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Rapor seviyesi</div>
+        <div class="f-row3" id="hik-report-level-row"></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--text2);">Hedef tekrar sayısı:</span>
+          <button class="chip" data-th="3" onclick="hikSetReportThreshold(3)">3</button>
+          <button class="chip" data-th="5" onclick="hikSetReportThreshold(5)">5</button>
+          <input type="number" id="hik-report-th-input" min="1" max="50" value="3"
+            style="width:64px;padding:8px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);box-sizing:border-box;"
+            onchange="hikSetReportThreshold(this.value)">
+        </div>
+      </div>
+      <div id="hik-report-summary" style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6;"></div>
+      <div id="hik-report-list"></div>
+    </div>
+  </div>
+
   <!-- GRAMMAR VIEW (yeni modül) -->
   <div id="view-grammar" class="hidden">
     <div id="gr-levels-view">
@@ -1463,6 +1519,30 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       </details>
     </div>
 
+    <div class="filter-panel hidden" id="hik-add-panel">
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#d97706,#b45309);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.8c1.6-.9 3.7-1.1 6-.4v11c-2.3-.7-4.4-.5-6 .4z"/><path d="M16 4.8c-1.6-.9-3.7-1.1-6-.4v11c2.3-.7 4.4-.5 6 .4z"/></svg></span><span class="settings-panel-title">Hikaye Ekle</span></div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+        İngilizce ve Türkçe metni buraya yapıştır — hangi CEFR seviyesi altında listeleneceği otomatik hesaplanır, bana sormana gerek kalmaz. Paragrafları boş satırla ayır, İngilizce ve Türkçe paragraf sayısı eşleşmeli.
+      </p>
+      <input type="text" id="hik-add-title-en" placeholder="Başlık (İngilizce)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
+      <input type="text" id="hik-add-title-tr" placeholder="Başlık (Türkçe)" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;">
+      <textarea id="hik-add-text-en" placeholder="İngilizce metin (paragrafları boş satırla ayır)" rows="6" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:8px;font-family:inherit;resize:vertical;"></textarea>
+      <textarea id="hik-add-text-tr" placeholder="Türkçe çeviri (aynı sayıda paragraf)" rows="6" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:inherit;resize:vertical;"></textarea>
+      <div style="font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:6px;">Nerede yayınlansın?</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+          <input type="radio" name="hik-visibility" value="shared" checked style="width:16px;height:16px;">
+          Havuzda yayınla — allowlist'teki herkes görür
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+          <input type="radio" name="hik-visibility" value="private" style="width:16px;height:16px;">
+          Sadece kendim için — sadece ben görürüm
+        </label>
+      </div>
+      <button class="chip" onclick="hikAddStoryFromForm()">Hikaye Ekle</button>
+      <div id="hik-add-status" style="font-size:12px;margin-top:8px;line-height:1.6;"></div>
+    </div>
+
     <div class="filter-panel">
       <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,var(--accent),var(--accent2));"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.7"/><path d="M10 9v4.2"/><circle cx="10" cy="6.8" r=".15" fill="currentColor" stroke-width="2.2"/></svg></span><span class="settings-panel-title">WordHaven Hakkında</span></div>
       <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
@@ -1635,7 +1715,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608181200';
+      s.src = 'app.js?v=202608181800';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

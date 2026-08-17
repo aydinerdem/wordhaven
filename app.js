@@ -1844,7 +1844,7 @@ function getNextDate(n) {
 }
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', units:'Üniteler', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
+const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', units:'Üniteler', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar', stories:'Hikayeler' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -1870,7 +1870,7 @@ function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','news','wordadd','list','units','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','news','wordadd','list','units','sentence','hangman','settings','cardmode','status','writing','grammar','stories'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
   document.getElementById('nav-wordadd').classList.toggle('active', v==='wordadd');
@@ -1883,6 +1883,7 @@ function showView(v) {
   document.getElementById('nav-settings').classList.toggle('active', v==='settings');
   document.getElementById('nav-writing').classList.toggle('active', v==='writing');
   document.getElementById('nav-grammar').classList.toggle('active', v==='grammar');
+  document.getElementById('nav-stories').classList.toggle('active', v==='stories');
   if (v==='dash') updateDashboard();
   if (v==='wordadd') renderCustomWordsList();
   if (v==='list') { listUpdatePersonalCounts(); if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
@@ -1890,8 +1891,9 @@ function showView(v) {
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
   if (v==='writing') wrInit();
-  if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); renderAuthStatus(); }
+  if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); renderAuthStatus(); hikRenderAdminGate(); }
   if (v==='grammar') grInit();
+  if (v==='stories') hikInit();
 }
 
 // ── WORD LIST (2-column, toggle accordion) ──────────────────────────────────
@@ -2860,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608181200';
+const APP_VERSION = '202608181800';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3086,6 +3088,7 @@ if (!localStorage.getItem(TOUR_SEEN_KEY)) {
 loadState();
 updateDashboard();
 cloudSyncOnStartup();
+hikRefreshCloudStories(); // Hikayeler'e hiç girilmemiş olsa bile arka planda önceden çeker
 renderCustomWordsList();
 // NOT (backlog #4 sırasında kaldırıldı): Burada eskiden 'beforeunload'/
 // 'pagehide' olaylarında da saveState() çağrılıyordu. Bu, İÇERİK
@@ -3117,6 +3120,446 @@ TOPIC_WORDS.forEach(w => {
   if (!TOPIC_WORD_MAP[k]) TOPIC_WORD_MAP[k] = [];
   TOPIC_WORD_MAP[k].push(w);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HİKAYELER (Stories) — kısa İngilizce/Türkçe hikayeler. Her hikayenin hangi
+// CEFR seviye(ler)inin altında listeleneceği MANUEL etiketlenmez: metindeki
+// kelimeler OXFORD_WORD_MAP'te aranır, geçen her CEFR seviyesi o hikayeye
+// otomatik "etiket" olarak eklenir (bir hikaye birden fazla seviyede
+// görünebilir — örn. hem A1 hem B1 kelime içeriyorsa iki sekmede de çıkar).
+//
+// VERİ KATMANI: STORIES_BUILTIN sabit örnek/tohum hikaye (Firestore hiç
+// erişilemezse veya ilk açılışta bulut henüz gelmemişken çekirdek içerik
+// olarak kalıyor). Asıl hikayeler Firestore'daki 'stories' koleksiyonunda:
+// her doküman {title_en, title_tr, text_en, text_tr, visibility, createdBy,
+// createdAt} alanlarını taşır. visibility 'shared' ise allowlist'teki HERKES
+// görür, 'private' ise sadece createdBy (ekleyen kişi) görür. Yazma sadece
+// admin listesindekilere (WH_ADMIN_EMAILS) açık — bkz. proje_talimati.md
+// HİKAYELER FIRESTORE KURULUMU bölümü ve Firestore Security Rules.
+// ═══════════════════════════════════════════════════════════════════════════
+const STORIES_BUILTIN = (typeof window !== 'undefined' && window.STORIES_BUILTIN) ? window.STORIES_BUILTIN : [
+  {
+    id: 'lion-and-rabbit',
+    title_en: 'The Lion and the Clever Rabbit',
+    title_tr: 'Aslan ve Zeki Tavşan',
+    text_en: "A cruel lion lived in the forest. Every day, he killed and ate a lot of animals. The other animals were afraid the lion would kill them all.\n\nThe animals told the lion, \"Let's make a deal. If you promise to eat only one animal each day, then one of us will come to you every day. Then you don't have to hunt and kill us.\"\n\nThe plan sounded reasonable to the lion, so he agreed, but he also said, \"If you don't come every day, I promise to kill all of you the next day!\"\n\nEach day after that, one animal went to the lion so that the lion could eat it. Then, all the other animals were safe.\n\nFinally, it was the rabbit's turn to go to the lion. The rabbit went very slowly that day, so the lion was already angry by the time the rabbit arrived.\n\nThe lion angrily asked the rabbit, \"Why are you late?\"\n\n\"I was hiding from another lion in the forest. That lion said he was the king, so I was afraid.\"\n\nThe lion told the rabbit, \"I am the only king here! Take me to that other lion, and I will kill him.\"\n\nThe rabbit replied, \"I will be happy to show you where he lives.\"\n\nThe rabbit led the lion to an old well in the middle of the forest. The well was very deep with water at the bottom. The rabbit told the lion, \"Look in there. The lion lives at the bottom.\"\n\nWhen the lion looked in the well, he could see his own face in the water. He thought that was the other lion. Without waiting another moment, the lion jumped into the well to attack the other lion. He never came out.\n\nAll of the other animals in the forest were very pleased with the rabbit's clever trick.",
+    text_tr: "Ormanda zalim bir aslan yaşıyordu. Her gün birçok hayvanı öldürüp yiyordu. Diğer hayvanlar aslanın hepsini öldüreceğinden korkuyorlardı.\n\nHayvanlar aslana, \"Bir anlaşma yapalım. Her gün sadece bir hayvan yiyeceğine söz verirsen, her gün birimiz sana gelir. O zaman bizi avlayıp öldürmene gerek kalmaz.\" dediler.\n\nBu plan aslana mantıklı geldi, bu yüzden kabul etti, ama aynı zamanda, \"Her gün gelmezsen, ertesi gün hepinizi öldüreceğime söz veriyorum!\" dedi.\n\nBundan sonra her gün bir hayvan aslanın yanına gitti, aslan onu yedi. Böylece diğer tüm hayvanlar güvende oldu.\n\nSonunda, tavşanın aslanın yanına gitme sırası geldi. Tavşan o gün çok yavaş gitti, bu yüzden sonunda vardığında aslan çoktan öfkelenmişti.\n\nAslan öfkeyle tavşana, \"Neden geç kaldın?\" diye sordu.\n\n\"Ormanda başka bir aslandan saklanıyordum. O aslan kral olduğunu söyledi, bu yüzden korktum.\"\n\nAslan tavşana, \"Burada tek kral benim! Beni o diğer aslanın yanına götür, onu öldüreyim.\" dedi.\n\nTavşan, \"Onun nerede yaşadığını sana göstermekten mutluluk duyarım.\" diye cevap verdi.\n\nTavşan, aslanı ormanın ortasındaki eski bir kuyuya götürdü. Kuyu çok derindi ve dibinde su vardı. Tavşan aslana, \"İçine bak. Aslan dibinde yaşıyor.\" dedi.\n\nAslan kuyuya baktığında, suyun içinde kendi yüzünü gördü. Bunun diğer aslan olduğunu düşündü. Bir an bile beklemeden, diğer aslana saldırmak için kuyuya atladı. Bir daha asla çıkmadı.\n\nOrmandaki diğer tüm hayvanlar tavşanın bu zekice numarasından çok memnun kaldılar."
+  }
+];
+
+// Kim admin? (hikaye ekleyebilir mi) — sadece UI kararı için, gerçek
+// yetkilendirme Firestore Rules'daki admin listesinde uygulanıyor.
+function hikIsAdmin() {
+  const email = (window.whCurrentUser && window.whCurrentUser.email || '').toLowerCase();
+  return !!email && !!window.WH_ADMIN_EMAILS && window.WH_ADMIN_EMAILS.includes(email);
+}
+
+// Firestore'dan hikayeleri çeker: 'shared' olan HERKESE açık hikayeler +
+// sadece kendi eklediğin 'private' hikayeler — iki ayrı sorgu, sonra
+// istemci tarafında birleştiriliyor (composite index gerektiren tek sorgu
+// yerine daha basit/dayanıklı bir yöntem). Firestore erişilemezse (henüz
+// giriş yapılmamış, ağ hatası vb.) sessizce boş dizi döner — STORIES_BUILTIN
+// her zaman gösterilmeye devam eder, uygulama bloklanmaz.
+async function hikFetchCloudStories() {
+  const fs = window.whFirestore;
+  const user = window.whCurrentUser;
+  if (!fs || !user) return [];
+  try {
+    const myEmail = (user.email || '').toLowerCase();
+    const storiesCol = fs.collection(fs.db, 'stories');
+    const sharedQ = fs.query(storiesCol, fs.where('visibility', '==', 'shared'));
+    const privateQ = fs.query(storiesCol, fs.where('visibility', '==', 'private'), fs.where('createdBy', '==', myEmail));
+    const [sharedSnap, privateSnap] = await Promise.all([fs.getDocs(sharedQ), fs.getDocs(privateQ)]);
+    const seen = new Set();
+    const result = [];
+    sharedSnap.forEach(function (d) { if (!seen.has(d.id)) { seen.add(d.id); result.push(Object.assign({ id: d.id }, d.data())); } });
+    privateSnap.forEach(function (d) { if (!seen.has(d.id)) { seen.add(d.id); result.push(Object.assign({ id: d.id }, d.data())); } });
+    return result;
+  } catch (e) {
+    console.error('Hikayeler Firestore\'dan çekilemedi:', e);
+    return [];
+  }
+}
+
+let STORIES = STORIES_BUILTIN.slice();
+
+// Bulut hikayelerini çekip STORIES'i günceller, açıksa Hikayeler ekranını
+// yeniden çizer. Hem açılışta (cloudSyncOnStartup ile birlikte) hem
+// Hikayeler ekranı her açıldığında (hikInit) çağrılır — sessiz/asenkron,
+// önce yerel/önbellekli veriyle ekran zaten çizilmiş oluyor.
+function hikRefreshCloudStories() {
+  hikFetchCloudStories().then(function (cloud) {
+    STORIES = STORIES_BUILTIN.concat(cloud);
+    Object.keys(_hikCountsCache).forEach(function (k) { delete _hikCountsCache[k]; });
+    const view = document.getElementById('view-stories');
+    if (view && !view.classList.contains('hidden')) {
+      if (hikReportOpen) hikRenderReport(); else hikRenderList();
+    }
+  });
+}
+
+// Bir hikayenin her CEFR seviyesinden KAÇ BENZERSİZ kelime içerdiğini ve
+// toplam (tüm seviyeler birlikte) benzersiz kelime sayısını hesaplar —
+// kapalıyken bile satırda "A1 (8)  A2 (3) · Toplam 14 kelime" gibi gösterilir,
+// hikaye açılmadan hangi seviyelerde ne kadar kelime olduğu görülür.
+const _hikCountsCache = Object.create(null);
+function hikStoryLevelCounts(story) {
+  if (_hikCountsCache[story.id]) return _hikCountsCache[story.id];
+  const perLevel = { A1: new Set(), A2: new Set(), B1: new Set(), B2: new Set(), C1: new Set() };
+  const seenAny = new Set();
+  const tokens = story.text_en.split(/[^A-Za-z']+/);
+  tokens.forEach(function (tok) {
+    const clean = tok.toLowerCase();
+    if (!clean) return;
+    const arr = OXFORD_WORD_MAP[clean];
+    if (arr && arr.length) {
+      let matched = false;
+      arr.forEach(function (w) { if (w.cefr && perLevel[w.cefr]) { perLevel[w.cefr].add(clean); matched = true; } });
+      if (matched) seenAny.add(clean);
+    }
+  });
+  const counts = {};
+  ['A1', 'A2', 'B1', 'B2', 'C1'].forEach(function (l) { counts[l] = perLevel[l].size; });
+  const result = { counts: counts, total: seenAny.size };
+  _hikCountsCache[story.id] = result;
+  return result;
+}
+
+function hikStoryLevels(story) {
+  const counts = hikStoryLevelCounts(story).counts;
+  return ['A1', 'A2', 'B1', 'B2', 'C1'].filter(function (l) { return counts[l] > 0; });
+}
+
+function hikSlug(s) {
+  const base = trFold(s).replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '').slice(0, 60);
+  return base || ('hikaye-' + Date.now());
+}
+
+// Metin Analizi'ndeki (analyzePanel) renklendirme mantığının hikaye
+// paragrafları için sadeleştirilmiş hali — TEK FARK: burada seviye gizleme
+// YOK, seviye FİLTRELEME var. Sadece `level` parametresiyle eşleşen kelimeler
+// renkli/altı çizili görünür (o seviyeye göre bakıyorsun); diğer tüm kelimeler
+// düz metin ama yine de tıklanabilir kalır (tanımı görmek için).
+function hikColorizeParagraph(text, level) {
+  const tokens = text.split(/([\s]+|[^\w'\u2018\u2019-]+)/);
+  let html = '';
+  tokens.forEach(function (token) {
+    const clean = token.toLowerCase().replace(/[^a-z'-]/g, '');
+    if (!clean || !/[a-z]/.test(clean)) { html += escHtml(token); return; }
+    const oxWords = OXFORD_WORD_MAP[clean];
+    const isCustom = !!customWords[clean];
+    if (oxWords && oxWords.length) {
+      markContact(clean, 'read');
+      const matches = oxWords.some(function (w) { return w.cefr === level; });
+      if (matches) {
+        const prog = getWordProgress(clean);
+        let cls = 'news-oxford news-' + level.toLowerCase();
+        if (prog && prog.mastery === 'mastered') cls += ' learned';
+        else if (prog) cls += ' reviewing';
+        html += '<span class="' + cls + '" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
+      } else {
+        html += '<span data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" style="cursor:pointer;">' + escHtml(token) + '</span>';
+      }
+    } else if (isCustom) {
+      markContact(clean, 'read');
+      html += '<span class="news-custom" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
+    } else if (TOPIC_WORD_MAP[clean] && TOPIC_WORD_MAP[clean].length) {
+      markContact(clean, 'read');
+      const matches = TOPIC_WORD_MAP[clean].some(function (w) { return w.cefr === level; });
+      if (matches) {
+        html += '<span class="news-topic" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" title="Oxford 3000/5000 dışı, konu listesinde">' + escHtml(token) + '</span>';
+      } else {
+        html += '<span data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" style="cursor:pointer;">' + escHtml(token) + '</span>';
+      }
+    } else {
+      html += '<span data-word="' + escAttr(clean) + '" onclick="handlePromptClick(this)" title="Oxford listesinde yok" style="cursor:pointer;">' + escHtml(token) + '</span>';
+    }
+  });
+  return html;
+}
+
+let hikLevel = 'A1';
+let hikOpenId = null; // accordion: hangi hikaye açık (liste içinde genişliyor, ayrı sayfaya gitmiyor)
+// hikHighlightLevel: SADECE açık hikayenin içinde hangi seviyenin kelimeleri
+// vurgulanacağını belirler. hikLevel'den (üstteki "Seviye seç" — hangi
+// hikayelerin listeleneceğini belirler) KASITLI OLARAK ayrı tutuluyor —
+// önceki hatada ikisi tek değişkendi, hikaye içindeki rozete basmak üstteki
+// filtreyi de değiştiriyordu. Artık: üstteki sekme = liste filtresi,
+// hikaye içindeki rozet = sadece o hikayenin kelime vurgusu.
+let hikHighlightLevel = 'A1';
+
+function hikInit() {
+  hikOpenId = null;
+  hikReportOpen = false;
+  document.getElementById('hik-report-wrap').classList.add('hidden');
+  document.getElementById('hik-normal-wrap').classList.remove('hidden');
+  document.getElementById('hik-report-btn').textContent = 'Kapsam Raporu';
+  hikRenderLevelRow();
+  hikRenderList();
+  hikRefreshCloudStories(); // arka planda bulut hikayelerini çek, gelince ekranı tazele
+}
+
+// Ayarlar > Hikaye Ekle paneli sadece admin listesindekilere görünür.
+function hikRenderAdminGate() {
+  const panel = document.getElementById('hik-add-panel');
+  if (panel) panel.classList.toggle('hidden', !hikIsAdmin());
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KAPSAM RAPORU — bir seviyedeki her kelimenin kaç FARKLI hikayede geçtiğini
+// sayar. Amaç: her kelimeye en az N (3 veya 5) farklı hikayede/bağlamda
+// maruz kalınması (spaced-repetition'ın okuma versiyonu). Hedefin altında
+// kalan kelimeler listelenir — Erdem hangi kelimeler için yeni hikaye
+// eklemesi gerektiğini buradan görür.
+// ═══════════════════════════════════════════════════════════════════════════
+let hikReportOpen = false;
+let hikReportLevel = 'A1';
+let hikReportThreshold = 3;
+
+function hikToggleReport() {
+  hikReportOpen = !hikReportOpen;
+  document.getElementById('hik-report-wrap').classList.toggle('hidden', !hikReportOpen);
+  document.getElementById('hik-normal-wrap').classList.toggle('hidden', hikReportOpen);
+  document.getElementById('hik-report-btn').textContent = hikReportOpen ? '‹ Hikayelere dön' : 'Kapsam Raporu';
+  if (hikReportOpen) hikRenderReport();
+}
+
+function hikSetReportLevel(lv) {
+  hikReportLevel = lv;
+  hikRenderReport();
+}
+
+function hikSetReportThreshold(n) {
+  const num = Math.max(1, Math.min(50, Math.round(Number(n)) || 1));
+  hikReportThreshold = num;
+  hikRenderReport();
+}
+
+function hikRenderReportLevelRow() {
+  const row = document.getElementById('hik-report-level-row');
+  row.innerHTML = ['A1', 'A2', 'B1', 'B2', 'C1'].map(function (lv) {
+    return '<button class="chip lvl-' + lv.toLowerCase() + (lv === hikReportLevel ? ' on' : '') + '" onclick="hikSetReportLevel(\'' + lv + '\')">' + lv + '</button>';
+  }).join('');
+}
+
+// Her hikayenin metnindeki benzersiz kelimeleri Set olarak önceden çıkarır —
+// böylece N kelime × M hikaye karşılaştırması, her seferinde metni yeniden
+// taramak yerine hızlı Set.has() aramasına döner.
+function hikStoryWordSets() {
+  return STORIES.map(function (s) {
+    return new Set(s.text_en.toLowerCase().split(/[^a-z']+/).filter(Boolean));
+  });
+}
+
+function hikRenderReport() {
+  hikRenderReportLevelRow();
+  document.querySelectorAll('#hik-report-wrap [data-th]').forEach(function (b) {
+    b.classList.toggle('on', Number(b.dataset.th) === hikReportThreshold);
+  });
+  document.getElementById('hik-report-th-input').value = hikReportThreshold;
+
+  const levelWords = new Set();
+  WORD_DATA.forEach(function (w) { if (w.cefr === hikReportLevel) levelWords.add(w.word.toLowerCase()); });
+  const storySets = hikStoryWordSets();
+
+  const results = Array.from(levelWords).map(function (w) {
+    const count = storySets.filter(function (set) { return set.has(w); }).length;
+    return { word: w, count: count };
+  });
+  const deficient = results.filter(function (r) { return r.count < hikReportThreshold; })
+    .sort(function (a, b) { return a.count - b.count || a.word.localeCompare(b.word); });
+  const covered = results.length - deficient.length;
+
+  const summary = document.getElementById('hik-report-summary');
+  summary.innerHTML = '<b>' + hikReportLevel + '</b>: ' + results.length + ' kelime · '
+    + '<span style="color:var(--success);">' + covered + ' kelime hedefi karşılıyor</span> · '
+    + '<span style="color:var(--warn);font-weight:600;">' + deficient.length + ' kelime eksik</span>';
+
+  const listEl = document.getElementById('hik-report-list');
+  if (!results.length) {
+    listEl.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">Bu seviyede kelime verisi bulunamadı.</div>';
+    return;
+  }
+  if (!deficient.length) {
+    listEl.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--success);font-size:13px;">Bu seviyedeki tüm kelimeler hedefi karşılıyor.</div>';
+    return;
+  }
+  listEl.innerHTML = deficient.map(function (r) {
+    const barColor = r.count === 0 ? 'var(--danger)' : 'var(--warn)';
+    return '<div class="list-word-item" style="cursor:default;">'
+      + '<span class="wordfont" style="font-weight:600;">' + escHtml(r.word) + '</span>'
+      + '<span style="font-size:12px;font-weight:700;color:' + barColor + ';">' + r.count + '/' + hikReportThreshold + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+function hikRenderLevelRow() {
+  const row = document.getElementById('hik-level-row');
+  const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
+  row.innerHTML = levels.map(function (lv) {
+    const count = STORIES.filter(function (s) { return hikStoryLevels(s).indexOf(lv) !== -1; }).length;
+    const dis = count === 0 && lv !== hikLevel;
+    return '<button class="chip lvl-' + lv.toLowerCase() + (lv === hikLevel ? ' on' : '') + (dis ? ' disabled' : '') + '" ' + (dis ? 'disabled' : '') + ' data-lv="' + lv + '" onclick="hikSelectLevel(\'' + lv + '\')">' + lv + '<span class="n">(' + count + ')</span></button>';
+  }).join('');
+}
+
+// ÜSTTEKİ "Seviye seç" sekmesi: hangi hikayelerin listeleneceğini belirler.
+// Açık hikaye varsa kapanmaz (geçerliyse), ve onun vurgusu da yeni seviyeye
+// senkronlanır (mantıklı varsayılan: üstten seviye değiştirince açık
+// hikayenin de o seviyeye göre vurgulanması beklenir).
+function hikSelectLevel(lv) {
+  hikLevel = lv;
+  hikHighlightLevel = lv;
+  hikRenderLevelRow();
+  hikRenderList();
+}
+
+// HİKAYE İÇİNDEKİ rozete basmak: SADECE o hikayenin kelime vurgusunu
+// değiştirir. Üstteki hikLevel'e ve dolayısıyla liste filtresine hiç
+// dokunmaz — bu yüzden diğer hikayeler listede kalır, sayfa "filtrelenmiş"
+// gibi görünmez.
+function hikSetHighlightLevel(lv) {
+  hikHighlightLevel = lv;
+  hikRenderList();
+}
+
+// Bir hikayenin seviye+adet satırı: DOLU/renkli rozet o an o hikaye için
+// hangi seviyenin vurgulandığını gösterir (activeLevel parametresi) —
+// kapalı kartlarda bu üstteki hikLevel, açık kartta hikHighlightLevel'dir.
+// Hikaye KAPALIYKEN BİLE görünür — açmadan hangi seviyede kaç kelime
+// olduğu, toplam kaç kelime olduğu anlaşılsın diye.
+function hikInfoLineHtml(story, activeLevel, isOpenCard) {
+  const counts = hikStoryLevelCounts(story).counts;
+  const total = hikStoryLevelCounts(story).total;
+  const clickFn = isOpenCard ? 'hikSetHighlightLevel' : 'hikSelectLevel';
+  const badges = ['A1', 'A2', 'B1', 'B2', 'C1'].filter(function (l) { return counts[l] > 0; }).map(function (l) {
+    const activeCls = (l === activeLevel) ? ' on' : '';
+    // stopPropagation ŞART: bu rozetler .gr-acc-head'in içinde, tıklamayı
+    // durdurmazsak olay kabarcıklanıp kartın kendisini kapatıyordu.
+    return '<button type="button" class="chip lvl-' + l.toLowerCase() + activeCls + '" style="padding:2px 8px;font-size:10.5px;" onclick="event.stopPropagation();' + clickFn + '(\'' + l + '\')">' + l + ' <span class="n">(' + counts[l] + ')</span></button>';
+  }).join(' ');
+  return '<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:6px;" onclick="event.stopPropagation();">' + badges + '<span style="font-size:11px;color:var(--text3);">· Toplam ' + total + ' kelime</span></div>';
+}
+
+function hikLevelColorVar(lv) { return 'var(--' + lv.toLowerCase() + ')'; }
+
+// Kart tasarımı Grammar modülünün alt-madde accordion'ıyla (.gr-acc) BİREBİR
+// aynı sınıfları kullanıyor — açıkken çerçeve, o hikaye için VURGULANAN
+// seviyenin (hikHighlightLevel) rengine boyanır.
+function hikRenderList() {
+  const wrap = document.getElementById('hik-list');
+  const items = STORIES.filter(function (s) { return hikStoryLevels(s).indexOf(hikLevel) !== -1; });
+  if (hikOpenId && !items.some(function (s) { return s.id === hikOpenId; })) hikOpenId = null;
+  if (!items.length) {
+    wrap.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">Bu seviyede henüz hikaye yok.</div>';
+    return;
+  }
+  wrap.innerHTML = items.map(function (s) {
+    const isOpen = (hikOpenId === s.id);
+    const cardLevel = isOpen ? hikHighlightLevel : hikLevel;
+    return '<div class="gr-acc' + (isOpen ? ' open' : '') + '" style="--gr-accent:' + hikLevelColorVar(cardLevel) + ';">'
+      + '<div class="gr-acc-head" onclick="hikToggleStory(\'' + s.id + '\')" style="align-items:flex-start;flex-direction:column;gap:0;">'
+      + '<div style="display:flex;align-items:center;width:100%;gap:8px;">'
+      + '<div style="flex:1;">'
+      + '<div class="wordfont" style="font-weight:600;font-size:14.5px;">' + escHtml(s.title_en) + '</div>'
+      + '<div style="font-size:12.5px;color:var(--text2);margin-top:2px;">' + escHtml(s.title_tr) + '</div>'
+      + '</div>'
+      + '<span class="gr-acc-chevron">&#8250;</span>'
+      + '</div>'
+      + hikInfoLineHtml(s, cardLevel, isOpen)
+      + '</div>'
+      + '<div class="gr-acc-body' + (isOpen ? ' open' : '') + '">' + (isOpen ? hikStoryBodyHtml(s) : '') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+
+function hikToggleStory(id) {
+  if (hikOpenId === id) {
+    hikOpenId = null;
+  } else {
+    hikOpenId = id;
+    hikHighlightLevel = hikLevel; // yeni açılan hikaye, üstten baktığın seviyeyle başlar
+  }
+  hikRenderList();
+}
+
+// Tüm hikaye tek bir "Türkçesini gör" düğmesiyle açılır/kapanır — paragraf
+// başına ayrı düğme yoktu, sadece ilk paragrafı gösterip kalanını atladığı
+// sanılıyordu; artık tek dokunuşla TÜM paragrafların çevirisi birden açılır.
+function hikStoryBodyHtml(story) {
+  const enParas = story.text_en.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+  const trParas = story.text_tr.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+  let body = '<div style="padding-top:12px;border-top:0.5px solid var(--border);">';
+  body += '<button class="tr-toggle" onclick="event.stopPropagation();hikToggleAllTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button>';
+  body += '<div class="hik-story-body" style="margin-top:10px;">';
+  enParas.forEach(function (p, i) {
+    body += '<p style="margin-bottom:4px;line-height:1.75;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>';
+    if (trParas[i]) body += '<p class="hik-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
+  });
+  body += '</div></div>';
+  return body;
+}
+
+function hikToggleAllTr(btn) {
+  const wrap = btn.nextElementSibling;
+  const showing = btn.classList.contains('on');
+  wrap.querySelectorAll('.hik-tr-p').forEach(function (el) { el.style.display = showing ? 'none' : 'block'; });
+  btn.classList.toggle('on', !showing);
+  const label = btn.querySelector('.tr-toggle-label');
+  if (label) label.textContent = showing ? 'Türkçesini gör' : 'Türkçesini gizle';
+}
+
+function hikAddStoryFromForm() {
+  if (!hikIsAdmin()) return; // panel zaten gizli ama çift güvenlik
+  const titleEn = document.getElementById('hik-add-title-en').value.trim();
+  const titleTr = document.getElementById('hik-add-title-tr').value.trim();
+  const textEn = document.getElementById('hik-add-text-en').value.trim();
+  const textTr = document.getElementById('hik-add-text-tr').value.trim();
+  const visibility = (document.querySelector('input[name="hik-visibility"]:checked') || {}).value || 'shared';
+  const statusEl = document.getElementById('hik-add-status');
+  if (!titleEn || !titleTr || !textEn || !textTr) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Lütfen dört alanı da doldur.';
+    return;
+  }
+  const fs = window.whFirestore;
+  const user = window.whCurrentUser;
+  if (!fs || !user) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Giriş bulunamadı — hikaye kaydedilemedi.';
+    return;
+  }
+  const enCount = textEn.split(/\n\s*\n/).filter(function (p) { return p.trim(); }).length;
+  const trCount = textTr.split(/\n\s*\n/).filter(function (p) { return p.trim(); }).length;
+  const mismatchWarning = enCount !== trCount
+    ? ' (Uyarı: İngilizce ' + enCount + ' paragraf, Türkçe ' + trCount + ' paragraf — sayılar eşleşmiyor, çeviri kayabilir.)'
+    : '';
+  const id = hikSlug(titleEn);
+  const story = { id: id, title_en: titleEn, title_tr: titleTr, text_en: textEn, text_tr: textTr };
+  const myEmail = (user.email || '').toLowerCase();
+  statusEl.style.color = 'var(--text2)';
+  statusEl.textContent = 'Kaydediliyor…';
+  fs.addDoc(fs.collection(fs.db, 'stories'), {
+    title_en: titleEn, title_tr: titleTr, text_en: textEn, text_tr: textTr,
+    visibility: visibility, createdBy: myEmail, createdAt: new Date().toISOString()
+  }).then(function () {
+    document.getElementById('hik-add-title-en').value = '';
+    document.getElementById('hik-add-title-tr').value = '';
+    document.getElementById('hik-add-text-en').value = '';
+    document.getElementById('hik-add-text-tr').value = '';
+    const levels = hikStoryLevels(story);
+    const whereText = visibility === 'shared' ? 'Havuzda yayınlandı' : 'Sadece senin için yayınlandı';
+    statusEl.style.color = enCount === trCount ? 'var(--success)' : 'var(--warn)';
+    statusEl.textContent = '✓ Eklendi (' + whereText + ') — seviyeler: ' + (levels.length ? levels.join(', ') : '(eşleşen kelime bulunamadı)') + mismatchWarning;
+    hikRefreshCloudStories();
+  }).catch(function (e) {
+    console.error('Hikaye Firestore\'a kaydedilemedi:', e);
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Kaydedilemedi — internet bağlantını veya yetkini kontrol et.';
+  });
+}
+
 
 var activeLevels = new Set(['A1','A2','B1','B2','C1']);
 
