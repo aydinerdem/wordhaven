@@ -1844,7 +1844,7 @@ function getNextDate(n) {
 }
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
+const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', units:'Üniteler', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -1870,11 +1870,12 @@ function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','news','wordadd','list','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','news','wordadd','list','units','sentence','hangman','settings','cardmode','status','writing','grammar'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
   document.getElementById('nav-wordadd').classList.toggle('active', v==='wordadd');
   document.getElementById('nav-list').classList.toggle('active', v==='list');
+  document.getElementById('nav-units').classList.toggle('active', v==='units');
   document.getElementById('nav-sentence').classList.toggle('active', v==='sentence');
   document.getElementById('nav-hangman').classList.toggle('active', v==='hangman');
   document.getElementById('nav-cardmode').classList.toggle('active', v==='cardmode');
@@ -1885,6 +1886,7 @@ function showView(v) {
   if (v==='dash') updateDashboard();
   if (v==='wordadd') renderCustomWordsList();
   if (v==='list') { listUpdatePersonalCounts(); if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
+  if (v==='units') unitsInit();
   if (v==='cardmode') cmInit();
   if (v==='status') stInit();
   if (v==='writing') wrInit();
@@ -2847,7 +2849,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608172300';
+const APP_VERSION = '202608181000';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -6530,6 +6532,361 @@ function grToggleTr(btn) {
   btn.classList.toggle('on', showing);
   const label = btn.querySelector('.tr-toggle-label');
   if (label) label.textContent = showing ? 'Türkçesini gizle' : 'Türkçesini göster';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ÜNİTELER — kelimeleri birincil kategoriye (categories[0], Oxford
+// taksonomisi) göre numaralı ünitelere böler, her ünitede 4 adımlı bir
+// patika sunar: Kelime Tanıtımı → Eşleştirme → Yazım → Test. Telaffuz
+// adımı bilinçli olarak sonraya bırakıldı (mikrofon/PWA+Safari ayrı bir
+// araştırma gerektiriyor).
+//
+// KATEGORİ BAŞINA CHUNK: gerçek veriyle kategoriler tek ünite olamayacak
+// kadar büyük çıkıyor (örn. C1 "Politics and society" 590 kelime) —
+// her kategori ~17 kelimelik alt-ünitelere bölünüyor (unitsChunkWords).
+// AYNI KELİMENİN farklı sözcük türü (pos) kayıtları TEK kayda indiriliyor
+// (word'e göre, word+pos'a göre DEĞİL) — aksi halde "alone" (adverb) ve
+// "alone" (adjective) aynı ünitede görsel olarak ayırt edilemeyen iki ayrı
+// kayıt olarak beliriyordu (gerçek cihazda yakalandı).
+//
+// ÖNBELLEKLEME: unitsBuildForLevel() artık seviye başına BİR KEZ
+// hesaplanıp unitsCache'te saklanıyor — 27.926+19.983 kayıtlık gerçek
+// veriyle her render'da yeniden hesaplamak pahalı olurdu.
+// ═══════════════════════════════════════════════════════════════════════
+let unitsLevel = 'A1';
+let unitsOpenId = null;
+let unitsStepView = null; // {unitId, step, unit}
+let unitsStepIdx = 0;
+let unitsMatchState = null;
+const unitsCache = {}; // { A1: [...], A2: [...], ... } — bir kez hesaplanır
+
+const UNIT_STEP_DEFS = [
+  { key:'intro', label:'Kelime Tanıtımı', icon:'clipboard' },
+  { key:'match', label:'Eşleştirme',      icon:'swap' },
+  { key:'spell', label:'Yazım',           icon:'pencil' },
+  { key:'quiz',  label:'Test',            icon:'target' },
+  { key:'speak', label:'Telaffuz',        icon:'headphones', disabled:true },
+];
+
+// Bir kategori hedef boyuttan büyükse ~TARGET kelimelik parçalara böler.
+// Kategori TARGET*1.5'ten küçükse hiç bölünmez (örn. 20 kelimeyi 10+10 diye
+// gereksiz ikiye ayırmamak için). Parçalar mümkün olduğunca eşit boyutlu.
+function unitsChunkWords(words, target) {
+  target = target || 17;
+  const n = words.length;
+  if (n <= target * 1.5) return [words];
+  const chunkCount = Math.max(1, Math.round(n / target));
+  const base = Math.floor(n / chunkCount);
+  const remainder = n % chunkCount;
+  const chunks = [];
+  let idx = 0;
+  for (let c = 0; c < chunkCount; c++) {
+    const size = base + (c < remainder ? 1 : 0);
+    chunks.push(words.slice(idx, idx + size));
+    idx += size;
+  }
+  return chunks;
+}
+
+function unitsBuildForLevel(lv) {
+  if (unitsCache[lv]) return unitsCache[lv];
+  const pool = ALL_CATEGORY_WORDS.filter(w => w.cefr === lv && w.categories && w.categories.length);
+  const map = {};
+  pool.forEach(w => {
+    const cat = w.categories[0];
+    if (!map[cat]) map[cat] = [];
+    if (!map[cat].some(x => x.word.toLowerCase() === w.word.toLowerCase())) map[cat].push(w);
+  });
+  const cats = Object.keys(map).sort((a, b) => a.localeCompare(b));
+  const units = [];
+  let num = 0;
+  cats.forEach(cat => {
+    const chunks = unitsChunkWords(map[cat], 17);
+    chunks.forEach((chunkWords, ci) => {
+      num++;
+      const name = chunks.length > 1 ? `${cat} ${ci + 1}/${chunks.length}` : cat;
+      units.push({ id: lv + ':' + cat + ':' + ci, num, name, cat, words: chunkWords });
+    });
+  });
+  unitsCache[lv] = units;
+  return units;
+}
+
+function unitsCategoryStyle(cat) {
+  let hash = 0;
+  for (let i = 0; i < cat.length; i++) hash = (hash * 31 + cat.charCodeAt(i)) >>> 0;
+  const icons = ['box','star','bolt','pin','palette','chat','folder','user','book','target'];
+  return { grad: hash % GR_VIVID_GRADIENTS.length, icon: icons[hash % icons.length] };
+}
+
+// Kalıcı ilerleme: srsStore üzerinde "unit:" ön ekiyle — saveState()/
+// cloudSaveState() zaten srsStore'u senkronize ediyor, ek kod gerekmiyor.
+function unitProgress(unitId) {
+  const key = 'unit:' + unitId;
+  if (!srsStore[key]) srsStore[key] = { doneSteps: [] };
+  return srsStore[key];
+}
+
+function unitsInit() {
+  document.getElementById('unit-list-view').classList.remove('hidden');
+  document.getElementById('unit-step-view').classList.add('hidden');
+  unitsRenderLevelRow();
+  unitsRenderList();
+}
+
+function unitsRenderLevelRow() {
+  const el = document.getElementById('unit-level-row');
+  const levels = ['A1','A2','B1','B2','C1'];
+  el.innerHTML = levels.map(lv => {
+    const n = unitsBuildForLevel(lv).length;
+    return `<button class="chip lvl-${lv.toLowerCase()}${lv===unitsLevel?' on':''}" onclick="unitsSelectLevel('${lv}')">${lv}<span class="n">(${n})</span></button>`;
+  }).join('');
+}
+function unitsSelectLevel(lv) { unitsLevel = lv; unitsOpenId = null; unitsRenderLevelRow(); unitsRenderList(); }
+
+function unitsRenderList() {
+  const units = unitsBuildForLevel(unitsLevel);
+  const el = document.getElementById('unit-list');
+  const title = document.getElementById('unit-list-title');
+  if (title) title.textContent = unitsLevel + ' Seviye Kelime Üniteleri (' + units.length + ')';
+  if (!units.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text3);padding:20px 0;">Bu seviyede henüz kategorize kelime yok.</p>'; return; }
+  el.innerHTML = units.map(u => {
+    const st = unitsCategoryStyle(u.cat || u.name);
+    const c1 = GR_VIVID_GRADIENTS[st.grad][0], c2 = GR_VIVID_GRADIENTS[st.grad][1];
+    const prog = unitProgress(u.id);
+    const doneCount = prog.doneSteps.length;
+    const allDone = doneCount >= 4;
+    const open = (u.id === unitsOpenId);
+    return `<div class="gr-topic-card" style="border-left:4px solid ${c1};">
+      <div class="gr-topic-row" onclick="unitsToggleCard('${u.id}')">
+        <div class="gr-topic-icon ${allDone?'done':''}" style="background:linear-gradient(135deg,${c1},${c2});color:#fff;">${ico(st.icon,19,'#fff',false)}</div>
+        <div class="gr-topic-main">
+          <div class="gr-topic-name">${u.num}. ${u.name}</div>
+          <div class="gr-topic-meta">${u.words.length} kelime · ${doneCount}/4 adım tamam</div>
+        </div>
+        <span class="gr-topic-chevron">${open?'&#8963;':'&#8250;'}</span>
+      </div>
+      ${open ? unitsPathHtml(u, prog) : ''}
+    </div>`;
+  }).join('');
+}
+function unitsToggleCard(id) { unitsOpenId = (unitsOpenId === id) ? null : id; unitsRenderList(); }
+
+function unitsPathHtml(u, prog) {
+  const curStep = Math.min(prog.doneSteps.length, 3);
+  const stepsHtml = UNIT_STEP_DEFS.map((s, i) => {
+    const done = prog.doneSteps.includes(i);
+    const isCurrent = !s.disabled && i === curStep;
+    const cls = s.disabled ? 'disabled' : (done ? 'done' : (isCurrent ? 'current' : ''));
+    const lineHtml = i > 0 ? `<div class="unit-step-line ${prog.doneSteps.includes(i-1)?'done':''}"></div>` : '';
+    const onclick = s.disabled ? `unitsShowSoonToast()` : `unitsStartStep('${u.id}',${i})`;
+    return `${lineHtml}<div class="unit-step ${cls}" onclick="event.stopPropagation();${onclick}">${ico(s.icon,17,'currentColor',false)}${done?'<span style="position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--success);color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);">✓</span>':''}</div>`;
+  }).join('');
+  return `<div class="unit-path-wrap">
+    <div class="unit-path">${stepsHtml}</div>
+    <div class="unit-actions">
+      <span class="unit-progress-txt">${UNIT_STEP_DEFS[curStep].label}</span>
+      <button class="unit-start-btn" onclick="event.stopPropagation();unitsStartStep('${u.id}',${curStep})">${ico('play',14,'#fff',false)}Başla</button>
+    </div>
+  </div>`;
+}
+function unitsShowSoonToast() { alert('Telaffuz pratiği yakında geliyor — önce diğer 4 adım tamamlanıyor.'); }
+
+function unitsStartStep(unitId, stepIdx) {
+  const lv = unitId.split(':')[0];
+  const u = unitsBuildForLevel(lv).find(x => x.id === unitId);
+  if (!u) return;
+  unitsStepView = { unitId, step: stepIdx, unit: u };
+  unitsStepIdx = 0;
+  document.getElementById('unit-list-view').classList.add('hidden');
+  document.getElementById('unit-step-view').classList.remove('hidden');
+  document.getElementById('unit-step-title').textContent = u.num + '. ' + u.name + ' — ' + UNIT_STEP_DEFS[stepIdx].label;
+  unitsRenderStep();
+}
+function unitsExitStep() {
+  document.getElementById('unit-step-view').classList.add('hidden');
+  document.getElementById('unit-list-view').classList.remove('hidden');
+  unitsStepView = null;
+  unitsRenderList();
+}
+function unitsRenderStep() {
+  const { step, unit } = unitsStepView;
+  const key = UNIT_STEP_DEFS[step].key;
+  if (key === 'intro') unitsRenderIntroStep(unit);
+  else if (key === 'match') unitsRenderMatchStep(unit);
+  else if (key === 'spell') unitsRenderSpellStep(unit);
+  else if (key === 'quiz') unitsRenderQuizStep(unit);
+}
+function unitsCompleteStep(stepIdx) {
+  const { unitId } = unitsStepView;
+  const prog = unitProgress(unitId);
+  if (!prog.doneSteps.includes(stepIdx)) prog.doneSteps.push(stepIdx);
+  saveState();
+  const nextIdx = stepIdx + 1;
+  if (nextIdx < 4) {
+    unitsStepView.step = nextIdx;
+    unitsStepIdx = 0;
+    document.getElementById('unit-step-title').textContent = unitsStepView.unit.num + '. ' + unitsStepView.unit.name + ' — ' + UNIT_STEP_DEFS[nextIdx].label;
+    unitsRenderStep();
+  } else {
+    unitsExitStep();
+  }
+}
+function unitsRenderStepTooFew(stepIdx) {
+  document.getElementById('unit-step-body').innerHTML = `<p style="font-size:13px;color:var(--text3);margin-bottom:14px;">Bu ünitede bu egzersiz için yeterli kelime yok.</p><button class="unit-start-btn" onclick="unitsCompleteStep(${stepIdx})">Devam Et</button>`;
+}
+
+// ── ADIM 1: Kelime Tanıtımı — mevcut renderListDefHTML() aynen devşiriliyor ──
+function unitsRenderIntroStep(u) {
+  const w = u.words[unitsStepIdx];
+  const c = BUILTIN_CONTENT[w.word + '|' + w.pos];
+  const body = document.getElementById('unit-step-body');
+  body.innerHTML = `<div class="dict-card">
+      <div class="wordfont" style="font-size:24px;margin-bottom:2px;">${w.word}</div>
+      <div style="font-size:12px;color:var(--text3);font-style:italic;margin-bottom:14px;">${w.pos}</div>
+      ${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);">İçerik bulunamadı.</p>'}
+    </div>
+    <div class="unit-actions">
+      <span class="unit-progress-txt">${unitsStepIdx+1} / ${u.words.length}</span>
+      <button class="unit-start-btn" onclick="unitsIntroNext()">${unitsStepIdx+1>=u.words.length?'Bitir':'Sonraki'} ${ico('play',13,'#fff',false)}</button>
+    </div>`;
+  ttsWireButtons(body);
+}
+function unitsIntroNext() {
+  const { unit } = unitsStepView;
+  if (unitsStepIdx + 1 < unit.words.length) { unitsStepIdx++; unitsRenderIntroStep(unit); }
+  else unitsCompleteStep(0);
+}
+
+// ── ADIM 2: Eşleştirme — EN kelime ↔ TR anlam eşleştirme oyunu ─────────────
+// Çeldiriciler aynı kategorideki başka kelimelerin GERÇEK Türkçe
+// karşılıklarından seçiliyor — sadece N'e N eşleştirme sona doğru eleme
+// yöntemiyle kolay çözülüyordu (gerçek cihazda yakalandı).
+function unitsRenderMatchStep(u) {
+  const withContent = u.words.filter(w => {
+    const c = BUILTIN_CONTENT[w.word + '|' + w.pos];
+    return c && c.turkish && c.turkish.trim();
+  });
+  if (withContent.length < 2) { unitsRenderStepTooFew(1); return; }
+  const words = withContent.slice(0, 6);
+  const trOf = w => BUILTIN_CONTENT[w.word+'|'+w.pos].turkish;
+
+  const chosenKeys = new Set(words.map(w => w.word + '|' + w.pos));
+  const decoyPool = (u.cat ? ALL_CATEGORY_WORDS.filter(w => (w.categories||[])[0] === u.cat) : [])
+    .filter(w => !chosenKeys.has(w.word + '|' + w.pos))
+    .filter(w => { const c = BUILTIN_CONTENT[w.word+'|'+w.pos]; return c && c.turkish && c.turkish.trim(); });
+  const shuffledDecoys = decoyPool.sort(() => Math.random() - 0.5).slice(0, 2);
+
+  const enTiles = words.map((w,i) => ({ id:'en'+i, wIdx:i, text: w.word }));
+  const trTiles = words.map((w,i) => ({ id:'tr'+i, wIdx:i, text: trOf(w) }));
+  shuffledDecoys.forEach((w,i) => trTiles.push({ id:'dec'+i, wIdx:-1, text: BUILTIN_CONTENT[w.word+'|'+w.pos].turkish }));
+  for (let i = trTiles.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [trTiles[i],trTiles[j]]=[trTiles[j],trTiles[i]]; }
+  unitsMatchState = { words, enTiles, trTiles, selectedEn:null, selectedTr:null, matched:new Set(), wrongPair:null };
+  unitsRenderMatchBoard();
+}
+function unitsRenderMatchBoard() {
+  const s = unitsMatchState;
+  const body = document.getElementById('unit-step-body');
+  const tileHtml = (t, side) => {
+    const isMatched = s.matched.has(t.wIdx) && t.wIdx !== -1;
+    const isSel = (side==='en' ? s.selectedEn : s.selectedTr) === t.id;
+    const isWrong = s.wrongPair && (s.wrongPair.en === t.id || s.wrongPair.tr === t.id);
+    const cls = isMatched ? ' correct' : (isWrong ? ' wrong' : '');
+    return `<button class="unit-quiz-option${cls}" style="${isSel && !isWrong?'border-color:var(--accent);':''}${isMatched?'pointer-events:none;opacity:.55;':''}" onclick="unitsMatchPick('${side}','${t.id}')">${t.text}</button>`;
+  };
+  body.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>${s.enTiles.map(t=>tileHtml(t,'en')).join('')}</div>
+      <div>${s.trTiles.map(t=>tileHtml(t,'tr')).join('')}</div>
+    </div>
+    <p class="unit-progress-txt" style="margin-top:10px;">${s.matched.size} / ${s.words.length} eşleşti</p>`;
+}
+function unitsMatchPick(side, id) {
+  const s = unitsMatchState;
+  if (s.wrongPair) return;
+  if (side==='en') s.selectedEn = (s.selectedEn===id?null:id); else s.selectedTr = (s.selectedTr===id?null:id);
+  if (s.selectedEn && s.selectedTr) {
+    const enT = s.enTiles.find(t=>t.id===s.selectedEn);
+    const trT = s.trTiles.find(t=>t.id===s.selectedTr);
+    const isCorrect = trT.wIdx !== -1 && enT.wIdx === trT.wIdx;
+    if (isCorrect) {
+      s.matched.add(enT.wIdx);
+      s.selectedEn = null; s.selectedTr = null;
+      if (s.matched.size === s.words.length) { unitsRenderMatchBoard(); setTimeout(()=>unitsCompleteStep(1), 500); return; }
+    } else {
+      s.wrongPair = { en: s.selectedEn, tr: s.selectedTr };
+      unitsRenderMatchBoard();
+      setTimeout(() => { s.wrongPair = null; s.selectedEn = null; s.selectedTr = null; unitsRenderMatchBoard(); }, 550);
+      return;
+    }
+  }
+  unitsRenderMatchBoard();
+}
+
+// ── ADIM 3: Yazım — TR anlamı verilir, İngilizce kelime yazılır ───────────
+function unitsRenderSpellStep(u) { unitsRenderSpellCard(u); }
+function unitsRenderSpellCard(u) {
+  const w = u.words[unitsStepIdx];
+  const c = BUILTIN_CONTENT[w.word+'|'+w.pos];
+  const body = document.getElementById('unit-step-body');
+  body.innerHTML = `<div class="sg-card">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Türkçe anlamı</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:16px;">${c?.turkish || '—'}</div>
+      <input id="unit-spell-input" type="text" placeholder="İngilizce kelimeyi yaz" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:15px;box-sizing:border-box;" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div id="unit-spell-feedback" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+    <div class="unit-actions">
+      <span class="unit-progress-txt">${unitsStepIdx+1} / ${u.words.length}</span>
+      <button class="unit-start-btn" onclick="unitsSpellCheck()">Kontrol Et</button>
+    </div>`;
+  const inp = document.getElementById('unit-spell-input');
+  inp.focus();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') unitsSpellCheck(); });
+}
+function unitsSpellCheck() {
+  const { unit } = unitsStepView;
+  const w = unit.words[unitsStepIdx];
+  const inp = document.getElementById('unit-spell-input');
+  const fb = document.getElementById('unit-spell-feedback');
+  if (inp.disabled) return;
+  const ok = inp.value.trim().toLowerCase() === w.word.toLowerCase();
+  fb.innerHTML = ok
+    ? `<span style="color:var(--success);">${ico('check',13,'var(--success)',false)}Doğru</span>`
+    : `<span style="color:var(--danger);">${ico('x',13,'var(--danger)',false)}Doğrusu: <b>${w.word}</b></span>`;
+  inp.disabled = true;
+  setTimeout(() => {
+    if (unitsStepIdx + 1 < unit.words.length) { unitsStepIdx++; unitsRenderSpellCard(unit); }
+    else unitsCompleteStep(2);
+  }, 1000);
+}
+
+// ── ADIM 4: Test — TR anlama göre 4 şıklı İngilizce kelime testi ──────────
+function unitsRenderQuizStep(u) {
+  if (u.words.length < 2) { unitsRenderStepTooFew(3); return; }
+  const w = u.words[unitsStepIdx];
+  const c = BUILTIN_CONTENT[w.word+'|'+w.pos];
+  const pool = u.words.filter((x,idx) => idx !== unitsStepIdx).sort(() => Math.random()-0.5).slice(0,3);
+  const options = [w, ...pool].sort(() => Math.random()-0.5);
+  const body = document.getElementById('unit-step-body');
+  body.innerHTML = `<div class="sg-card">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Hangisi bu anlama gelir?</div>
+      <div style="font-size:17px;font-weight:600;">${c?.turkish || '—'}</div>
+    </div>
+    <div id="unit-quiz-options">${options.map(o=>`<button class="unit-quiz-option" data-word="${escAttr(o.word)}" onclick="unitsQuizPick('${o.word.replace(/'/g,"\\'")}','${o.pos.replace(/'/g,"\\'")}')">${o.word}</button>`).join('')}</div>
+    <p class="unit-progress-txt" style="margin-top:6px;">${unitsStepIdx+1} / ${u.words.length}</p>`;
+}
+function unitsQuizPick(word, pos) {
+  const { unit } = unitsStepView;
+  const w = unit.words[unitsStepIdx];
+  const correct = (word === w.word && pos === w.pos);
+  document.querySelectorAll('#unit-quiz-options .unit-quiz-option').forEach(btn => {
+    if (btn.dataset.word === w.word) btn.classList.add('correct');
+    else if (btn.dataset.word === word && !correct) btn.classList.add('wrong');
+    btn.onclick = null;
+  });
+  setTimeout(() => {
+    if (unitsStepIdx + 1 < unit.words.length) { unitsStepIdx++; unitsRenderQuizStep(unit); }
+    else unitsCompleteStep(3);
+  }, 800);
 }
 
 hgRenderLevels();

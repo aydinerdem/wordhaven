@@ -587,6 +587,21 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
 .gr-topic-meta{font-size:11.5px;color:var(--text3);margin-top:2px;}
 .gr-topic-meta b{color:var(--text2);font-weight:500;}
 .gr-topic-chevron{flex-shrink:0;color:var(--text3);font-size:15px;opacity:.6;}
+.unit-level-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;}
+.unit-path-wrap{padding:2px 14px 14px;border-top:0.5px solid var(--border);}
+.unit-path{display:flex;align-items:center;padding:14px 2px 12px;}
+.unit-step{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface2);border:2px solid var(--border2);color:var(--text3);cursor:pointer;position:relative;transition:.15s;}
+.unit-step.done{background:var(--success);border-color:var(--success);color:#fff;}
+.unit-step.current{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accentbg);}
+.unit-step.disabled{opacity:.4;cursor:not-allowed;}
+.unit-step-line{flex:1;height:2px;background:var(--border2);margin:0 -1px;}
+.unit-step-line.done{background:var(--success);}
+.unit-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.unit-progress-txt{font-size:11.5px;color:var(--text3);}
+.unit-start-btn{background:var(--accent);color:#fff;border:none;border-radius:99px;padding:10px 20px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+.unit-quiz-option{display:block;width:100%;text-align:left;padding:13px 14px;border-radius:12px;border:1.5px solid var(--border2);background:var(--surface2);font-size:14.5px;margin-bottom:8px;cursor:pointer;color:var(--text);}
+.unit-quiz-option.correct{border-color:var(--success);background:var(--successbg);color:var(--success);}
+.unit-quiz-option.wrong{border-color:var(--danger);background:var(--dangerbg);color:var(--danger);}
 .gr-progress-wrap{height:3px;background:var(--surface2);margin:0 14px 12px;border-radius:2px;overflow:hidden;}
 .gr-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
 .gr-progress-fill.full{background:var(--success);}
@@ -998,6 +1013,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="11" height="13" rx="1.3"/><path d="M7.2 7.3h5.6M7.2 10.2h5.6M7.2 13.1h3.6"/></svg></span>
         <span class="nav-tile-lbl">Kelime Listem</span>
       </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-units" onclick="showView('units')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#f59e0b,#b45309);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.3" width="6" height="6" rx="1.3"/><rect x="11" y="3.3" width="6" height="6" rx="1.3"/><rect x="3" y="11.3" width="6" height="6" rx="1.3"/><rect x="11" y="11.3" width="6" height="6" rx="1.3"/></svg></span>
+        <span class="nav-tile-lbl">Üniteler</span>
+      </button>
       <button class="nav-btn main-nav-btn nav-tile" id="nav-wordadd" onclick="showView('wordadd')">
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#0f9b6e,#0a6b4c);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5.3c-1.4-1-3.8-1.5-6-1.1v10.9c2.2-.4 4.6.1 6 1.1 1.4-1 3.8-1.5 6-1.1V4.2c-2.2-.4-4.6.1-6 1.1z"/><path d="M10 5.3v10.9"/></svg></span>
         <span class="nav-tile-lbl">Sözlüğüm</span>
@@ -1186,6 +1205,23 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   </div>
 
   <!-- CÜMLE GENİŞLETME VIEW -->
+  <div id="view-units" class="hidden">
+    <div id="unit-list-view">
+      <h2 style="font-size:19px;font-weight:600;margin-bottom:4px;">Üniteler</h2>
+      <p style="font-size:12.5px;color:var(--text3);margin-bottom:14px;">Kelimeleri konu konu, adım adım öğren.</p>
+      <div class="unit-level-row" id="unit-level-row"></div>
+      <div id="unit-list-title" style="font-size:13px;color:var(--text2);font-weight:600;margin-bottom:8px;"></div>
+      <div id="unit-list"></div>
+    </div>
+    <div id="unit-step-view" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <button class="chip chip-nav" onclick="unitsExitStep()">‹ Geri</button>
+        <div id="unit-step-title" style="font-weight:600;font-size:15px;"></div>
+      </div>
+      <div id="unit-step-body"></div>
+    </div>
+  </div>
+
   <div id="view-sentence" class="hidden">
     <div class="filter-panel">
       <div class="f-row3" id="sg-levels"></div>
@@ -1599,7 +1635,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608172300';
+      s.src = 'app.js?v=202608181000';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
