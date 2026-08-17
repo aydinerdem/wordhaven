@@ -159,6 +159,16 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .news-panel-label{font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;}
 /* ── Sözlüğüm: kelime detay kartı diğer modüllerle tutarlı gradyan diliyle. ── */
 .dict-card{background:linear-gradient(160deg,var(--a1bg),var(--surface) 55%);border:0.5px solid var(--border2);border-radius:20px;padding:22px;margin-bottom:16px;}
+#word-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9499;}
+/* #word-modal, .dict-card sınıfını (gradyan/kenarlık) paylaşıyor ama TEK
+   BAŞINA gerçek bir modal katmanı olması gerekiyor — bu yüzden ID+class
+   birlikte hedeflenip SADECE bu elemana konumlandırma ekleniyor, .dict-card
+   kullanılan diğer yerler (Sözlüğüm vb.) ETKİLENMİYOR. Önceden perde hiç
+   gösterilmiyordu ve modal gerçek bir fixed katman değildi — mobilde kart
+   büyük olduğu için fark edilmiyordu, masaüstü sidebar düzeninde (≥1100px,
+   aşağıdaki grid-area:content kuralı) arkasındaki view içeriği (örn.
+   Hikayeler metni) çıplak görünüyordu (gerçek cihazda yakalandı). */
+#word-modal.dict-card{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100vw - 32px);max-width:600px;max-height:85vh;overflow-y:auto;z-index:9500;margin-bottom:0;}
 .f-label{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
 .f-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
 /* Erdem geri bildirimi: 3'lü gruplarda (S1-S3, W1-W3, High/Medium/Low)
@@ -1718,7 +1728,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608182000';
+      s.src = 'app.js?v=202608182100';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

@@ -2862,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182000';
+const APP_VERSION = '202608182100';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -4811,11 +4811,18 @@ async function openWordModal(wordLower) {
   renderModalFavoriteBtn();
   renderModalContactRow();
 
-  // Show modal inline
+  // Show modal — gerçek bir katman olarak (perde + fixed konumlandırma,
+  // bkz. index.html'deki #word-modal-overlay/#word-modal CSS'i). Perde
+  // (#word-modal-overlay) daha önce HİÇ gösterilmiyordu — mobilde kart
+  // genelde ekranı kapladığı için fark edilmiyordu, masaüstü sidebar
+  // düzeninde (≥1100px) modal küçük kalınca arkasındaki içerik (örn.
+  // Hikayeler metni) çıplak görünüyordu (gerçek cihazda yakalandı).
+  const overlay = document.getElementById('word-modal-overlay');
+  overlay.classList.remove('hidden');
+  overlay.style.display = 'block';
   const modal = document.getElementById('word-modal');
   modal.classList.remove('hidden');
   modal.style.display = 'block';
-  modal.scrollIntoView({ behavior: 'smooth', block: 'start' });
   document.getElementById('modal-word').innerHTML = escHtml(wordObj.word) + ttsButtonHtml(wordObj.word, wordObj.word);
   ttsWireButtons(document.getElementById('modal-word'));
   document.getElementById('modal-pos').textContent = wordObj.pos;
@@ -4948,6 +4955,9 @@ function closeWordModal() {
   modalOpenToken++; // bekleyen openWordModal() asenkron kısımlarını geçersiz kılar
   document.getElementById('word-modal').classList.add('hidden');
   document.getElementById('word-modal').style.display = 'none';
+  const overlay = document.getElementById('word-modal-overlay');
+  overlay.classList.add('hidden');
+  overlay.style.display = 'none';
   modalCurrentWord = null;
 }
 
