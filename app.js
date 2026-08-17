@@ -2862,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608181800';
+const APP_VERSION = '202608181900';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3299,10 +3299,20 @@ function hikInit() {
   hikRefreshCloudStories(); // arka planda bulut hikayelerini çek, gelince ekranı tazele
 }
 
-// Ayarlar > Hikaye Ekle paneli sadece admin listesindekilere görünür.
+// Ayarlar > Hikaye Ekle paneli HERKESE görünür (allowlist'teki herkes en
+// azından kendi özel havuzuna hikaye ekleyebilir). Sadece "Havuzda yayınla"
+// (shared) seçeneği admin'e özel — admin değilsen o radio gizlenir, "sadece
+// kendim için" otomatik seçili kalır ve tek seçenek odur.
 function hikRenderAdminGate() {
-  const panel = document.getElementById('hik-add-panel');
-  if (panel) panel.classList.toggle('hidden', !hikIsAdmin());
+  const isAdmin = hikIsAdmin();
+  const sharedOption = document.getElementById('hik-shared-option');
+  const note = document.getElementById('hik-nonadmin-note');
+  if (sharedOption) sharedOption.classList.toggle('hidden', !isAdmin);
+  if (note) note.classList.toggle('hidden', isAdmin);
+  if (!isAdmin) {
+    const privateRadio = document.querySelector('input[name="hik-visibility"][value="private"]');
+    if (privateRadio) privateRadio.checked = true;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3511,12 +3521,15 @@ function hikToggleAllTr(btn) {
 }
 
 function hikAddStoryFromForm() {
-  if (!hikIsAdmin()) return; // panel zaten gizli ama çift güvenlik
   const titleEn = document.getElementById('hik-add-title-en').value.trim();
   const titleTr = document.getElementById('hik-add-title-tr').value.trim();
   const textEn = document.getElementById('hik-add-text-en').value.trim();
   const textTr = document.getElementById('hik-add-text-tr').value.trim();
-  const visibility = (document.querySelector('input[name="hik-visibility"]:checked') || {}).value || 'shared';
+  const chosenVisibility = (document.querySelector('input[name="hik-visibility"]:checked') || {}).value || 'private';
+  // Admin olmayan biri asla 'shared' gönderemez — arayüzde radio zaten
+  // gizli, ama burada da zorluyoruz (Firestore Rules'daki asıl kısıtlamayla
+  // aynı mantık, çift güvenlik).
+  const visibility = (chosenVisibility === 'shared' && hikIsAdmin()) ? 'shared' : 'private';
   const statusEl = document.getElementById('hik-add-status');
   if (!titleEn || !titleTr || !textEn || !textTr) {
     statusEl.style.color = 'var(--danger)';
