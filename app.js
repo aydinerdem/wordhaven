@@ -2241,7 +2241,7 @@ function renderListDefHTML(c,w){
   </div>`;
   const copyPayload = escAttr(JSON.stringify({ w:{word:w.word,pos:w.pos,cefr:w.cefr}, c }));
   const copyBtnHtml = `<button class="copy-btn" onclick="event.stopPropagation();copyWordContent(${copyPayload},this)" style="display:inline-flex;align-items:center;gap:5px;">${ico('clipboard',13,null,false)}İçeriği kopyala</button>`;
-  const statusHtml = (w.word && WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos)) ? progressQuickControlHtml(w) : '';
+  const statusHtml = (w.word && (WORD_DATA.some(x=>x.word===w.word && x.pos===w.pos) || TOPIC_WORDS.some(x=>x.word===w.word && x.pos===w.pos))) ? progressQuickControlHtml(w) : '';
   const html = `<div class="c-def" style="margin-bottom:10px;">${c.definition||'—'}${c.definition?ttsButtonHtml(c.definition):''}</div>
     <div class="c-section"><div class="c-section-label">Türkçe anlam</div><div class="c-turkish">${c.turkish||'—'}</div></div>
     ${wordSourceInfoHtml(w)}
@@ -2700,7 +2700,11 @@ function progressQuickControlHtml(w) {
   </div>`;
 }
 function quickSetStatus(word, pos, known) {
-  const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
+  // WORD_DATA'nın yanı sıra TOPIC_WORDS'te de aranıyor — Üniteler modülü
+  // (ve genel olarak Konu sekmesi) TOPIC_WORDS kaynaklı kelimeler de
+  // gösteriyor, sadece WORD_DATA'ya bakmak bu kelimelerde butonu sessizce
+  // işlevsiz bırakıyordu (gerçek cihazda yakalandı).
+  const w = WORD_DATA.find(x => x.word===word && x.pos===pos) || TOPIC_WORDS.find(x => x.word===word && x.pos===pos);
   if (!w) return;
   progress[wkey(w)] = known
     ? { interval:21, easeFactor:2.5, repetitions:4, mastery:'mastered', learned:true, totalKnown:0, totalLearning:0, nextReview:getNextDate(21), lastSeen:todayStr() }
@@ -2710,7 +2714,7 @@ function quickSetStatus(word, pos, known) {
   refreshCurrentWordViews();
 }
 function quickRemoveStatus(word, pos) {
-  const w = WORD_DATA.find(x => x.word===word && x.pos===pos);
+  const w = WORD_DATA.find(x => x.word===word && x.pos===pos) || TOPIC_WORDS.find(x => x.word===word && x.pos===pos);
   if (!w) return;
   delete progress[wkey(w)];
   saveState();
@@ -2729,6 +2733,13 @@ function refreshCurrentWordViews() {
   }
   const statusView = document.getElementById('view-status');
   if (statusView && !statusView.classList.contains('hidden')) stRenderList();
+  // Üniteler'in Kelime Tanıtımı adımı açıksa (progressQuickControlHtml
+  // orada da kullanılıyor), Öğreniyorum/Biliyorum butonunun "seçili" hali
+  // anında güncellensin diye kartı yeniden çiziyoruz.
+  const unitsView = document.getElementById('view-units');
+  if (unitsView && !unitsView.classList.contains('hidden') && unitsStepView && UNIT_STEP_DEFS[unitsStepView.step].key === 'intro') {
+    unitsRenderIntroStep(unitsStepView.unit);
+  }
 }
 let contactTrack = {}; // key: kelime (küçük harf) → {read:N, heard:N, used:N} (N = tekrar sayısı)
 let lookupCount = {}; // key: kelime (küçük harf) → kaç kez "arandı" (Sözlüğüm/Kelime Listem'de içeriğine bakıldı)
@@ -2849,7 +2860,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608181000';
+const APP_VERSION = '202608181200';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -6751,6 +6762,7 @@ function unitsRenderIntroStep(u) {
       <button class="unit-start-btn" onclick="unitsIntroNext()">${unitsStepIdx+1>=u.words.length?'Bitir':'Sonraki'} ${ico('play',13,'#fff',false)}</button>
     </div>`;
   ttsWireButtons(body);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function unitsIntroNext() {
   const { unit } = unitsStepView;
@@ -6839,6 +6851,7 @@ function unitsRenderSpellCard(u) {
       <button class="unit-start-btn" onclick="unitsSpellCheck()">Kontrol Et</button>
     </div>`;
   const inp = document.getElementById('unit-spell-input');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   inp.focus();
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') unitsSpellCheck(); });
 }
@@ -6873,6 +6886,7 @@ function unitsRenderQuizStep(u) {
     </div>
     <div id="unit-quiz-options">${options.map(o=>`<button class="unit-quiz-option" data-word="${escAttr(o.word)}" onclick="unitsQuizPick('${o.word.replace(/'/g,"\\'")}','${o.pos.replace(/'/g,"\\'")}')">${o.word}</button>`).join('')}</div>
     <p class="unit-progress-txt" style="margin-top:6px;">${unitsStepIdx+1} / ${u.words.length}</p>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function unitsQuizPick(word, pos) {
   const { unit } = unitsStepView;
