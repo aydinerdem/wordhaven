@@ -2862,7 +2862,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182300';
+const APP_VERSION = '202608182400';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3211,7 +3211,7 @@ function hikStoryLevelCounts(story) {
   tokens.forEach(function (tok) {
     const clean = tok.toLowerCase();
     if (!clean) return;
-    const arr = OXFORD_WORD_MAP[clean];
+    const arr = hikOxwordsFor(clean);
     if (arr && arr.length) {
       // hikColorizeParagraph ile AYNI "tek temsili anlam" mantığı — aksi
       // halde "time" gibi çok anlamlı kelimeler birden fazla seviye
@@ -3241,6 +3241,48 @@ function hikSlug(s) {
   return base || ('hikaye-' + Date.now());
 }
 
+// hikColorizeParagraph/hikStoryLevelCounts SADECE tam kelime eşleşmesiyle
+// arama yapıyordu (kök bulma yoktu) — "agree" (kök) word-data.json'da
+// kayıtlıyken hikayede geçen "agreed" (çekimli hâl) hiç bulunamıyor,
+// TOPIC_WORD_MAP'e (sabit mor renk, seviyeden bağımsız) düşüyordu (gerçek
+// cihazda yakalandı — Erdem B2 seçiliyken "agreed"in farklı renkte
+// göründüğünü fark etti). Bu, basit/düzenli çekim ekleri için (-ed/-ing/
+// -s/-es/-ies) hafif bir kök tahmini ekliyor — Cümle Kur/Yaz'daki tam kök
+// çözümleyici kadar kapsamlı değil, ama en yaygın durumları yakalıyor.
+function hikStemCandidates(word) {
+  const cands = [];
+  function push(c) { if (c && c.length > 1 && cands.indexOf(c) === -1) cands.push(c); }
+  if (word.length > 4 && word.endsWith('ies')) push(word.slice(0, -3) + 'y');
+  if (word.length > 4 && word.endsWith('ied')) push(word.slice(0, -3) + 'y');
+  if (word.length > 5 && word.endsWith('ing')) {
+    const stem = word.slice(0, -3);
+    push(stem);
+    push(stem + 'e'); // making -> make
+    if (stem.length > 2 && stem[stem.length-1] === stem[stem.length-2]) push(stem.slice(0, -1)); // running -> run
+  }
+  if (word.length > 4 && word.endsWith('ed')) {
+    push(word.slice(0, -1)); // agreed -> agree
+    const stem = word.slice(0, -2);
+    push(stem); // wanted -> want
+    if (stem.length > 2 && stem[stem.length-1] === stem[stem.length-2]) push(stem.slice(0, -1)); // stopped -> stop
+  }
+  if (word.length > 4 && word.endsWith('es')) push(word.slice(0, -2));
+  if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) push(word.slice(0, -1));
+  return cands;
+}
+function hikResolveOxfordKey(clean) {
+  if (OXFORD_WORD_MAP[clean]) return clean;
+  const cands = hikStemCandidates(clean);
+  for (let i = 0; i < cands.length; i++) {
+    if (OXFORD_WORD_MAP[cands[i]]) return cands[i];
+  }
+  return null;
+}
+function hikOxwordsFor(clean) {
+  const key = hikResolveOxfordKey(clean);
+  return key ? OXFORD_WORD_MAP[key] : null;
+}
+
 // Metin Analizi'ndeki (analyzePanel) renklendirme mantığının hikaye
 // paragrafları için sadeleştirilmiş hali — TEK FARK: burada seviye gizleme
 // YOK, seviye FİLTRELEME var. Sadece `level` parametresiyle eşleşen kelimeler
@@ -3252,10 +3294,11 @@ function hikColorizeParagraph(text, level) {
   tokens.forEach(function (token) {
     const clean = token.toLowerCase().replace(/[^a-z'-]/g, '');
     if (!clean || !/[a-z]/.test(clean)) { html += escHtml(token); return; }
-    const oxWords = OXFORD_WORD_MAP[clean];
+    const oxKey = hikResolveOxfordKey(clean);
+    const oxWords = oxKey ? OXFORD_WORD_MAP[oxKey] : null;
     const isCustom = !!customWords[clean];
     if (oxWords && oxWords.length) {
-      markContact(clean, 'read');
+      markContact(oxKey, 'read');
       // TEK bir "temsili" anlam seçiliyor (openWordModal ile AYNI öncelik
       // sırası: S1 > S2 > S3 > diğer) — aksi halde "time" gibi birden fazla
       // sözcük türü olan kelimelerde (isim A1, fiil B2 gibi) "herhangi bir
@@ -3269,13 +3312,13 @@ function hikColorizeParagraph(text, level) {
       })[0];
       const matches = primary.cefr === level;
       if (matches) {
-        const prog = getWordProgress(clean);
+        const prog = getWordProgress(oxKey);
         let cls = 'news-oxford news-' + level.toLowerCase();
         if (prog && prog.mastery === 'mastered') cls += ' learned';
         else if (prog) cls += ' reviewing';
-        html += '<span class="' + cls + '" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
+        html += '<span class="' + cls + '" data-word="' + escAttr(oxKey) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
       } else {
-        html += '<span data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" style="cursor:pointer;">' + escHtml(token) + '</span>';
+        html += '<span data-word="' + escAttr(oxKey) + '" onclick="handleWordClick(this)" style="cursor:pointer;">' + escHtml(token) + '</span>';
       }
     } else if (isCustom) {
       markContact(clean, 'read');
