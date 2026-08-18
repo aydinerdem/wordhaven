@@ -1844,7 +1844,7 @@ function getNextDate(n) {
 }
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
-const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', units:'Üniteler', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar', stories:'Hikayeler' };
+const MAIN_MENU_LABELS = { dash:'Panom', news:'Metin Analizi', wordadd:'Sözlüğüm', list:'Kelime Listem', units:'Üniteler', sentence:'Cümle Kur', hangman:'Asmaca', cardmode:'Kart Modu', status:'Kelime Durumu', settings:'Ayarlar', writing:'Cümle Yaz', grammar:'Grammar', stories:'Hikayeler', reading:'Okuyarak Öğren' };
 function toggleMainMenu() {
   document.getElementById('main-menu-panel').classList.toggle('hidden');
 }
@@ -1870,7 +1870,7 @@ function showView(v) {
   document.getElementById('main-menu-panel').classList.add('hidden');
   const curLbl = document.getElementById('main-menu-current');
   if (curLbl) curLbl.textContent = MAIN_MENU_LABELS[v] || v;
-  ['dash','news','wordadd','list','units','sentence','hangman','settings','cardmode','status','writing','grammar','stories'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
+  ['dash','news','wordadd','list','units','sentence','hangman','settings','cardmode','status','writing','grammar','stories','reading'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden',n!==v));
   document.getElementById('nav-dash').classList.toggle('active', v==='dash');
   document.getElementById('nav-news').classList.toggle('active', v==='news');
   document.getElementById('nav-wordadd').classList.toggle('active', v==='wordadd');
@@ -1884,6 +1884,7 @@ function showView(v) {
   document.getElementById('nav-writing').classList.toggle('active', v==='writing');
   document.getElementById('nav-grammar').classList.toggle('active', v==='grammar');
   document.getElementById('nav-stories').classList.toggle('active', v==='stories');
+  document.getElementById('nav-reading').classList.toggle('active', v==='reading');
   if (v==='dash') updateDashboard();
   if (v==='wordadd') renderCustomWordsList();
   if (v==='list') { listUpdatePersonalCounts(); if (listMode==='topic') renderTopicWordGrid(); else if (listMode==='favorites') renderFavoritesList(); else if (listMode==='struggle') renderStruggleList(); else if (listMode==='extra') { renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); } else { renderListBandFilters(); renderWordList(listLevel); } }
@@ -1894,6 +1895,7 @@ function showView(v) {
   if (v==='settings') { renderClaudeKeyStatus(); renderDailyGoalSetting(); renderAuthStatus(); hikRenderAdminGate(); }
   if (v==='grammar') grInit();
   if (v==='stories') hikInit();
+  if (v==='reading') rdgInit();
 }
 
 // ── WORD LIST (2-column, toggle accordion) ──────────────────────────────────
@@ -2862,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182600';
+const APP_VERSION = '202608182700';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3578,6 +3580,145 @@ function hikToggleAllTr(btn) {
   btn.classList.toggle('on', !showing);
   const label = btn.querySelector('.tr-toggle-label');
   if (label) label.textContent = showing ? 'Türkçesini gör' : 'Türkçesini gizle';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OKUYARAK ÖĞREN (backlog #20) — generate_passages.py ile ÖNCEDEN üretilmiş,
+// index.html'de window.READING_PASSAGES olarak yüklenmiş statik pasajlar
+// (kullanıcı bazlı değil, Hikayeler'in aksine Firestore'da değil, diğer büyük
+// veri dosyaları gibi Firebase Storage'da). Kelime renklendirme/tıklama
+// Hikayeler'deki hikColorizeParagraph/hikStemCandidates AYNEN devşiriliyor.
+// ═══════════════════════════════════════════════════════════════════════════
+const READING_PASSAGES = (typeof window !== 'undefined' && window.READING_PASSAGES) ? window.READING_PASSAGES : [];
+
+let rdgLevel = 'A1';
+let rdgOpenId = null;          // accordion: hangi ÜNİTE açık
+let rdgHighlightLevel = 'A1';  // açık ünitenin kelime vurgu seviyesi
+let rdgActivePassageIdx = {};  // { unitId: aktif pasaj indexi }
+let rdgQuizAnswers = {};       // { 'unitId|passageIdx|qIdx': seçilenSeçenekIndexi }
+
+function rdgInit() {
+  rdgOpenId = null;
+  rdgRenderLevelRow();
+  rdgRenderList();
+}
+
+function rdgRenderLevelRow() {
+  const el = document.getElementById('rdg-level-row');
+  const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
+  el.innerHTML = levels.map(function (lv) {
+    const n = READING_PASSAGES.filter(function (u) { return u.level === lv; }).length;
+    return '<button class="chip lvl-' + lv.toLowerCase() + (lv === rdgLevel ? ' on' : '') + '" onclick="rdgSelectLevel(\'' + lv + '\')">' + lv + '<span class="n">(' + n + ')</span></button>';
+  }).join('');
+}
+function rdgSelectLevel(lv) { rdgLevel = lv; rdgHighlightLevel = lv; rdgOpenId = null; rdgRenderLevelRow(); rdgRenderList(); }
+function rdgSetHighlightLevel(lv) { rdgHighlightLevel = lv; rdgRenderList(); }
+
+// Kart tasarımı Hikayeler/Grammar'ın .gr-acc accordion'ıyla BİREBİR aynı.
+function rdgRenderList() {
+  const wrap = document.getElementById('rdg-list');
+  const units = READING_PASSAGES.filter(function (u) { return u.level === rdgLevel; });
+  if (!units.length) {
+    wrap.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">Bu seviyede henüz pasaj yok.</div>';
+    return;
+  }
+  wrap.innerHTML = units.map(function (u) {
+    const isOpen = (rdgOpenId === u.unitId);
+    const cardLevel = isOpen ? rdgHighlightLevel : rdgLevel;
+    return '<div class="gr-acc' + (isOpen ? ' open' : '') + '" style="--gr-accent:' + hikLevelColorVar(cardLevel) + ';">'
+      + '<div class="gr-acc-head" onclick="rdgToggleUnit(\'' + u.unitId + '\')">'
+      + '<div style="flex:1;">'
+      + '<div class="wordfont" style="font-weight:600;font-size:14.5px;">' + u.unitNum + '. ' + escHtml(u.unitName) + '</div>'
+      + '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' + u.passages.length + ' pasaj</div>'
+      + '</div>'
+      + '<span class="gr-acc-chevron">&#8250;</span>'
+      + '</div>'
+      + '<div class="gr-acc-body' + (isOpen ? ' open' : '') + '">' + (isOpen ? rdgUnitBodyHtml(u) : '') + '</div>'
+      + '</div>';
+  }).join('');
+}
+function rdgToggleUnit(unitId) {
+  if (rdgOpenId === unitId) {
+    rdgOpenId = null;
+  } else {
+    rdgOpenId = unitId;
+    rdgHighlightLevel = rdgLevel;
+    if (!(unitId in rdgActivePassageIdx)) rdgActivePassageIdx[unitId] = 0;
+  }
+  rdgRenderList();
+}
+
+function rdgUnitBodyHtml(u) {
+  const idx = rdgActivePassageIdx[u.unitId] || 0;
+  const p = u.passages[idx];
+  let html = '<div style="padding-top:12px;border-top:0.5px solid var(--border);" onclick="event.stopPropagation();">';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">';
+  u.passages.forEach(function (_, i) {
+    html += '<button class="chip' + (i === idx ? ' on' : '') + '" style="min-width:32px;padding:6px 10px;" onclick="rdgSelectPassage(\'' + u.unitId + '\',' + i + ')">' + (i + 1) + '</button>';
+  });
+  html += '</div>';
+  html += rdgPassageHtml(u.unitId, idx, p);
+  html += '</div>';
+  return html;
+}
+
+function rdgPassageHtml(unitId, idx, p) {
+  let html = '<button class="tr-toggle" onclick="event.stopPropagation();rdgToggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button>';
+  html += '<div class="wordfont" style="font-weight:600;font-size:15px;margin:12px 0 2px;">' + escHtml(p.title_en) + '</div>';
+  html += '<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">' + escHtml(p.title_tr) + '</div>';
+  html += '<div class="rdg-passage-body">';
+  const enParas = p.text_en.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
+  const trParas = p.text_tr.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
+  enParas.forEach(function (para, i) {
+    html += '<p style="margin-bottom:4px;line-height:1.75;">' + hikColorizeParagraph(para, rdgHighlightLevel) + '</p>';
+    if (trParas[i]) html += '<p class="rdg-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
+  });
+  html += '</div>';
+  html += rdgQuizHtml(unitId, idx, p);
+  return html;
+}
+
+function rdgSelectPassage(unitId, idx) { rdgActivePassageIdx[unitId] = idx; rdgRenderList(); }
+
+function rdgToggleTr(btn) {
+  const wrap = btn.parentElement.querySelector('.rdg-passage-body');
+  const showing = btn.classList.contains('on');
+  wrap.querySelectorAll('.rdg-tr-p').forEach(function (el) { el.style.display = showing ? 'none' : 'block'; });
+  btn.classList.toggle('on', !showing);
+  const label = btn.querySelector('.tr-toggle-label');
+  if (label) label.textContent = showing ? 'Türkçesini gör' : 'Türkçesini gizle';
+}
+
+// Anlama testi: SRS'e YAZMIYOR — sadece okuduğunu anlama pekiştirmesi.
+function rdgQuizHtml(unitId, passageIdx, p) {
+  if (!p.questions || !p.questions.length) return '';
+  let html = '<div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--border);">';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:10px;">Anladın mı?</div>';
+  p.questions.forEach(function (q, qi) {
+    const key = unitId + '|' + passageIdx + '|' + qi;
+    const chosen = rdgQuizAnswers[key];
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:13px;margin-bottom:8px;">' + (qi + 1) + '. ' + escHtml(q.q) + '</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+    q.opts.forEach(function (opt, oi) {
+      let style = 'text-align:left;justify-content:flex-start;width:100%;box-sizing:border-box;';
+      if (chosen !== undefined) {
+        if (oi === q.correct) style += 'background:var(--success);color:#fff;border-color:var(--success);';
+        else if (oi === chosen) style += 'background:var(--danger);color:#fff;border-color:var(--danger);';
+      }
+      html += '<button type="button" class="chip" style="' + style + '" ' + (chosen !== undefined ? 'disabled' : '') + ' onclick="event.stopPropagation();rdgAnswerQuiz(\'' + unitId + '\',' + passageIdx + ',' + qi + ',' + oi + ')">' + escHtml(opt) + '</button>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+function rdgAnswerQuiz(unitId, passageIdx, qi, oi) {
+  const key = unitId + '|' + passageIdx + '|' + qi;
+  if (rdgQuizAnswers[key] !== undefined) return;
+  rdgQuizAnswers[key] = oi;
+  rdgRenderList();
+  if (unitsStepView && unitsStepView.unitId === unitId) unitsRenderReadingStep(unitsStepView.unit);
 }
 
 function hikAddStoryFromForm() {
@@ -7098,11 +7239,12 @@ let unitsMatchState = null;
 const unitsCache = {}; // { A1: [...], A2: [...], ... } — bir kez hesaplanır
 
 const UNIT_STEP_DEFS = [
-  { key:'intro', label:'Kelime Tanıtımı', icon:'clipboard' },
-  { key:'match', label:'Eşleştirme',      icon:'swap' },
-  { key:'spell', label:'Yazım',           icon:'pencil' },
-  { key:'quiz',  label:'Test',            icon:'target' },
-  { key:'speak', label:'Telaffuz',        icon:'headphones', disabled:true },
+  { key:'intro',   label:'Kelime Tanıtımı', icon:'clipboard' },
+  { key:'reading', label:'Okuyarak Öğren',  icon:'book' },
+  { key:'match',   label:'Eşleştirme',      icon:'swap' },
+  { key:'spell',   label:'Yazım',           icon:'pencil' },
+  { key:'quiz',    label:'Test',            icon:'target' },
+  { key:'speak',   label:'Telaffuz',        icon:'headphones', disabled:true },
 ];
 
 // Bir kategori hedef boyuttan büyükse ~TARGET kelimelik parçalara böler.
@@ -7210,7 +7352,7 @@ function unitsRenderList() {
 function unitsToggleCard(id) { unitsOpenId = (unitsOpenId === id) ? null : id; unitsRenderList(); }
 
 function unitsPathHtml(u, prog) {
-  const curStep = Math.min(prog.doneSteps.length, 3);
+  const curStep = Math.min(prog.doneSteps.length, 4);
   const stepsHtml = UNIT_STEP_DEFS.map((s, i) => {
     const done = prog.doneSteps.includes(i);
     const isCurrent = !s.disabled && i === curStep;
@@ -7244,7 +7386,7 @@ function unitsPathHtml(u, prog) {
     ${wordListHtml}
   </div>`;
 }
-function unitsShowSoonToast() { alert('Telaffuz pratiği yakında geliyor — önce diğer 4 adım tamamlanıyor.'); }
+function unitsShowSoonToast() { alert('Telaffuz pratiği yakında geliyor — önce diğer 5 adım tamamlanıyor.'); }
 
 function unitsStartStep(unitId, stepIdx) {
   const lv = unitId.split(':')[0];
@@ -7267,6 +7409,7 @@ function unitsRenderStep() {
   const { step, unit } = unitsStepView;
   const key = UNIT_STEP_DEFS[step].key;
   if (key === 'intro') unitsRenderIntroStep(unit);
+  else if (key === 'reading') unitsRenderReadingStep(unit);
   else if (key === 'match') unitsRenderMatchStep(unit);
   else if (key === 'spell') unitsRenderSpellStep(unit);
   else if (key === 'quiz') unitsRenderQuizStep(unit);
@@ -7277,7 +7420,7 @@ function unitsCompleteStep(stepIdx) {
   if (!prog.doneSteps.includes(stepIdx)) prog.doneSteps.push(stepIdx);
   saveState();
   const nextIdx = stepIdx + 1;
-  if (nextIdx < 4) {
+  if (nextIdx < 5) {
     unitsStepView.step = nextIdx;
     unitsStepIdx = 0;
     document.getElementById('unit-step-title').textContent = unitsStepView.unit.num + '. ' + unitsStepView.unit.name + ' — ' + UNIT_STEP_DEFS[nextIdx].label;
@@ -7311,6 +7454,44 @@ function unitsIntroNext() {
   const { unit } = unitsStepView;
   if (unitsStepIdx + 1 < unit.words.length) { unitsStepIdx++; unitsRenderIntroStep(unit); }
   else unitsCompleteStep(0);
+}
+
+// ── ADIM (Okuyarak Öğren, backlog #20): Ünitenin kelimelerinden üretilmiş
+// pasajlar arasında serbest gezinme — Eşleştirme/Yazım/Test'in aksine
+// ZORUNLU/sırayla ilerleme YOK, kullanıcı istediği pasajı okur ya da hiç
+// okumadan "Devam Et"e basıp geçebilir. rdgUnitBodyHtml/rdgQuizHtml ile AYNI
+// mantık (kod tekrarı yok) — sadece veri kaynağı ünitenin id'sine göre
+// bulunuyor ve gövde farklı bir konteynere (#unit-step-body) yazılıyor.
+function unitsRenderReadingStep(u) {
+  const body = document.getElementById('unit-step-body');
+  const rdgUnit = READING_PASSAGES.find(x => x.unitId === u.id);
+  if (!rdgUnit) {
+    body.innerHTML = `<p style="font-size:13px;color:var(--text3);margin-bottom:14px;">Bu ünite için henüz okuma pasajı üretilmedi.</p>
+      <div class="unit-actions"><span></span><button class="unit-start-btn" onclick="unitsCompleteStep(1)">Devam Et ${ico('play',13,'#fff',false)}</button></div>`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  if (!(rdgUnit.unitId in rdgActivePassageIdx)) rdgActivePassageIdx[rdgUnit.unitId] = 0;
+  const idx = rdgActivePassageIdx[rdgUnit.unitId];
+  const p = rdgUnit.passages[idx];
+  rdgHighlightLevel = rdgUnit.level;
+  let html = '<div class="dict-card">';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">';
+  rdgUnit.passages.forEach((_, i) => {
+    html += `<button class="chip${i===idx?' on':''}" style="min-width:32px;padding:6px 10px;" onclick="unitsReadingSelectPassage(${i})">${i+1}</button>`;
+  });
+  html += '</div>';
+  html += rdgPassageHtml(rdgUnit.unitId, idx, p);
+  html += '</div>';
+  html += `<div class="unit-actions"><span class="unit-progress-txt">Pasaj ${idx+1} / ${rdgUnit.passages.length}</span>
+    <button class="unit-start-btn" onclick="unitsCompleteStep(1)">Devam Et ${ico('play',13,'#fff',false)}</button></div>`;
+  body.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function unitsReadingSelectPassage(idx) {
+  const { unit } = unitsStepView;
+  rdgActivePassageIdx[unit.id] = idx;
+  unitsRenderReadingStep(unit);
 }
 
 // ── ADIM 2: Eşleştirme — kelime kelime, sırayla: İngilizce kelime gösterilir,

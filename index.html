@@ -1066,6 +1066,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
         <span class="nav-tile-ico" style="background:linear-gradient(135deg,#d97706,#b45309);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.8c1.6-.9 3.7-1.1 6-.4v11c-2.3-.7-4.4-.5-6 .4z"/><path d="M16 4.8c-1.6-.9-3.7-1.1-6-.4v11c2.3-.7 4.4-.5 6 .4z"/></svg></span>
         <span class="nav-tile-lbl">Hikayeler</span>
       </button>
+      <button class="nav-btn main-nav-btn nav-tile" id="nav-reading" onclick="showView('reading')">
+        <span class="nav-tile-ico" style="background:linear-gradient(135deg,#059669,#047857);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.3" y="4" width="13.4" height="12" rx="1.4"/><path d="M3.3 7.4h13.4M6.4 4v3.4M13.6 4v3.4"/><path d="M6.2 10.4h3.4M6.2 12.9h5.6"/></svg></span>
+        <span class="nav-tile-lbl">Okuyarak Öğren</span>
+      </button>
     </div>
 
     <div class="menu-group-label">Gramer</div>
@@ -1329,6 +1333,19 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       <div id="hik-report-summary" style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6;"></div>
       <div id="hik-report-list"></div>
     </div>
+  </div>
+
+  <!-- OKUYARAK ÖĞREN VIEW (backlog #20) -->
+  <div id="view-reading" class="hidden">
+    <div style="font-size:14px;color:var(--text2);margin-bottom:12px;line-height:1.6;">
+      Ünitelerin kelimelerinden üretilmiş kısa okuma pasajları. Her ünite için birden fazla
+      pasaj var — aynı kelimeye farklı bağlamlarda birden çok kez rastlarsın.
+    </div>
+    <div class="filter-panel" style="margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Seviye seç</div>
+      <div class="f-row3" id="rdg-level-row"></div>
+    </div>
+    <div id="rdg-list"></div>
   </div>
 
   <!-- GRAMMAR VIEW (yeni modül) -->
@@ -1720,7 +1737,11 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       fetchDataFile('builtin-content.json'),
       fetchDataFile('sentence-exercises.json'),
       fetchDataFile('extra-words.json').catch(function(){ return []; }),
-      fetchDataFile('grammar-topics.json').catch(function(){ return {}; })
+      fetchDataFile('grammar-topics.json').catch(function(){ return {}; }),
+      // unit-passages.json HENÜZ tüm ünitelerde yok (generate_passages.py
+      // kademeli çalışıyor) — bu yüzden .catch ile boş nesneye düşüyor,
+      // eksik olması diğer verilerin yüklenmesini ENGELLEMİYOR.
+      fetchDataFile('unit-passages.json').catch(function(){ return {}; })
     ]).then(function(results){
       window.WORD_DATA = results[0];
       window.TOPIC_WORDS = results[1];
@@ -1728,12 +1749,20 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       window.SENTENCE_EXERCISES = results[3];
       window.EXTRA_WORDS = results[4] || [];
       window.GRAMMAR_TOPICS = results[5] || {};
+      // generate_passages.py çıktısı { "A1:People:0": {level,unitName,...} }
+      // şeklinde ÜNİTE ID'siyle anahtarlanmış bir nesne — app.js tarafı
+      // (rdg*/unitsRenderReadingStep) diziyle çalışıyor, burada dönüştürüyoruz.
+      var rawPassages = results[6] || {};
+      window.READING_PASSAGES = Object.keys(rawPassages).map(function(id){
+        var v = rawPassages[id];
+        return { unitId: id, level: v.level, unitName: v.unitName, unitNum: v.unitNum, words: v.words, passages: v.passages };
+      });
       setStatus('Uygulama başlatılıyor…');
       var s = document.createElement('script');
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202608182600';
+      s.src = 'app.js?v=202608182700';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();
