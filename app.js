@@ -2864,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182800';
+const APP_VERSION = '202608182900';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3630,7 +3630,12 @@ function rdgSetHighlightLevel(lv) { rdgHighlightLevel = lv; rdgRenderList(); }
 // Kart tasarımı Hikayeler/Grammar'ın .gr-acc accordion'ıyla BİREBİR aynı.
 function rdgRenderList() {
   const wrap = document.getElementById('rdg-list');
-  const units = READING_PASSAGES.filter(function (u) { return u.level === rdgLevel; });
+  // unitNum'a göre sırala — unit-passages.json'a üniteler ne sırayla
+  // eklendiyse (ör. People daha önce tek başına yüklendiği için dosyada
+  // 44. sırada olsa bile en başta duruyordu) dizideki KONUM değil, Üniteler
+  // ekranındaki GERÇEK sıra (unitNum) esas alınmalı.
+  const units = READING_PASSAGES.filter(function (u) { return u.level === rdgLevel; })
+    .sort(function (a, b) { return a.unitNum - b.unitNum; });
   if (!units.length) {
     wrap.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">Bu seviyede henüz pasaj yok.</div>';
     return;
