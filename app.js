@@ -2864,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182700';
+const APP_VERSION = '202608182800';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -2995,12 +2995,18 @@ const TOUR_STEPS = [
     title: 'Sözlüğüm', text: 'Günlük kelime arama ekranın — Oxford\'da varsa direkt gösterir.' },
   { view: 'list', selector: '#list-search-input',
     title: 'Kelime Listem', text: 'Oxford, Konu, Favoriler ve Zorlandıkların — hepsi burada, göz atmak için.' },
+  { view: 'units', selector: '#unit-list',
+    title: 'Üniteler', text: 'Kelimeler ~17\'lik ünitelere ayrılmış — tanıtım, okuma, eşleştirme, yazım ve test adımlarıyla sırayla öğren.' },
   { view: 'sentence', selector: '#sg-tense-filter .auto-tense-btn',
     title: 'Cümle Kur', text: 'Varsayılan karışık zamanlarla çalışır — istersen buradan belirli bir zaman seçebilirsin.' },
   { view: 'writing', selector: '#wr-tense-row',
     title: 'Cümle Yaz', text: 'Türkçe cümleyi İngilizce yaz, anında kontrol al.' },
   { view: 'hangman', selector: '#hg-levels',
     title: 'Asmaca', text: 'Kelime bilgini oyunla eğlenceli şekilde test et.' },
+  { view: 'stories', selector: '#hik-level-row',
+    title: 'Hikayeler', text: 'Seviyene göre kısa hikayeler — kelimelerin renkli/altı çizili çıkar, Türkçesini istediğinde görebilirsin.' },
+  { view: 'reading', selector: '#rdg-level-row',
+    title: 'Okuyarak Öğren', text: 'Ünitelerin kelimelerinden üretilmiş pasajlar — her ünitenin birden fazla pasajı var, anlama testiyle pekiştirirsin.' },
   { view: 'grammar', selector: '#gr-search-input',
     title: 'Grammar', text: '397 konu, A1-C2 arası — açıklama, örnek ve kendi kendini test eden sorularla.' },
   { view: 'settings', selector: '#settings-panel-home',
@@ -3070,7 +3076,14 @@ function tourPositionAt(target) {
   const tipH = tip.offsetHeight, tipW = tip.offsetWidth;
   const spaceBelow = window.innerHeight - r.bottom;
   const placeBelow = spaceBelow > (tipH + 24) || r.top < (tipH + 24);
-  tip.style.top = placeBelow ? (r.bottom + pad + 12) + 'px' : Math.max(12, r.top - pad - 12 - tipH) + 'px';
+  // Hedef (spot) çok uzun olduğunda (ör. masaüstünde tüm sidebar) r.bottom
+  // veya r.top viewport dışına taşabiliyor — bu durumda tooltip de ekranın
+  // dışına kayıp "sığmıyor" görünüyordu. left'te zaten yapılan clamp'i
+  // top'a da uyguluyoruz, hangi dala girerse girsin tooltip HER ZAMAN
+  // ekranın içinde kalır.
+  let top = placeBelow ? (r.bottom + pad + 12) : (r.top - pad - 12 - tipH);
+  top = Math.max(12, Math.min(top, window.innerHeight - tipH - 12));
+  tip.style.top = top + 'px';
   let left = r.left + r.width / 2 - tipW / 2;
   left = Math.max(12, Math.min(left, window.innerWidth - tipW - 12));
   tip.style.left = left + 'px';
@@ -3648,6 +3661,60 @@ function rdgToggleUnit(unitId) {
   rdgRenderList();
 }
 
+// Hikayeler'deki hikColorizeParagraph'ın SADECE "hangi kelime işaretlenir"
+// kriterini değiştirilmiş hali: orada "bu CEFR seviyesindeki HER kelime"
+// işaretlenirdi (Hikayeler için doğru — bir hikaye zaten o seviyede
+// yazıldığından anlamlı bir alt küme oluyor). Okuyarak Öğren'de bu, A1
+// pasajlarında neredeyse HER kelimenin işaretlenmesine yol açıyordu (bir A1
+// pasajının kelimelerinin büyük kısmı zaten A1 seviyesinde) — kullanıcı
+// gerçekte SADECE ünitenin ~17-20 hedef kelimesinin nerede geçtiğini görmek
+// istiyor. Tıklama/kaynak-bulma dalları (Oxford/Konu/özel/bilinmiyor)
+// BİREBİR aynı kalıyor, sadece "isTarget" kontrolü CEFR eşleşmesinin yerini alıyor.
+function rdgTargetTokenSet(words) {
+  const set = new Set();
+  (words || []).forEach(function (w) {
+    w.toLowerCase().split(/\s+/).forEach(function (part) { if (part) set.add(part); });
+  });
+  return set;
+}
+function rdgColorizeParagraph(text, targetTokenSet) {
+  const tokens = text.split(/([\s]+|[^\w'\u2018\u2019-]+)/);
+  let html = '';
+  tokens.forEach(function (token) {
+    const clean = token.toLowerCase().replace(/[^a-z'-]/g, '');
+    if (!clean || !/[a-z]/.test(clean)) { html += escHtml(token); return; }
+    const oxKey = hikResolveOxfordKey(clean);
+    const oxWords = oxKey ? OXFORD_WORD_MAP[oxKey] : null;
+    const isCustom = !!customWords[clean];
+    const isTarget = targetTokenSet.has(clean) || (oxKey && targetTokenSet.has(oxKey));
+    if (oxWords && oxWords.length) {
+      markContact(oxKey, 'read');
+      if (isTarget) {
+        const prog = getWordProgress(oxKey);
+        let cls = 'news-oxford news-' + rdgHighlightLevel.toLowerCase();
+        if (prog && prog.mastery === 'mastered') cls += ' learned';
+        else if (prog) cls += ' reviewing';
+        html += '<span class="' + cls + '" data-word="' + escAttr(oxKey) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
+      } else {
+        html += '<span data-word="' + escAttr(oxKey) + '" onclick="handleWordClick(this)" style="cursor:pointer;">' + escHtml(token) + '</span>';
+      }
+    } else if (isCustom) {
+      markContact(clean, 'read');
+      html += '<span class="news-custom" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)">' + escHtml(token) + '</span>';
+    } else if (TOPIC_WORD_MAP[clean] && TOPIC_WORD_MAP[clean].length) {
+      markContact(clean, 'read');
+      if (isTarget) {
+        html += '<span class="news-topic" data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" title="Oxford 3000/5000 dışı, konu listesinde">' + escHtml(token) + '</span>';
+      } else {
+        html += '<span data-word="' + escAttr(clean) + '" onclick="handleWordClick(this)" style="cursor:pointer;">' + escHtml(token) + '</span>';
+      }
+    } else {
+      html += '<span data-word="' + escAttr(clean) + '" onclick="handlePromptClick(this)" title="Oxford listesinde yok" style="cursor:pointer;">' + escHtml(token) + '</span>';
+    }
+  });
+  return html;
+}
+
 function rdgUnitBodyHtml(u) {
   const idx = rdgActivePassageIdx[u.unitId] || 0;
   const p = u.passages[idx];
@@ -3657,12 +3724,13 @@ function rdgUnitBodyHtml(u) {
     html += '<button class="chip' + (i === idx ? ' on' : '') + '" style="min-width:32px;padding:6px 10px;" onclick="rdgSelectPassage(\'' + u.unitId + '\',' + i + ')">' + (i + 1) + '</button>';
   });
   html += '</div>';
-  html += rdgPassageHtml(u.unitId, idx, p);
+  html += rdgPassageHtml(u.unitId, idx, p, u.words);
   html += '</div>';
   return html;
 }
 
-function rdgPassageHtml(unitId, idx, p) {
+function rdgPassageHtml(unitId, idx, p, unitWords) {
+  const targetTokenSet = rdgTargetTokenSet(unitWords);
   let html = '<button class="tr-toggle" onclick="event.stopPropagation();rdgToggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button>';
   html += '<div class="wordfont" style="font-weight:600;font-size:15px;margin:12px 0 2px;">' + escHtml(p.title_en) + '</div>';
   html += '<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">' + escHtml(p.title_tr) + '</div>';
@@ -3670,7 +3738,7 @@ function rdgPassageHtml(unitId, idx, p) {
   const enParas = p.text_en.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
   const trParas = p.text_tr.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
   enParas.forEach(function (para, i) {
-    html += '<p style="margin-bottom:4px;line-height:1.75;">' + hikColorizeParagraph(para, rdgHighlightLevel) + '</p>';
+    html += '<p style="margin-bottom:4px;line-height:1.75;">' + rdgColorizeParagraph(para, targetTokenSet) + '</p>';
     if (trParas[i]) html += '<p class="rdg-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
   });
   html += '</div>';
@@ -7481,7 +7549,7 @@ function unitsRenderReadingStep(u) {
     html += `<button class="chip${i===idx?' on':''}" style="min-width:32px;padding:6px 10px;" onclick="unitsReadingSelectPassage(${i})">${i+1}</button>`;
   });
   html += '</div>';
-  html += rdgPassageHtml(rdgUnit.unitId, idx, p);
+  html += rdgPassageHtml(rdgUnit.unitId, idx, p, rdgUnit.words);
   html += '</div>';
   html += `<div class="unit-actions"><span class="unit-progress-txt">Pasaj ${idx+1} / ${rdgUnit.passages.length}</span>
     <button class="unit-start-btn" onclick="unitsCompleteStep(1)">Devam Et ${ico('play',13,'#fff',false)}</button></div>`;
