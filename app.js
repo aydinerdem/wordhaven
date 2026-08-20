@@ -2864,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608182900';
+const APP_VERSION = '202608201000';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3676,22 +3676,55 @@ function rdgToggleUnit(unitId) {
 // istiyor. Tıklama/kaynak-bulma dalları (Oxford/Konu/özel/bilinmiyor)
 // BİREBİR aynı kalıyor, sadece "isTarget" kontrolü CEFR eşleşmesinin yerini alıyor.
 function rdgTargetTokenSet(words) {
-  const set = new Set();
+  // DÜZELTME: Çok kelimeli hedefler ('word order' gibi) önceden boşluğa
+  // göre bölünüp her parçası ('word', 'order') AYRI AYRI tek başına hedef
+  // sayılıyordu — bu yüzden metinde sadece 'word' geçtiğinde (asıl hedef
+  // 'word order' hiç geçmese bile) yanlışlıkla işaretleniyordu. Artık tek
+  // kelimelik hedefler ayrı bir kümede, çok kelimelik hedefler ayrı bir
+  // dizide (parça parça) tutuluyor — çok kelimeli olanlar SADECE ardışık/
+  // tam ifade olarak eşleştiğinde işaretlenecek (bkz. rdgColorizeParagraph).
+  const singleSet = new Set();
+  const phrases = [];
   (words || []).forEach(function (w) {
-    w.toLowerCase().split(/\s+/).forEach(function (part) { if (part) set.add(part); });
+    const parts = w.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) singleSet.add(parts[0]);
+    else if (parts.length > 1) phrases.push(parts);
   });
-  return set;
+  return { singleSet: singleSet, phrases: phrases };
 }
-function rdgColorizeParagraph(text, targetTokenSet) {
+function rdgColorizeParagraph(text, target) {
   const tokens = text.split(/([\s]+|[^\w'\u2018\u2019-]+)/);
+  // Sadece "kelime" olan token indekslerini çıkarıp, çok kelimeli hedef
+  // ifadelerin (ardışık kelime dizisi olarak) nerede TAM eşleştiğini
+  // önceden tespit ediyoruz.
+  const wordTokenIdx = [];
+  tokens.forEach(function (tok, i) {
+    const c = tok.toLowerCase().replace(/[^a-z'-]/g, '');
+    if (c && /[a-z]/.test(c)) wordTokenIdx.push(i);
+  });
+  const phraseMatchIdx = new Set();
+  if (target.phrases.length) {
+    for (let k = 0; k < wordTokenIdx.length; k++) {
+      for (let pi = 0; pi < target.phrases.length; pi++) {
+        const phrase = target.phrases[pi];
+        if (k + phrase.length > wordTokenIdx.length) continue;
+        let ok = true;
+        for (let j = 0; j < phrase.length; j++) {
+          const clean = tokens[wordTokenIdx[k + j]].toLowerCase().replace(/[^a-z'-]/g, '');
+          if (clean !== phrase[j]) { ok = false; break; }
+        }
+        if (ok) { for (let j = 0; j < phrase.length; j++) phraseMatchIdx.add(wordTokenIdx[k + j]); }
+      }
+    }
+  }
   let html = '';
-  tokens.forEach(function (token) {
+  tokens.forEach(function (token, i) {
     const clean = token.toLowerCase().replace(/[^a-z'-]/g, '');
     if (!clean || !/[a-z]/.test(clean)) { html += escHtml(token); return; }
     const oxKey = hikResolveOxfordKey(clean);
     const oxWords = oxKey ? OXFORD_WORD_MAP[oxKey] : null;
     const isCustom = !!customWords[clean];
-    const isTarget = targetTokenSet.has(clean) || (oxKey && targetTokenSet.has(oxKey));
+    const isTarget = target.singleSet.has(clean) || (oxKey && target.singleSet.has(oxKey)) || phraseMatchIdx.has(i);
     if (oxWords && oxWords.length) {
       markContact(oxKey, 'read');
       if (isTarget) {
