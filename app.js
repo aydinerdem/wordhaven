@@ -2864,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608201000';
+const APP_VERSION = '202608201100';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -7502,7 +7502,7 @@ function unitsStartStep(unitId, stepIdx) {
   unitsStepIdx = 0;
   document.getElementById('unit-list-view').classList.add('hidden');
   document.getElementById('unit-step-view').classList.remove('hidden');
-  document.getElementById('unit-step-title').textContent = u.num + '. ' + u.name + ' — ' + UNIT_STEP_DEFS[stepIdx].label;
+  document.getElementById('unit-step-title').textContent = lv + ' · ' + u.num + '. ' + u.name + ' — ' + UNIT_STEP_DEFS[stepIdx].label;
   unitsRenderStep();
 }
 function unitsExitStep() {
@@ -7529,7 +7529,7 @@ function unitsCompleteStep(stepIdx) {
   if (nextIdx < 5) {
     unitsStepView.step = nextIdx;
     unitsStepIdx = 0;
-    document.getElementById('unit-step-title').textContent = unitsStepView.unit.num + '. ' + unitsStepView.unit.name + ' — ' + UNIT_STEP_DEFS[nextIdx].label;
+    document.getElementById('unit-step-title').textContent = unitsStepView.unitId.split(':')[0] + ' · ' + unitsStepView.unit.num + '. ' + unitsStepView.unit.name + ' — ' + UNIT_STEP_DEFS[nextIdx].label;
     unitsRenderStep();
   } else {
     unitsExitStep();
