@@ -2864,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608201100';
+const APP_VERSION = '202608281941';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3196,7 +3196,22 @@ async function hikFetchCloudStories() {
   }
 }
 
-let STORIES = STORIES_BUILTIN.slice();
+// _builtin:true → Firestore'da karşılığı YOK, düzenle/sil/pasife-al için
+// hedef alınamaz (hikRenderManageList bunları hariç tutar). status:'active'
+// → sabit tohum içerik her zaman görünür kalır.
+function hikBuiltinTagged() {
+  return STORIES_BUILTIN.map(function (s) { return Object.assign({}, s, { _builtin: true, status: 'active' }); });
+}
+
+let STORIES = hikBuiltinTagged();
+
+// Pasife alınmış ('status'==='inactive') hikayeler normal listeden/Kapsam
+// Raporu'ndan gizlenir ama Firestore'da durur — admin panelinde (hikRenderManageList)
+// hâlâ görünür, tekrar aktifleştirilebilir. status alanı hiç yoksa (eski
+// kayıtlar, migration gerekmesin diye) 'active' kabul edilir.
+function hikVisibleStories() {
+  return STORIES.filter(function (s) { return s.status !== 'inactive'; });
+}
 
 // Bulut hikayelerini çekip STORIES'i günceller, açıksa Hikayeler ekranını
 // yeniden çizer. Hem açılışta (cloudSyncOnStartup ile birlikte) hem
@@ -3204,11 +3219,12 @@ let STORIES = STORIES_BUILTIN.slice();
 // önce yerel/önbellekli veriyle ekran zaten çizilmiş oluyor.
 function hikRefreshCloudStories() {
   hikFetchCloudStories().then(function (cloud) {
-    STORIES = STORIES_BUILTIN.concat(cloud);
+    STORIES = hikBuiltinTagged().concat(cloud);
     Object.keys(_hikCountsCache).forEach(function (k) { delete _hikCountsCache[k]; });
     const view = document.getElementById('view-stories');
     if (view && !view.classList.contains('hidden')) {
       if (hikReportOpen) hikRenderReport(); else hikRenderList();
+      if (hikIsAdmin()) hikRenderManageList();
     }
   });
 }
@@ -3388,6 +3404,14 @@ function hikRenderAdminGate() {
     const privateRadio = document.querySelector('input[name="hik-visibility"][value="private"]');
     if (privateRadio) privateRadio.checked = true;
   }
+  // Hikayelerini Yönet paneli SADECE admin'e görünür (backlog: düzenle/sil/
+  // pasife al) — Firestore Rules v3'te de update/delete admin'e (shared için)
+  // veya createdBy'a (private için) açık, ikisi tutarlı.
+  const managePanel = document.getElementById('hik-manage-panel');
+  if (managePanel) {
+    managePanel.classList.toggle('hidden', !isAdmin);
+    if (isAdmin) hikRenderManageList();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3431,7 +3455,7 @@ function hikRenderReportLevelRow() {
 // böylece N kelime × M hikaye karşılaştırması, her seferinde metni yeniden
 // taramak yerine hızlı Set.has() aramasına döner.
 function hikStoryWordSets() {
-  return STORIES.map(function (s) {
+  return hikVisibleStories().map(function (s) {
     return new Set(s.text_en.toLowerCase().split(/[^a-z']+/).filter(Boolean));
   });
 }
@@ -3482,7 +3506,7 @@ function hikRenderLevelRow() {
   const row = document.getElementById('hik-level-row');
   const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
   row.innerHTML = levels.map(function (lv) {
-    const count = STORIES.filter(function (s) { return hikStoryLevels(s).indexOf(lv) !== -1; }).length;
+    const count = hikVisibleStories().filter(function (s) { return hikStoryLevels(s).indexOf(lv) !== -1; }).length;
     const dis = count === 0 && lv !== hikLevel;
     return '<button class="chip lvl-' + lv.toLowerCase() + (lv === hikLevel ? ' on' : '') + (dis ? ' disabled' : '') + '" ' + (dis ? 'disabled' : '') + ' data-lv="' + lv + '" onclick="hikSelectLevel(\'' + lv + '\')">' + lv + '<span class="n">(' + count + ')</span></button>';
   }).join('');
@@ -3533,7 +3557,8 @@ function hikLevelColorVar(lv) { return 'var(--' + lv.toLowerCase() + ')'; }
 // seviyenin (hikHighlightLevel) rengine boyanır.
 function hikRenderList() {
   const wrap = document.getElementById('hik-list');
-  const items = STORIES.filter(function (s) { return hikStoryLevels(s).indexOf(hikLevel) !== -1; });
+  const items = hikVisibleStories().filter(function (s) { return hikStoryLevels(s).indexOf(hikLevel) !== -1; })
+    .sort(function (a, b) { return a.title_en.localeCompare(b.title_en, 'en', { sensitivity: 'base' }); });
   if (hikOpenId && !items.some(function (s) { return s.id === hikOpenId; })) hikOpenId = null;
   if (!items.length) {
     wrap.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">Bu seviyede henüz hikaye yok.</div>';
@@ -3827,6 +3852,12 @@ function rdgAnswerQuiz(unitId, passageIdx, qi, oi) {
   if (unitsStepView && unitsStepView.unitId === unitId) unitsRenderReadingStep(unitsStepView.unit);
 }
 
+// null: yeni hikaye ekleniyor. Bir Firestore doküman id'si: o hikaye
+// düzenleniyor (hikEditStory ile set edilir, kaydedince/vazgeçince null'a
+// döner). hikAddStoryFromForm bu değere bakarak addDoc mu updateDoc mu
+// çağıracağına karar verir — tek form, iki mod.
+let hikEditingId = null;
+
 function hikAddStoryFromForm() {
   const titleEn = document.getElementById('hik-add-title-en').value.trim();
   const titleTr = document.getElementById('hik-add-title-tr').value.trim();
@@ -3855,14 +3886,36 @@ function hikAddStoryFromForm() {
   const mismatchWarning = enCount !== trCount
     ? ' (Uyarı: İngilizce ' + enCount + ' paragraf, Türkçe ' + trCount + ' paragraf — sayılar eşleşmiyor, çeviri kayabilir.)'
     : '';
-  const id = hikSlug(titleEn);
-  const story = { id: id, title_en: titleEn, title_tr: titleTr, text_en: textEn, text_tr: textTr };
+  const story = { title_en: titleEn, title_tr: titleTr, text_en: textEn, text_tr: textTr };
   const myEmail = (user.email || '').toLowerCase();
   statusEl.style.color = 'var(--text2)';
+
+  if (hikEditingId) {
+    // GÜNCELLEME: createdBy/createdAt/status'a DOKUNMUYORUZ — sadece
+    // düzenlenebilir alanlar. Rules v3: shared ise herhangi bir admin,
+    // private ise sadece createdBy güncelleyebilir (client burada zaten
+    // sadece hikRenderManageList'in gösterdiği, dolayısıyla yetkili olunan
+    // hikayeler için Düzenle butonunu gösteriyor).
+    statusEl.textContent = 'Güncelleniyor…';
+    fs.updateDoc(fs.doc(fs.db, 'stories', hikEditingId), {
+      title_en: titleEn, title_tr: titleTr, text_en: textEn, text_tr: textTr, visibility: visibility
+    }).then(function () {
+      statusEl.style.color = enCount === trCount ? 'var(--success)' : 'var(--warn)';
+      statusEl.textContent = '✓ Güncellendi.' + mismatchWarning;
+      hikCancelEdit();
+      hikRefreshCloudStories();
+    }).catch(function (e) {
+      console.error('Hikaye güncellenemedi:', e);
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = 'Güncellenemedi — internet bağlantını veya yetkini kontrol et.';
+    });
+    return;
+  }
+
   statusEl.textContent = 'Kaydediliyor…';
   fs.addDoc(fs.collection(fs.db, 'stories'), {
     title_en: titleEn, title_tr: titleTr, text_en: textEn, text_tr: textTr,
-    visibility: visibility, createdBy: myEmail, createdAt: new Date().toISOString()
+    visibility: visibility, status: 'active', createdBy: myEmail, createdAt: new Date().toISOString()
   }).then(function () {
     document.getElementById('hik-add-title-en').value = '';
     document.getElementById('hik-add-title-tr').value = '';
@@ -3878,6 +3931,104 @@ function hikAddStoryFromForm() {
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = 'Kaydedilemedi — internet bağlantını veya yetkini kontrol et.';
   });
+}
+
+// "Hikayelerini Yönet" panelinde Düzenle'ye basınca: formu o hikayenin
+// verisiyle doldurur, hikEditingId'yi set eder, Kaydet butonu "Güncelle"ye
+// döner ve form görünür alana kaydırılır.
+function hikEditStory(id) {
+  const story = STORIES.find(function (s) { return s.id === id; });
+  if (!story || story._builtin) return;
+  hikEditingId = id;
+  document.getElementById('hik-add-title-en').value = story.title_en;
+  document.getElementById('hik-add-title-tr').value = story.title_tr;
+  document.getElementById('hik-add-text-en').value = story.text_en;
+  document.getElementById('hik-add-text-tr').value = story.text_tr;
+  const visRadio = document.querySelector('input[name="hik-visibility"][value="' + (story.visibility || 'private') + '"]');
+  if (visRadio) visRadio.checked = true;
+  document.getElementById('hik-add-submit-btn').textContent = 'Güncelle';
+  document.getElementById('hik-edit-cancel-btn').classList.remove('hidden');
+  document.getElementById('hik-edit-banner').classList.remove('hidden');
+  document.getElementById('hik-add-status').textContent = '';
+  const panel = document.getElementById('hik-add-panel');
+  if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Vazgeç: formu temizler, düzenleme modundan çıkar. Yeni hikaye eklerken de
+// kullanılabilir (form sıfırlama) ama asıl amacı düzenlemeden çıkmak.
+function hikCancelEdit() {
+  hikEditingId = null;
+  document.getElementById('hik-add-title-en').value = '';
+  document.getElementById('hik-add-title-tr').value = '';
+  document.getElementById('hik-add-text-en').value = '';
+  document.getElementById('hik-add-text-tr').value = '';
+  document.getElementById('hik-add-submit-btn').textContent = 'Hikaye Ekle';
+  document.getElementById('hik-edit-cancel-btn').classList.add('hidden');
+  document.getElementById('hik-edit-banner').classList.add('hidden');
+}
+
+// Pasife al / Aktife al: SİLMEZ, sadece status alanını çevirir — hikaye
+// normal listeden/Kapsam Raporu'ndan kaybolur ama Firestore'da durur,
+// istenirse geri açılabilir. Silmekten farkı budur.
+function hikToggleStoryStatus(id) {
+  const story = STORIES.find(function (s) { return s.id === id; });
+  if (!story || story._builtin) return;
+  const fs = window.whFirestore;
+  if (!fs) { alert('Giriş bulunamadı — durum değiştirilemedi.'); return; }
+  const newStatus = story.status === 'inactive' ? 'active' : 'inactive';
+  fs.updateDoc(fs.doc(fs.db, 'stories', id), { status: newStatus }).then(function () {
+    hikRefreshCloudStories();
+  }).catch(function (e) {
+    console.error('Hikaye durumu değiştirilemedi:', e);
+    alert('Durum değiştirilemedi — internet bağlantını veya yetkini kontrol et.');
+  });
+}
+
+// Kalıcı silme — geri alınamaz, bu yüzden onay isteniyor. Genelde "Pasife
+// Al" yeterlidir; silme sadece yanlışlıkla eklenmiş/hatalı içerik için.
+function hikDeleteStory(id) {
+  const story = STORIES.find(function (s) { return s.id === id; });
+  if (!story || story._builtin) return;
+  const ok = confirm('"' + story.title_en + '" kalıcı olarak silinsin mi? Bu işlem geri alınamaz.\n\n(Yayından geçici olarak kaldırmak için "Pasife Al" kullanabilirsin.)');
+  if (!ok) return;
+  const fs = window.whFirestore;
+  if (!fs) { alert('Giriş bulunamadı — silinemedi.'); return; }
+  fs.deleteDoc(fs.doc(fs.db, 'stories', id)).then(function () {
+    if (hikOpenId === id) hikOpenId = null;
+    hikRefreshCloudStories();
+  }).catch(function (e) {
+    console.error('Hikaye silinemedi:', e);
+    alert('Silinemedi — internet bağlantını veya yetkini kontrol et.');
+  });
+}
+
+// Admin'in düzenle/sil/pasife-al yapabileceği hikayeler: built-in HARİÇ
+// (Firestore karşılığı yok) tüm cloud hikayeler — hikFetchCloudStories zaten
+// sadece shared + kendi private'ını çektiği için, admin burada başka bir
+// adminin private'ını GÖRMEZ (read kuralı hâlâ createdBy'a özel), ama
+// herhangi bir adminin shared hikayesini görür ve yönetebilir (Rules v3).
+function hikRenderManageList() {
+  const wrap = document.getElementById('hik-manage-list');
+  if (!wrap) return;
+  const items = STORIES.filter(function (s) { return !s._builtin; })
+    .sort(function (a, b) { return a.title_en.localeCompare(b.title_en, 'en', { sensitivity: 'base' }); });
+  if (!items.length) {
+    wrap.innerHTML = '<div style="padding:16px 8px;text-align:center;color:var(--text3);font-size:13px;">Henüz yönetebileceğin bir hikaye yok.</div>';
+    return;
+  }
+  wrap.innerHTML = items.map(function (s) {
+    const isInactive = s.status === 'inactive';
+    const visLabel = s.visibility === 'shared' ? 'Havuzda' : 'Sadece sende';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:0.5px solid var(--border);' + (isInactive ? 'opacity:0.55;' : '') + '">'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div class="wordfont" style="font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(s.title_en) + '</div>'
+      + '<div style="font-size:11.5px;color:var(--text3);margin-top:2px;">' + visLabel + (isInactive ? ' · Pasif' : '') + '</div>'
+      + '</div>'
+      + '<button type="button" class="chip" style="padding:5px 9px;font-size:11.5px;" onclick="hikEditStory(\'' + s.id + '\')">Düzenle</button>'
+      + '<button type="button" class="chip" style="padding:5px 9px;font-size:11.5px;" onclick="hikToggleStoryStatus(\'' + s.id + '\')">' + (isInactive ? 'Aktife Al' : 'Pasife Al') + '</button>'
+      + '<button type="button" class="chip" style="padding:5px 9px;font-size:11.5px;color:var(--danger);" onclick="hikDeleteStory(\'' + s.id + '\')">Sil</button>'
+      + '</div>';
+  }).join('');
 }
 
 

@@ -837,10 +837,11 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   // collection/addDoc/getDocs/query/where: Hikayeler modülü (backlog #22)
   // için eklendi — stories koleksiyonu, users/{uid}'den FARKLI bir kural
   // deseni kullanıyor (görünürlük bazlı: shared/private, bkz. proje_talimati.md
-  // HİKAYELER FIRESTORE KURULUMU bölümü).
+  // HİKAYELER FIRESTORE KURULUMU bölümü). updateDoc/deleteDoc: hikaye
+  // düzenleme/silme/pasife alma (backlog, Firestore Rules v3) için eklendi.
   import {
     getFirestore, doc, getDoc, setDoc,
-    collection, addDoc, getDocs, query, where
+    collection, addDoc, getDocs, query, where, updateDoc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -865,7 +866,8 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
   window.whStorage = { storage: fbStorage, ref: storageRef, getBytes: getBytes };
   window.whFirestore = {
     db: fbDb, doc: doc, getDoc: getDoc, setDoc: setDoc,
-    collection: collection, addDoc: addDoc, getDocs: getDocs, query: query, where: where
+    collection: collection, addDoc: addDoc, getDocs: getDocs, query: query, where: where,
+    updateDoc: updateDoc, deleteDoc: deleteDoc
   };
 
   setPersistence(fbAuth, browserLocalPersistence).catch(function (e) {
@@ -1574,8 +1576,18 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
         </div>
       </div>
       <p id="hik-nonadmin-note" class="hidden" style="font-size:11.5px;color:var(--text3);margin-bottom:10px;line-height:1.6;">Eklediğin hikayeler sadece sende görünür. Havuzda yayınlama yetkisi şu an sadece adminlerde.</p>
-      <button class="chip" onclick="hikAddStoryFromForm()">Hikaye Ekle</button>
+      <div id="hik-edit-banner" class="hidden" style="font-size:12px;color:var(--warn);font-weight:600;margin-bottom:8px;">✎ Düzenleme modu — bir hikayeyi güncelliyorsun</div>
+      <div style="display:flex;gap:8px;">
+        <button class="chip" id="hik-add-submit-btn" onclick="hikAddStoryFromForm()">Hikaye Ekle</button>
+        <button class="chip hidden" id="hik-edit-cancel-btn" onclick="hikCancelEdit()" style="background:var(--surface2);">Vazgeç</button>
+      </div>
       <div id="hik-add-status" style="font-size:12px;margin-top:8px;line-height:1.6;"></div>
+    </div>
+
+    <div class="filter-panel hidden" id="hik-manage-panel">
+      <div class="settings-panel-head"><span class="settings-panel-ico" style="background:linear-gradient(135deg,#6b8f71,#4a6f52);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4v12"/></svg></span><span class="settings-panel-title">Hikayelerini Yönet</span></div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">Havuzda yayınladığın veya başka bir adminin yayınladığı hikayeleri buradan düzenleyebilir, yayından kaldırabilir (pasife alabilir) veya silebilirsin. Sadece kendi özel (private) hikayelerin de burada listelenir.</p>
+      <div id="hik-manage-list"></div>
     </div>
 
     <div class="filter-panel">
