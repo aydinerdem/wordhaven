@@ -2872,7 +2872,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608291015';
+const APP_VERSION = '202608291042';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3707,7 +3707,12 @@ function hikStoryBodyHtml(story) {
 }
 
 function hikToggleAllTr(btn) {
-  const wrap = btn.nextElementSibling;
+  // btn.nextElementSibling KULLANILMIYOR — "Okudum" butonu eklenince
+  // tr-toggle'ın bir sonraki kardeşi artık .hik-story-body DEĞİL, Okudum
+  // butonu oldu (ikisi aynı flex kutusunda). rdgToggleTr'deki (Okuyarak
+  // Öğren) gibi parent-tabanlı arama daha sağlam — DOM yapısı değişse bile
+  // kırılmaz.
+  const wrap = btn.parentElement.parentElement.querySelector('.hik-story-body');
   const showing = btn.classList.contains('on');
   wrap.querySelectorAll('.hik-tr-p').forEach(function (el) { el.style.display = showing ? 'none' : 'block'; });
   btn.classList.toggle('on', !showing);
