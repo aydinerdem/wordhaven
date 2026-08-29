@@ -2845,6 +2845,14 @@ let srsStore = {};
 // çakışmaz). bkz. backlog #11.
 let grItemStates = {};
 
+// Hikayeler: okundu/okunmadı işaretleme (backlog: kişisel ilerleme). key:
+// story.id → okundu işaretlendiği andaki ISO tarih string'i. favorites/
+// contactTrack ile AYNI desen. BURADA tanımlanması ŞART (grItemStates'in
+// yanında, saveState/loadState/cloudSyncOnStartup'tan ÖNCE) — bu üçü daha
+// altta üst seviyede senkron çağrılıyor (loadState() satır ~3103), değişken
+// onlardan SONRA tanımlanırsa TDZ hatası (ReferenceError) verirdi.
+let hikReadStories = {};
+
 function getSrsEntry(key) {
   return srsStore[key] || null;
 }
@@ -2864,7 +2872,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608282034';
+const APP_VERSION = '202608282115';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -2880,7 +2888,7 @@ let lastSavedAt = null;
 function saveState() {
   try {
     lastSavedAt = new Date().toISOString();
-    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, savedAt: lastSavedAt };
+    const data = { progress, progressReverse, contentCache, streak, customProgress, customWords, customCache, srsStore, favorites, contactTrack, lookupCount, grItemStates, hikReadStories, savedAt: lastSavedAt };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     cloudSaveState(lastSavedAt);
   } catch (e) { /* localStorage dolu veya erişilemez olabilir — sessizce geç */ }
@@ -2903,6 +2911,7 @@ function loadState() {
     if (d.contactTrack) contactTrack = d.contactTrack;
     if (d.lookupCount) lookupCount = d.lookupCount;
     if (d.grItemStates) grItemStates = d.grItemStates;
+    if (d.hikReadStories) hikReadStories = d.hikReadStories;
     if (d.savedAt) lastSavedAt = d.savedAt;
     return true;
   } catch (e) { return false; }
@@ -2917,7 +2926,7 @@ function loadState() {
 // kayıt yolu olmaya devam ediyor, bulut yazması başarısız olsa bile (offline,
 // izin hatası vb.) kullanıcı deneyimi hiç etkilenmiyor — sadece konsola log.
 function cloudSyncFields() {
-  return { progress, progressReverse, streak, customProgress, customWords, srsStore, favorites, contactTrack, lookupCount, grItemStates };
+  return { progress, progressReverse, streak, customProgress, customWords, srsStore, favorites, contactTrack, lookupCount, grItemStates, hikReadStories };
 }
 function cloudSaveState(savedAt) {
   try {
@@ -2957,6 +2966,7 @@ function cloudSyncOnStartup() {
       if (cloud.contactTrack) contactTrack = cloud.contactTrack;
       if (cloud.lookupCount) lookupCount = cloud.lookupCount;
       if (cloud.grItemStates) grItemStates = cloud.grItemStates;
+      if (cloud.hikReadStories) hikReadStories = cloud.hikReadStories;
       lastSavedAt = cloud.savedAt;
       // localStorage'ı da güncel tut — contentCache/customCache dokunulmadan kalır.
       try {
@@ -2965,12 +2975,16 @@ function cloudSyncOnStartup() {
         local.progress = progress; local.progressReverse = progressReverse; local.streak = streak;
         local.customProgress = customProgress; local.customWords = customWords; local.srsStore = srsStore;
         local.favorites = favorites; local.contactTrack = contactTrack; local.lookupCount = lookupCount;
-        local.grItemStates = grItemStates; local.savedAt = lastSavedAt;
+        local.grItemStates = grItemStates; local.hikReadStories = hikReadStories; local.savedAt = lastSavedAt;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
       } catch (e) { /* sessizce geç */ }
       updateDashboard();
       if (typeof renderCustomWordsList === 'function') renderCustomWordsList();
       if (typeof refreshCurrentWordViews === 'function') refreshCurrentWordViews();
+      const hikView = document.getElementById('view-stories');
+      if (hikView && !hikView.classList.contains('hidden') && typeof hikRenderReadFilterRow === 'function') {
+        hikRenderReadFilterRow(); hikRenderLevelRow(); hikRenderList();
+      }
     }).catch(function (e) {
       console.error('Bulut senkronu okunamadı (yerel veriyle devam ediliyor):', e);
     });
@@ -3213,6 +3227,21 @@ function hikVisibleStories() {
   return STORIES.filter(function (s) { return s.status !== 'inactive'; });
 }
 
+// hikVisibleStories()'in üstüne "Okunma durumu" filtresini (hikReadFilter)
+// ekler. Kasıtlı olarak SEVİYE filtresini (hikLevel) BURAYA katmıyoruz —
+// hikRenderList ve hikRenderLevelRow bunu kendi ihtiyaçlarına göre ayrıca
+// uyguluyor (seviye rozetlerindeki sayılar da okunma filtresine göre
+// hesaplanmalı — "seviyelere göre filtre bu filtre ile uyumlu çalışsın").
+// Kapsam Raporu (hikStoryWordSets) BİLEREK bunu kullanmıyor, hâlâ
+// hikVisibleStories() ile TÜM hikayeleri tarıyor — o bir içerik-planlama
+// aracı, kişisel okuma ilerlemesinden etkilenmemesi daha doğru.
+function hikReadFilteredStories() {
+  return hikVisibleStories().filter(function (s) {
+    const isRead = !!hikReadStories[s.id];
+    return hikReadFilter === 'read' ? isRead : !isRead;
+  });
+}
+
 // Bulut hikayelerini çekip STORIES'i günceller, açıksa Hikayeler ekranını
 // yeniden çizer. Hem açılışta (cloudSyncOnStartup ile birlikte) hem
 // Hikayeler ekranı her açıldığında (hikInit) çağrılır — sessiz/asenkron,
@@ -3223,6 +3252,7 @@ function hikRefreshCloudStories() {
     Object.keys(_hikCountsCache).forEach(function (k) { delete _hikCountsCache[k]; });
     const view = document.getElementById('view-stories');
     if (view && !view.classList.contains('hidden')) {
+      hikRenderReadFilterRow();
       if (hikReportOpen) hikRenderReport(); else hikRenderList();
     }
     // "Hikayelerini Yönet" paneli Hikayeler ekranında DEĞİL, Ayarlar
@@ -3380,6 +3410,14 @@ function hikColorizeParagraph(text, level) {
 
 let hikLevel = 'A1';
 let hikOpenId = null; // accordion: hangi hikaye açık (liste içinde genişliyor, ayrı sayfaya gitmiyor)
+
+// Üstteki "Okunma durumu" filtresi: 'unread' (varsayılan) | 'read'. Ekrandan
+// ekrana geçişte SIFIRLANMIYOR (hikLevel gibi) — kullanıcı ayarladığı gibi
+// kalır, sadece uygulama ilk açıldığında 'unread' ile başlar. (hikReadStories
+// — asıl okundu/okunmadı VERİSİ — burada DEĞİL, grItemStates'in yanında
+// tanımlı: loadState()/cloudSyncOnStartup() bu dosyada DAHA YUKARIDA, üst
+// seviyede senkron çağrılıyor — değişken onlardan SONRA tanımlanırsa TDZ
+// hatası verir.)
 // hikHighlightLevel: SADECE açık hikayenin içinde hangi seviyenin kelimeleri
 // vurgulanacağını belirler. hikLevel'den (üstteki "Seviye seç" — hangi
 // hikayelerin listeleneceğini belirler) KASITLI OLARAK ayrı tutuluyor —
@@ -3394,6 +3432,7 @@ function hikInit() {
   document.getElementById('hik-report-wrap').classList.add('hidden');
   document.getElementById('hik-normal-wrap').classList.remove('hidden');
   document.getElementById('hik-report-btn').textContent = 'Kapsam Raporu';
+  hikRenderReadFilterRow();
   hikRenderLevelRow();
   hikRenderList();
   hikRefreshCloudStories(); // arka planda bulut hikayelerini çek, gelince ekranı tazele
@@ -3515,10 +3554,34 @@ function hikRenderLevelRow() {
   const row = document.getElementById('hik-level-row');
   const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
   row.innerHTML = levels.map(function (lv) {
-    const count = hikVisibleStories().filter(function (s) { return hikStoryLevels(s).indexOf(lv) !== -1; }).length;
+    const count = hikReadFilteredStories().filter(function (s) { return hikStoryLevels(s).indexOf(lv) !== -1; }).length;
     const dis = count === 0 && lv !== hikLevel;
     return '<button class="chip lvl-' + lv.toLowerCase() + (lv === hikLevel ? ' on' : '') + (dis ? ' disabled' : '') + '" ' + (dis ? 'disabled' : '') + ' data-lv="' + lv + '" onclick="hikSelectLevel(\'' + lv + '\')">' + lv + '<span class="n">(' + count + ')</span></button>';
   }).join('');
+}
+
+// Okundu/Okunmadı filtre sekmesi — "Seviye seç"in ÜSTÜNDE, ana filtre.
+// Sayaçlar (N) TÜM seviyeler dahil global toplam (hikReadFilter'ın
+// kendisinden ayrı, level'a göre daraltılmıyor) — seviyeye göre daraltma
+// aşağıdaki hikRenderLevelRow'un işi.
+function hikRenderReadFilterRow() {
+  const row = document.getElementById('hik-read-filter-row');
+  if (!row) return;
+  const visible = hikVisibleStories();
+  const readCount = visible.filter(function (s) { return !!hikReadStories[s.id]; }).length;
+  const unreadCount = visible.length - readCount;
+  function btn(key, label, count) {
+    const on = hikReadFilter === key ? ' on' : '';
+    return '<button class="chip' + on + '" data-rf="' + key + '" onclick="hikSetReadFilter(\'' + key + '\')">' + label + '<span class="n">(' + count + ')</span></button>';
+  }
+  row.innerHTML = btn('unread', 'Okumadıklarım', unreadCount) + btn('read', 'Okuduklarım', readCount);
+}
+
+function hikSetReadFilter(key) {
+  hikReadFilter = key;
+  hikRenderReadFilterRow();
+  hikRenderLevelRow();
+  hikRenderList();
 }
 
 // ÜSTTEKİ "Seviye seç" sekmesi: hangi hikayelerin listeleneceğini belirler.
@@ -3528,6 +3591,23 @@ function hikRenderLevelRow() {
 function hikSelectLevel(lv) {
   hikLevel = lv;
   hikHighlightLevel = lv;
+  hikRenderLevelRow();
+  hikRenderList();
+}
+
+// Bir hikayeyi okundu/okunmadı olarak işaretler (toggle). Aktif filtre
+// 'unread'ken bir hikayeyi okundu işaretlemek onu listeden DÜŞÜRÜR — bu
+// KASITLI, "okudum, sırada bu yok artık" hissi veriyor. hikRenderList zaten
+// hikOpenId'nin (açık kart) yeni listede olup olmadığını kontrol edip
+// gerekirse kapatıyor, burada ayrıca dokunmuyoruz.
+function hikToggleReadStatus(id) {
+  if (hikReadStories[id]) {
+    delete hikReadStories[id];
+  } else {
+    hikReadStories[id] = new Date().toISOString();
+  }
+  saveState();
+  hikRenderReadFilterRow();
   hikRenderLevelRow();
   hikRenderList();
 }
@@ -3566,11 +3646,12 @@ function hikLevelColorVar(lv) { return 'var(--' + lv.toLowerCase() + ')'; }
 // seviyenin (hikHighlightLevel) rengine boyanır.
 function hikRenderList() {
   const wrap = document.getElementById('hik-list');
-  const items = hikVisibleStories().filter(function (s) { return hikStoryLevels(s).indexOf(hikLevel) !== -1; })
+  const items = hikReadFilteredStories().filter(function (s) { return hikStoryLevels(s).indexOf(hikLevel) !== -1; })
     .sort(function (a, b) { return a.title_en.localeCompare(b.title_en, 'en', { sensitivity: 'base' }); });
   if (hikOpenId && !items.some(function (s) { return s.id === hikOpenId; })) hikOpenId = null;
   if (!items.length) {
-    wrap.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">Bu seviyede henüz hikaye yok.</div>';
+    const emptyMsg = hikReadFilter === 'read' ? 'Bu seviyede henüz okuduğun bir hikaye yok.' : 'Bu seviyede okunmamış hikaye kalmadı — hepsini okumuşsun! 🎉';
+    wrap.innerHTML = '<div style="padding:24px 8px;text-align:center;color:var(--text3);font-size:13px;">' + emptyMsg + '</div>';
     return;
   }
   wrap.innerHTML = items.map(function (s) {
@@ -3609,8 +3690,12 @@ function hikToggleStory(id) {
 function hikStoryBodyHtml(story) {
   const enParas = story.text_en.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
   const trParas = story.text_tr.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+  const isRead = !!hikReadStories[story.id];
   let body = '<div style="padding-top:12px;border-top:0.5px solid var(--border);">';
+  body += '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">';
   body += '<button class="tr-toggle" onclick="event.stopPropagation();hikToggleAllTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button>';
+  body += '<button type="button" class="chip' + (isRead ? ' on' : '') + '" style="padding:6px 12px;font-size:12.5px;white-space:nowrap;" onclick="event.stopPropagation();hikToggleReadStatus(\'' + story.id + '\')">' + (isRead ? '✓ Okudum' : 'Okudum olarak işaretle') + '</button>';
+  body += '</div>';
   body += '<div class="hik-story-body" style="margin-top:10px;">';
   enParas.forEach(function (p, i) {
     body += '<p style="margin-bottom:14px;line-height:1.75;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>';
