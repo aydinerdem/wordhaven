@@ -2864,7 +2864,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608281941';
+const APP_VERSION = '202608282034';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3224,7 +3224,16 @@ function hikRefreshCloudStories() {
     const view = document.getElementById('view-stories');
     if (view && !view.classList.contains('hidden')) {
       if (hikReportOpen) hikRenderReport(); else hikRenderList();
-      if (hikIsAdmin()) hikRenderManageList();
+    }
+    // "Hikayelerini Yönet" paneli Hikayeler ekranında DEĞİL, Ayarlar
+    // ekranında yaşıyor — bu yüzden yukarıdaki view-stories görünürlük
+    // kontrolüne BAĞLI OLMADAN, panelin kendi 'hidden' durumuna bakıyoruz.
+    // (Önceki hata: panel sadece view-stories açıkken yenileniyordu, yani
+    // Ayarlar'dan Pasife Al/Sil/Düzenle yapınca Firestore güncelleniyordu
+    // ama liste hiç yeniden çizilmiyordu — "çalışmıyor" gibi görünüyordu.)
+    const managePanel = document.getElementById('hik-manage-panel');
+    if (managePanel && !managePanel.classList.contains('hidden')) {
+      hikRenderManageList();
     }
   });
 }
@@ -3604,7 +3613,7 @@ function hikStoryBodyHtml(story) {
   body += '<button class="tr-toggle" onclick="event.stopPropagation();hikToggleAllTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button>';
   body += '<div class="hik-story-body" style="margin-top:10px;">';
   enParas.forEach(function (p, i) {
-    body += '<p style="margin-bottom:4px;line-height:1.75;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>';
+    body += '<p style="margin-bottom:14px;line-height:1.75;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>';
     if (trParas[i]) body += '<p class="hik-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
   });
   body += '</div></div>';
@@ -3801,7 +3810,7 @@ function rdgPassageHtml(unitId, idx, p, unitWords) {
   const enParas = p.text_en.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
   const trParas = p.text_tr.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
   enParas.forEach(function (para, i) {
-    html += '<p style="margin-bottom:4px;line-height:1.75;">' + rdgColorizeParagraph(para, targetTokenSet) + '</p>';
+    html += '<p style="margin-bottom:14px;line-height:1.75;">' + rdgColorizeParagraph(para, targetTokenSet) + '</p>';
     if (trParas[i]) html += '<p class="rdg-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
   });
   html += '</div>';
