@@ -2872,7 +2872,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608282115';
+const APP_VERSION = '202608291015';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3418,6 +3418,7 @@ let hikOpenId = null; // accordion: hangi hikaye açık (liste içinde genişliy
 // tanımlı: loadState()/cloudSyncOnStartup() bu dosyada DAHA YUKARIDA, üst
 // seviyede senkron çağrılıyor — değişken onlardan SONRA tanımlanırsa TDZ
 // hatası verir.)
+let hikReadFilter = 'unread';
 // hikHighlightLevel: SADECE açık hikayenin içinde hangi seviyenin kelimeleri
 // vurgulanacağını belirler. hikLevel'den (üstteki "Seviye seç" — hangi
 // hikayelerin listeleneceğini belirler) KASITLI OLARAK ayrı tutuluyor —
