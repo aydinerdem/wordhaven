@@ -2872,7 +2872,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608291130';
+const APP_VERSION = '202608301700';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3662,7 +3662,7 @@ function hikRenderList() {
       + '<div class="gr-acc-head" onclick="hikToggleStory(\'' + s.id + '\')" style="align-items:flex-start;flex-direction:column;gap:0;">'
       + '<div style="display:flex;align-items:center;width:100%;gap:8px;">'
       + '<div style="flex:1;">'
-      + '<div class="wordfont" style="font-weight:600;font-size:14.5px;">' + escHtml(s.title_en) + '</div>'
+      + '<div class="wordfont" style="font-weight:500;font-size:14.5px;">' + escHtml(s.title_en) + '</div>'
       + '<div style="font-size:12.5px;color:var(--text2);margin-top:2px;">' + escHtml(s.title_tr) + '</div>'
       + '</div>'
       + ttsButtonHtml(s.text_en.replace(/\s+/g, ' ').trim())
@@ -3701,11 +3701,11 @@ function hikStoryBodyHtml(story) {
   body += '</div>';
   body += '<div class="hik-story-body" style="margin-top:10px;">';
   enParas.forEach(function (p, i) {
-    body += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">'
+    body += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:20px;">'
       + ttsButtonHtml(p.replace(/\s+/g, ' ').trim())
-      + '<p style="margin:0;line-height:1.75;flex:1;min-width:0;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>'
+      + '<p style="margin:0;line-height:1.8;flex:1;min-width:0;color:var(--text2);" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>'
       + '</div>';
-    if (trParas[i]) body += '<p class="hik-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
+    if (trParas[i]) body += '<p class="hik-tr-p" style="display:none;margin-bottom:20px;color:var(--text3);line-height:1.7;">' + escHtml(trParas[i]) + '</p>';
   });
   body += '</div></div>';
   return body;
@@ -3900,14 +3900,14 @@ function rdgUnitBodyHtml(u) {
 function rdgPassageHtml(unitId, idx, p, unitWords) {
   const targetTokenSet = rdgTargetTokenSet(unitWords);
   let html = '<button class="tr-toggle" onclick="event.stopPropagation();rdgToggleTr(this)"><span class="tr-switch"><span class="tr-switch-knob"></span></span><span class="tr-toggle-label">Türkçesini gör</span></button>';
-  html += '<div class="wordfont" style="font-weight:600;font-size:15px;margin:12px 0 2px;">' + escHtml(p.title_en) + '</div>';
+  html += '<div class="wordfont" style="font-weight:500;font-size:15px;margin:12px 0 2px;">' + escHtml(p.title_en) + '</div>';
   html += '<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;">' + escHtml(p.title_tr) + '</div>';
   html += '<div class="rdg-passage-body">';
   const enParas = p.text_en.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
   const trParas = p.text_tr.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
   enParas.forEach(function (para, i) {
-    html += '<p style="margin-bottom:14px;line-height:1.75;">' + rdgColorizeParagraph(para, targetTokenSet) + '</p>';
-    if (trParas[i]) html += '<p class="rdg-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
+    html += '<p style="margin-bottom:20px;line-height:1.8;color:var(--text2);">' + rdgColorizeParagraph(para, targetTokenSet) + '</p>';
+    if (trParas[i]) html += '<p class="rdg-tr-p" style="display:none;margin-bottom:20px;color:var(--text3);line-height:1.7;">' + escHtml(trParas[i]) + '</p>';
   });
   html += '</div>';
   html += rdgQuizHtml(unitId, idx, p);
