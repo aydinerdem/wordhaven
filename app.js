@@ -2872,7 +2872,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608291042';
+const APP_VERSION = '202608291130';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -3665,6 +3665,7 @@ function hikRenderList() {
       + '<div class="wordfont" style="font-weight:600;font-size:14.5px;">' + escHtml(s.title_en) + '</div>'
       + '<div style="font-size:12.5px;color:var(--text2);margin-top:2px;">' + escHtml(s.title_tr) + '</div>'
       + '</div>'
+      + ttsButtonHtml(s.text_en.replace(/\s+/g, ' ').trim())
       + '<span class="gr-acc-chevron">&#8250;</span>'
       + '</div>'
       + hikInfoLineHtml(s, cardLevel, isOpen)
@@ -3672,6 +3673,7 @@ function hikRenderList() {
       + '<div class="gr-acc-body' + (isOpen ? ' open' : '') + '">' + (isOpen ? hikStoryBodyHtml(s) : '') + '</div>'
       + '</div>';
   }).join('');
+  ttsWireButtons(wrap);
 }
 
 
@@ -3699,7 +3701,10 @@ function hikStoryBodyHtml(story) {
   body += '</div>';
   body += '<div class="hik-story-body" style="margin-top:10px;">';
   enParas.forEach(function (p, i) {
-    body += '<p style="margin-bottom:14px;line-height:1.75;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>';
+    body += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">'
+      + ttsButtonHtml(p.replace(/\s+/g, ' ').trim())
+      + '<p style="margin:0;line-height:1.75;flex:1;min-width:0;" onclick="event.stopPropagation();">' + hikColorizeParagraph(p, hikHighlightLevel) + '</p>'
+      + '</div>';
     if (trParas[i]) body += '<p class="hik-tr-p" style="display:none;margin-bottom:14px;color:var(--text2);line-height:1.65;">' + escHtml(trParas[i]) + '</p>';
   });
   body += '</div></div>';
