@@ -1211,7 +1211,10 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
         <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Seviye seç</div>
         <div class="f-row3" id="list-cefr-row"></div>
         <div id="list-band-filters" style="margin-top:10px;"></div>
-        <div id="list-count-info" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+          <div id="list-count-info" style="font-size:12px;color:var(--text3);"></div>
+          <button type="button" class="chip" onclick="listenStart(listLevel)">🎧 Dinle</button>
+        </div>
       </div>
       <div id="word-list-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0;"></div>
     </div>

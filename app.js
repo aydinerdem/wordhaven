@@ -1916,6 +1916,120 @@ function selectListLevel(lv){
   listLevel=lv; listOpenKey=null;
   listRefreshAll();
 }
+
+let listenActive = false;
+let listenPlaying = false;
+let listenLevel = null;
+let listenQueue = [];
+let listenIndex = 0;
+let listenGen = 0;
+
+function listenBuildQueue(level) {
+  const words = WORD_DATA.filter(function (w) { return w.cefr === level && listWordPasses(w); });
+  const groups = {};
+  words.forEach(function (w) {
+    const c = contactTrack[w.word.toLowerCase()];
+    const h = (c && c.heard) || 0;
+    (groups[h] = groups[h] || []).push(w);
+  });
+  const heardCounts = Object.keys(groups).map(Number).sort(function (a, b) { return a - b; });
+  let queue = [];
+  heardCounts.forEach(function (h) {
+    const group = groups[h];
+    for (let i = group.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = group[i]; group[i] = group[j]; group[j] = tmp;
+    }
+    queue = queue.concat(group);
+  });
+  return queue;
+}
+
+function listenStart(level) {
+  listenGen++;
+  const myGen = listenGen;
+  listenLevel = level;
+  listenQueue = listenBuildQueue(level);
+  listenIndex = 0;
+  listenActive = true;
+  listenPlaying = true;
+  listenRenderPlayer();
+  listenStep(myGen);
+}
+
+async function listenStep(myGen) {
+  if (myGen !== listenGen || !listenPlaying) return;
+  if (listenQueue.length === 0) { listenStop(); return; }
+  if (listenIndex >= listenQueue.length) {
+    listenQueue = listenBuildQueue(listenLevel);
+    listenIndex = 0;
+    if (listenQueue.length === 0) { listenStop(); return; }
+  }
+  const w = listenQueue[listenIndex];
+  listenRenderCurrentWord(w, false);
+  await ttsSpeak(w.word, null, { lang: 'en-US', silent: true });
+  if (myGen !== listenGen || !listenPlaying) return;
+  listenRenderCurrentWord(w, true);
+  await ttsSpeak(w.tr, null, { lang: 'tr-TR', silent: true });
+  if (myGen !== listenGen || !listenPlaying) return;
+  markContact(w.word, 'heard');
+  listenIndex++;
+  // Küçük bir güvenlik payı: kelime/tr boşsa (ttsSpeak anında döner) bile
+  // döngü olay döngüsünü tıkamasın diye. Gerçek seste (saniyeler sürer) bu
+  // hiç fark edilmez.
+  await new Promise(function (r) { setTimeout(r, 30); });
+  listenStep(myGen);
+}
+
+function listenPause() {
+  listenPlaying = false;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (ttsCurrentAudioEl) { try { ttsCurrentAudioEl.pause(); } catch (e) {} }
+  listenRenderPlayer();
+}
+
+function listenResume() {
+  if (!listenActive) return;
+  listenPlaying = true;
+  listenRenderPlayer();
+  listenStep(listenGen);
+}
+
+function listenStop() {
+  listenGen++;
+  listenPlaying = false;
+  listenActive = false;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (ttsCurrentAudioEl) { try { ttsCurrentAudioEl.pause(); } catch (e) {} }
+  const panel = document.getElementById('listen-player-panel');
+  if (panel) panel.remove();
+}
+
+function listenRenderPlayer() {
+  let panel = document.getElementById('listen-player-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'listen-player-panel';
+    panel.style.cssText = 'position:fixed;left:12px;right:12px;bottom:78px;max-width:520px;margin:0 auto;background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);box-shadow:0 8px 28px rgba(0,0,0,0.18);padding:16px 18px;z-index:9400;';
+    document.body.appendChild(panel);
+  }
+  panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+    + '<div style="font-size:12px;color:var(--text3);">\ud83c\udfa7 ' + escHtml(listenLevel) + ' kelimeleri dinleniyor</div>'
+    + '<button type="button" onclick="listenStop()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;padding:2px 4px;">\u00d7</button>'
+    + '</div>'
+    + '<div id="listen-current-word" style="min-height:52px;"></div>'
+    + '<div style="display:flex;gap:10px;margin-top:12px;">'
+    + '<button type="button" class="chip" style="flex:1;" onclick="' + (listenPlaying ? 'listenPause()' : 'listenResume()') + '">' + (listenPlaying ? '\u23f8 Duraklat' : '\u25b6 Devam Et') + '</button>'
+    + '</div>';
+}
+
+function listenRenderCurrentWord(w, showTr) {
+  const box = document.getElementById('listen-current-word');
+  if (!box) return;
+  box.innerHTML = '<div class="wordfont" style="font-weight:500;font-size:19px;">' + escHtml(w.word) + '</div>'
+    + '<div style="font-size:15px;color:var(--text2);margin-top:4px;min-height:20px;">' + (showTr ? escHtml(w.tr) : '') + '</div>';
+}
+
 function renderWordList(level){
   const words=WORD_DATA.filter(w=>w.cefr===level && listWordPasses(w));
   const info=document.getElementById('list-count-info');
@@ -2872,7 +2986,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608301700';
+const APP_VERSION = '202608301855';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -5110,6 +5224,12 @@ function clearTtsUserKey() {
 const ELEVENLABS_VOICE_ID = 'JBFqnCBsd6RMkjVDRZzb'; // Premade ses (ElevenLabs'ın kendi quickstart örneğinden) — "Voice Library" sesleri ücretsiz planda API'den engelli, bu yüzden kütüphane yerine temel/premade bir ses kullanıyoruz
 const ttsElevenCache = new Map(); // metin -> blob URL (oturum boyunca, aynı metin için krediyi tekrar harcamamak için)
 
+// Şu an çalan ElevenLabs Audio elementi — Dinleme Modu'nun Duraklat/Durdur
+// butonlarının anlık olarak sesi kesebilmesi için modül-seviyesinde tutuluyor
+// (speechSynthesis.cancel() sadece Web Speech'i durdurur, ElevenLabs kendi
+// <audio> elementi olduğu için ayrıca erişim gerekiyor).
+let ttsCurrentAudioEl = null;
+
 async function ttsSpeakElevenLabs(text) {
   const apiKey = ttsGetActiveKey();
   if (!apiKey) {
@@ -5132,7 +5252,22 @@ async function ttsSpeakElevenLabs(text) {
     ttsElevenCache.set(text, url);
   }
   const audioEl = new Audio(url);
-  await audioEl.play();
+  ttsCurrentAudioEl = audioEl;
+  // audioEl.play()'in döndürdüğü Promise SADECE çalma BAŞLADIĞINDA çözülür,
+  // BİTTİĞİNDE değil — bu yüzden burada 'ended' event'ini AYRICA bekliyoruz.
+  // Sıralı okuma (Dinleme Modu: EN oku → bitince TR oku → sonraki paragraf)
+  // bu doğru bekleme olmadan ÇALIŞMAZ, her çağrı sesin bitmesini beklemeden
+  // anında geri dönerdi.
+  await new Promise((resolve, reject) => {
+    let settled = false;
+    // GÜVENLİK AĞI: bkz. ttsSpeakWebSpeech'teki aynı yorum — bazı ortamlarda
+    // 'onended' hiç ateşlenmeyebilir, 20 saniye (ElevenLabs klipleri Web
+    // Speech'ten uzun sürebilir) sonra bitti varsayıp devam ediyoruz.
+    const watchdog = setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 20000);
+    audioEl.onended = () => { if (!settled) { settled = true; clearTimeout(watchdog); resolve(); } };
+    audioEl.onerror = () => { if (!settled) { settled = true; clearTimeout(watchdog); reject(new Error('Ses çalma hatası')); } };
+    audioEl.play().catch(reject);
+  });
 }
 
 let ttsVoicesReady = null;
@@ -5148,7 +5283,19 @@ function ttsGetVoices() {
   return ttsVoicesReady;
 }
 
-function ttsPickVoice(voices) {
+function ttsPickVoice(voices, lang) {
+  lang = lang || 'en-US';
+  if (lang.indexOf('tr') === 0) {
+    // Türkçe: basit eşleştirme — premium/enhanced ayrımı yapmıyoruz, çoğu
+    // cihazda zaten tek bir Türkçe sistem sesi var. Hiç Türkçe ses yoksa null
+    // dönüyoruz — utter.lang yine de 'tr-TR' kalır, tarayıcı elinden geleni
+    // yapar (bu platform sınırı, kod tarafından çözülemez).
+    return voices.find(v => v.lang === 'tr-TR')
+      || voices.find(v => v.lang && v.lang.indexOf('tr') === 0)
+      || null;
+  }
+  // İngilizce mantık DEĞİŞMEDİ — mevcut tüm çağrı yerleri (Kart Modu, Hikayeler,
+  // Sözlüğüm vb.) bu davranışa göre ayarlı, dokunulmadı.
   return voices.find(v => /Ava/i.test(v.name) && /Enhanced|Premium/i.test(v.name))
     || voices.find(v => /Daniel/i.test(v.name) && /Enhanced|Premium/i.test(v.name))
     || voices.find(v => v.lang === 'en-US' && /Enhanced|Premium/i.test(v.name))
@@ -5157,27 +5304,43 @@ function ttsPickVoice(voices) {
     || voices[0] || null;
 }
 
-function ttsSpeakWebSpeech(text) {
+function ttsSpeakWebSpeech(text, lang) {
+  lang = lang || 'en-US';
   return new Promise((resolve, reject) => {
     if (!('speechSynthesis' in window)) { reject(new Error('speechSynthesis yok')); return; }
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
+    utter.lang = lang;
     utter.rate = 0.88;
     // NOT: Önceden burada ses listesi (getVoices) asenkron olarak bekleniyordu.
     // iOS Safari'de bu bekleme (özellikle ilk kullanımda) kullanıcı jesti
     // penceresini kapatıyor ve speak() sessizce hiçbir şey çalmadan başarısız
     // oluyordu. Artık senkron olarak elde bulunan ses listesiyle (boş olsa
     // bile tarayıcı varsayılan sesi kullanır) hemen konuşmayı başlatıyoruz.
-    const voice = ttsPickVoice(window.speechSynthesis.getVoices());
+    const voice = ttsPickVoice(window.speechSynthesis.getVoices(), lang);
     if (voice) utter.voice = voice;
-    utter.onend = resolve;
-    utter.onerror = (e) => reject(new Error(e.error || 'Bilinmeyen ses hatası'));
+    let settled = false;
+    // GÜVENLİK AĞI: bazı ortamlarda (ör. sandbox'lı iframe, otomatik oynatma
+    // kısıtlaması, tuhaf bir tarayıcı hatası) 'onend'/'onerror' HİÇ ateşlenmeyebilir
+    // — bu olmadan Dinleme Modu ilk kelimede sonsuza kadar takılır kalırdı.
+    // 12 saniye içinde hiçbir sinyal gelmezse, sesin bittiğini VARSAYIP devam ediyoruz.
+    const watchdog = setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 12000);
+    utter.onend = () => { if (!settled) { settled = true; clearTimeout(watchdog); resolve(); } };
+    utter.onerror = (e) => { if (!settled) { settled = true; clearTimeout(watchdog); reject(new Error(e.error || 'Bilinmeyen ses hatası')); } };
     window.speechSynthesis.speak(utter);
   });
 }
 
-async function ttsSpeak(text, btnEl) {
+// opts: { lang: 'en-US'|'tr-TR' (Web Speech fallback için, ElevenLabs zaten
+// çok dilli), silent: true ise ElevenLabs-hatası/tam-hata uyarı pencereleri
+// GÖSTERİLMEZ — Dinleme Modu gibi arka planda kesintisiz akması gereken
+// senaryolar için (aksi halde yürürken kulaklıkla dinlerken bir hata bir
+// alert() ile TÜM akışı durdururdu). Mevcut çağrı yerleri (buton tıklamaları)
+// opts vermiyor, davranışları HİÇ değişmedi.
+async function ttsSpeak(text, btnEl, opts) {
+  opts = opts || {};
+  const lang = opts.lang || 'en-US';
+  const silent = !!opts.silent;
   if (!text || !text.trim()) return;
   const origLabel = btnEl ? btnEl.innerHTML : null;
   if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = ico('clock',13,null,false); }
@@ -5191,19 +5354,21 @@ async function ttsSpeak(text, btnEl) {
         // GEÇİCİ TEŞHİS: bir kullanıcı anahtarı kayıtlıysa (yani ElevenLabs
         // çalışması BEKLENİYORSA) ama başarısız oluyorsa, sebebi görünür yap —
         // aksi halde neden mekanik sesin çaldığı hiç anlaşılmaz.
-        if (localStorage.getItem(TTS_USER_KEY_STORAGE)) {
+        if (!silent && localStorage.getItem(TTS_USER_KEY_STORAGE)) {
           alert('ElevenLabs çalışmadı, mekanik sese düşüldü.\n\nGerçek neden: ' + e1.message + '\n\nBu satırı ekran görüntüsüyle paylaş, birlikte bakalım.');
         }
-        await ttsSpeakWebSpeech(text);
+        await ttsSpeakWebSpeech(text, lang);
       }
     } else {
       // Anahtar hiç yoksa ElevenLabs'ı denemeye bile gerek yok — doğrudan
       // cihaz sesine geç, gereksiz gecikmeyi (ve jest penceresi riskini) önle.
-      await ttsSpeakWebSpeech(text);
+      await ttsSpeakWebSpeech(text, lang);
     }
   } catch (e) {
     console.error('TTS hatası:', e);
-    alert('Ses oynatılamadı.\n\nTeknik detay: ' + (e && e.message ? e.message : String(e)) + '\n\nBu satırı ekran görüntüsüyle paylaşırsan tam nedeni görebilirim.');
+    if (!silent) {
+      alert('Ses oynatılamadı.\n\nTeknik detay: ' + (e && e.message ? e.message : String(e)) + '\n\nBu satırı ekran görüntüsüyle paylaşırsan tam nedeni görebilirim.');
+    }
   } finally {
     if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = origLabel || ico('speaker',13,null,false); }
   }
