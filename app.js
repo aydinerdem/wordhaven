@@ -1959,26 +1959,42 @@ function listenStart(level) {
 
 async function listenStep(myGen) {
   if (myGen !== listenGen || !listenPlaying) return;
-  if (listenQueue.length === 0) { listenStop(); return; }
-  if (listenIndex >= listenQueue.length) {
-    listenQueue = listenBuildQueue(listenLevel);
-    listenIndex = 0;
+  try {
     if (listenQueue.length === 0) { listenStop(); return; }
+    if (listenIndex >= listenQueue.length) {
+      listenQueue = listenBuildQueue(listenLevel);
+      listenIndex = 0;
+      if (listenQueue.length === 0) { listenStop(); return; }
+    }
+    const w = listenQueue[listenIndex];
+    listenRenderCurrentWord(w, false);
+    await ttsSpeak(w.word, null, { lang: 'en-US', silent: true });
+    if (myGen !== listenGen || !listenPlaying) return;
+    listenRenderCurrentWord(w, true);
+    await ttsSpeak(w.tr, null, { lang: 'tr-TR', silent: true });
+    if (myGen !== listenGen || !listenPlaying) return;
+    markContact(w.word, 'heard');
+    listenIndex++;
+    // Küçük bir güvenlik payı: kelime/tr boşsa (ttsSpeak anında döner) bile
+    // döngü olay döngüsünü tıkamasın diye. Gerçek seste (saniyeler sürer) bu
+    // hiç fark edilmez.
+    await new Promise(function (r) { setTimeout(r, 30); });
+    listenStep(myGen);
+  } catch (e) {
+    // GÜVENLİK AĞI (bkz. 2026-08-31 "plan"da 1+ dakika takılma bug'ı): bu
+    // try/catch OLMADAN, ttsSpeak dışındaki HERHANGİ bir hata (örn.
+    // markContact/listenBuildQueue/listenRenderCurrentWord içinde) tüm
+    // zinciri SESSİZCE ve KALICI olarak durduruyordu — watchdog bile
+    // devreye giremiyordu çünkü hata ttsSpeak'in İÇİNDE değildi. Şimdi:
+    // hata hem konsola hem EKRANA yazılıyor (Erdem ekran görüntüsü
+    // paylaşabilsin diye — hangi hata olduğunu görmeden kör tahmin
+    // yapmak yerine), ve döngü bir sonraki kelimeye atlayarak devam ediyor.
+    console.error('listenStep hatası, sonraki kelimeye atlanıyor:', e);
+    const box = document.getElementById('listen-current-word');
+    if (box) box.innerHTML += '<div style="font-size:10px;color:var(--danger,#e05252);margin-top:6px;">Hata (ekran görüntüsü paylaş): ' + escHtml(String((e && e.message) || e)) + '</div>';
+    listenIndex++;
+    setTimeout(function () { listenStep(myGen); }, 500);
   }
-  const w = listenQueue[listenIndex];
-  listenRenderCurrentWord(w, false);
-  await ttsSpeak(w.word, null, { lang: 'en-US', silent: true });
-  if (myGen !== listenGen || !listenPlaying) return;
-  listenRenderCurrentWord(w, true);
-  await ttsSpeak(w.tr, null, { lang: 'tr-TR', silent: true });
-  if (myGen !== listenGen || !listenPlaying) return;
-  markContact(w.word, 'heard');
-  listenIndex++;
-  // Küçük bir güvenlik payı: kelime/tr boşsa (ttsSpeak anında döner) bile
-  // döngü olay döngüsünü tıkamasın diye. Gerçek seste (saniyeler sürer) bu
-  // hiç fark edilmez.
-  await new Promise(function (r) { setTimeout(r, 30); });
-  listenStep(myGen);
 }
 
 function listenPause() {
@@ -2986,7 +3002,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202608301855';
+const APP_VERSION = '202609121015';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
