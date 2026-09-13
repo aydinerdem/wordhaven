@@ -1953,12 +1953,25 @@ function listenStart(level) {
   listenIndex = 0;
   listenActive = true;
   listenPlaying = true;
+  listenErrorStreak = 0;
+  listenBrokenWords = new Set();
   listenRenderPlayer();
   listenStep(myGen);
 }
 
+// Art arda kaç kez üst üste hata alındığını sayar — belirli bir eşiği
+// geçince (aynı ya da farklı kelimelerde ısrarla patlıyorsa) tamamen
+// durduruyoruz, sonsuza kadar 500ms'de bir denemeye devam etmiyoruz.
+let listenErrorStreak = 0;
+// Kalıcı olarak bozuk çıkan kelimeleri (aynı oturumda) bir daha SEÇİLMESİN
+// diye burada tutuyoruz — aksi halde "en az duyulan önce" sıralaması bu
+// kelimeyi (hiç "duyulmuş" sayılamadığı için heard=0 kalır) her turda
+// tekrar en öne getirip aynı hatayı sonsuza kadar tekrarlatabilirdi.
+let listenBrokenWords = new Set();
+
 async function listenStep(myGen) {
   if (myGen !== listenGen || !listenPlaying) return;
+  let w = null;
   try {
     if (listenQueue.length === 0) { listenStop(); return; }
     if (listenIndex >= listenQueue.length) {
@@ -1966,7 +1979,8 @@ async function listenStep(myGen) {
       listenIndex = 0;
       if (listenQueue.length === 0) { listenStop(); return; }
     }
-    const w = listenQueue[listenIndex];
+    w = listenQueue[listenIndex];
+    if (listenBrokenWords.has(w.word)) { listenIndex++; listenStep(myGen); return; }
     listenRenderCurrentWord(w, false);
     await ttsSpeak(w.word, null, { lang: 'en-US', silent: true });
     if (myGen !== listenGen || !listenPlaying) return;
@@ -1974,6 +1988,7 @@ async function listenStep(myGen) {
     await ttsSpeak(w.tr, null, { lang: 'tr-TR', silent: true });
     if (myGen !== listenGen || !listenPlaying) return;
     markContact(w.word, 'heard');
+    listenErrorStreak = 0;
     listenIndex++;
     // Küçük bir güvenlik payı: kelime/tr boşsa (ttsSpeak anında döner) bile
     // döngü olay döngüsünü tıkamasın diye. Gerçek seste (saniyeler sürer) bu
@@ -1984,14 +1999,30 @@ async function listenStep(myGen) {
     // GÜVENLİK AĞI (bkz. 2026-08-31 "plan"da 1+ dakika takılma bug'ı): bu
     // try/catch OLMADAN, ttsSpeak dışındaki HERHANGİ bir hata (örn.
     // markContact/listenBuildQueue/listenRenderCurrentWord içinde) tüm
-    // zinciri SESSİZCE ve KALICI olarak durduruyordu — watchdog bile
-    // devreye giremiyordu çünkü hata ttsSpeak'in İÇİNDE değildi. Şimdi:
-    // hata hem konsola hem EKRANA yazılıyor (Erdem ekran görüntüsü
-    // paylaşabilsin diye — hangi hata olduğunu görmeden kör tahmin
-    // yapmak yerine), ve döngü bir sonraki kelimeye atlayarak devam ediyor.
-    console.error('listenStep hatası, sonraki kelimeye atlanıyor:', e);
+    // zinciri SESSİZCE ve KALICI olarak durduruyordu.
+    //
+    // 2026-09-12 EK DÜZELTME: önceki sürümde hata mesajı innerHTML'e += ile
+    // EKLENİYORDU — aynı kelime ısrarla patlarsa (heard hiç artmadığı için
+    // "en az duyulan önce" sıralaması onu sürekli öne getiriyordu) mesaj
+    // saniyeler içinde devasa büyüyüp sayfayı fiilen dondurmuş olabilirdi.
+    // Şimdi: (1) mesaj HER SEFERİNDE DEĞİŞTİRİLİYOR, birikmiyor, (2) patlayan
+    // kelime bir daha hiç seçilmesin diye listenBrokenWords'e ekleniyor,
+    // (3) art arda çok fazla hata olursa (döngü "ölü" da olsa gösterge sürekli
+    // hata basıp duruyor demektir) TAMAMEN DURDURULUYOR, sonsuza dek
+    // denemiyoruz.
+    console.error('listenStep hatası:', e);
+    if (w && w.word) listenBrokenWords.add(w.word);
+    listenErrorStreak++;
     const box = document.getElementById('listen-current-word');
-    if (box) box.innerHTML += '<div style="font-size:10px;color:var(--danger,#e05252);margin-top:6px;">Hata (ekran görüntüsü paylaş): ' + escHtml(String((e && e.message) || e)) + '</div>';
+    if (listenErrorStreak >= 5) {
+      listenPause(); // NOT: bu paneli yeniden çizer (listenRenderPlayer), bu yüzden
+                     // hata mesajını BUNDAN SONRA, TAZE bir box referansıyla yazıyoruz —
+                     // önce yazıp sonra pause çağırmak mesajı anında silerdi.
+      const box2 = document.getElementById('listen-current-word');
+      if (box2) box2.innerHTML = '<div style="font-size:12px;color:var(--danger,#e05252);">Art arda çok fazla hata oldu, duraklatıldı.<br>Son hata (ekran görüntüsü paylaş): ' + escHtml(String((e && e.message) || e)) + '<br><br>"Devam Et"e basarsan yeniden dener.</div>';
+      return;
+    }
+    if (box) box.innerHTML = '<div style="font-size:10px;color:var(--danger,#e05252);margin-top:6px;">Hata, sonraki kelimeye geçiliyor (ekran görüntüsü paylaş): ' + escHtml(String((e && e.message) || e)) + '</div>';
     listenIndex++;
     setTimeout(function () { listenStep(myGen); }, 500);
   }
@@ -2007,6 +2038,7 @@ function listenPause() {
 function listenResume() {
   if (!listenActive) return;
   listenPlaying = true;
+  listenErrorStreak = 0;
   listenRenderPlayer();
   listenStep(listenGen);
 }
@@ -3002,7 +3034,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202609121015';
+const APP_VERSION = '202609121045';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
