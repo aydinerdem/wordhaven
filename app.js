@@ -3131,7 +3131,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202609161215';
+const APP_VERSION = '202609161300';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -5850,6 +5850,12 @@ async function openWordModal(wordLower, forceCustom) {
     const wrBadge = document.getElementById('modal-wr-badge');
     if (wordObj.writing) { wrBadge.textContent = wordObj.writing; wrBadge.className = 'modal-badge b-' + wordObj.writing.toLowerCase(); wrBadge.style.display = ''; } else wrBadge.style.display = 'none';
     document.getElementById('modal-custom-badge').classList.remove('hidden');
+    const manageRow = document.getElementById('modal-custom-manage');
+    if (manageRow) {
+      manageRow.classList.remove('hidden');
+      const toggleBtn = document.getElementById('modal-custom-toggle-btn');
+      if (toggleBtn) toggleBtn.textContent = (cw.status === 'inactive') ? 'Aktife Al' : 'Pasife Al';
+    }
     const srEl = document.getElementById('modal-sr-status');
     const prog = customProgress[wordLower];
     if (prog) {
@@ -5923,6 +5929,8 @@ async function openWordModal(wordLower, forceCustom) {
 
   const customBadge = document.getElementById('modal-custom-badge');
   customBadge.classList.toggle('hidden', !isCustom || topicWords.length>0);
+  const manageRowRegular = document.getElementById('modal-custom-manage');
+  if (manageRowRegular) manageRowRegular.classList.add('hidden');
 
   // SR status
   const srEl = document.getElementById('modal-sr-status');
@@ -6025,6 +6033,29 @@ function renderModalContent(c, wordObj) {
     return `<div style="border-left:2px solid var(--a2bg);padding-left:10px;margin-bottom:10px;"><p style="font-size:14px;font-style:italic;color:var(--text);line-height:1.6;margin:0;">${en}${ttsButtonHtml(en)}</p>${trHtml}</div>`;
   }).join('');
   ttsWireButtons(document.getElementById('modal-examples'));
+}
+
+// Kelime modalı açıkken (Kendi Havuzum'daki bir kelime için, forceCustom
+// modunda) gösterilen Düzenle/Pasife Al/Sil butonları — aynı işi yapan
+// editCustomWord/toggleCustomWordStatus/deleteCustomWordFromGrid'i
+// ÇAĞIRIYORLAR, sadece önce modalı kapatıyorlar (Düzenle zaten Sözlüğüm'e
+// geçiyor, Sil/Pasife Al ise modalın açık kalmasının bir anlamı yok).
+function editCustomWordFromModal() {
+  if (!modalCurrentWord) return;
+  const word = modalCurrentWord.word;
+  closeWordModal();
+  editCustomWord(word);
+}
+function toggleCustomWordStatusFromModal() {
+  if (!modalCurrentWord) return;
+  toggleCustomWordStatus(modalCurrentWord.word);
+  closeWordModal();
+}
+function deleteCustomWordFromModal() {
+  if (!modalCurrentWord) return;
+  const word = modalCurrentWord.word;
+  deleteCustomWordFromGrid(word); // zaten confirm() içeriyor
+  if (!customWords[word]) closeWordModal(); // gerçekten silindiyse (confirm onaylandıysa) kapat
 }
 
 function closeWordModal() {
