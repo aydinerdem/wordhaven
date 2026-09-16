@@ -3076,7 +3076,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202609160940';
+const APP_VERSION = '202609161000';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -5602,29 +5602,45 @@ function matchWordWithOfficialPool() {
   const statusEl = document.getElementById('manual-match-status');
   const raw = wordInput.value.trim().toLowerCase();
   if (!raw) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = 'Önce bir kelime yaz.'; return; }
-  const matches = OXFORD_WORD_MAP[raw];
-  if (!matches || !matches.length) {
+  // ÜÇ resmi havuzun HEPSİNE bakıyoruz — sadece Oxford 3000/5000 DEĞİL.
+  // Önceki sürüm sadece OXFORD_WORD_MAP'e bakıyordu; bir kelime Ek Havuz'da
+  // (Longman/VOA, Oxford dışı) ya da Konu Kelimeleri'nde kayıtlıyken bile
+  // "bulunamadı" diyordu — gerçek bir eksiklikti (bkz. "pear" örneği, Ek
+  // Havuz'da var ama CEFR'i yok, sadece frekans bandı var).
+  let m = null, sourceLabel = '';
+  const oxMatches = OXFORD_WORD_MAP[raw];
+  if (oxMatches && oxMatches.length) {
+    // Birden fazla tür (isim/fiil vb.) varsa en sık konuşulanı (S1 önce) seç
+    // — openWordModal'daki AYNI önceliklendirme.
+    const priority = ['S1', 'S2', 'S3', ''];
+    oxMatches.sort((a, b) => priority.indexOf(a.speaking || '') - priority.indexOf(b.speaking || ''));
+    m = oxMatches[0]; sourceLabel = 'Oxford 3000/5000';
+  } else if (TOPIC_WORD_MAP[raw] && TOPIC_WORD_MAP[raw].length) {
+    m = TOPIC_WORD_MAP[raw][0]; sourceLabel = 'Konu Kelimeleri';
+  } else if (EXTRA_WORD_MAP[raw] && EXTRA_WORD_MAP[raw].length) {
+    m = EXTRA_WORD_MAP[raw][0]; sourceLabel = 'Ek Havuz';
+  }
+  if (!m) {
     statusEl.style.color = 'var(--text3)';
-    statusEl.textContent = '"' + raw + '" resmi Oxford havuzunda bulunamadı — kendi bilgilerinle devam edebilirsin.';
+    statusEl.textContent = '"' + raw + '" hiçbir resmi havuzda (Oxford, Konu Kelimeleri, Ek Havuz) bulunamadı — kendi bilgilerinle devam edebilirsin.';
     return;
   }
-  // Birden fazla tür (isim/fiil vb.) varsa en sık konuşulanı (S1 önce) seç —
-  // openWordModal'daki AYNI önceliklendirme.
-  const priority = ['S1', 'S2', 'S3', ''];
-  matches.sort((a, b) => priority.indexOf(a.speaking || '') - priority.indexOf(b.speaking || ''));
-  const m = matches[0];
   document.getElementById('manual-pos-input').value = m.pos || '';
   document.getElementById('manual-cefr-select').value = m.cefr || '';
   // "matchedFor": eşleşme HANGİ kelime için yapıldıysa onu saklıyoruz —
   // kullanıcı kelime alanını değiştirip tekrar Eşleştir'e basmadan Ekle'ye
   // basarsa, addManualWord bunu kontrol edip ESKİ eşleşmeyi kullanmıyor
   // (aksi halde önceki kelimenin S1/W1 rozetleri yanlış kelimeye yapışabilirdi).
-  wordInput.dataset.matchedFor = raw;
+  // ÖNEMLİ: addManualWord kelimeyi kaydederken noktalama işaretlerini temizliyor
+  // (word.replace(/[^a-z'-]/g,'')) — "a.m." gibi noktalı kelimelerde raw
+  // ("a.m.") ile o temizlenmiş hal ("am") ASLA eşleşmezdi, eşleşme sessizce
+  // kaybolurdu. Burada da AYNI temizliği uyguluyoruz ki ikisi tutsun.
+  wordInput.dataset.matchedFor = raw.replace(/[^a-z'-]/g, '');
   wordInput.dataset.matchedSpeaking = m.speaking || '';
   wordInput.dataset.matchedWriting = m.writing || '';
   wordInput.dataset.matchedFreq = m.freq || '';
   statusEl.style.color = 'var(--success)';
-  statusEl.textContent = '✓ Oxford havuzunda bulundu — Tür/Seviye dolduruldu (' + [m.cefr, m.speaking, m.writing].filter(Boolean).join(' · ') + ').';
+  statusEl.textContent = '✓ ' + sourceLabel + '\'nde bulundu — Tür/Seviye dolduruldu (' + [m.cefr, m.speaking, m.writing, m.freq].filter(Boolean).join(' · ') + ').';
 }
 
 function addManualWord() {
