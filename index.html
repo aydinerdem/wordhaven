@@ -1193,7 +1193,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
          Tüm alanlar KELİME hariç opsiyonel — kullanıcı elindeki bilgiyi
          doldurur, gerisini boş bırakır. "Eşleştir" resmi Oxford havuzunda
          arar, bulursa Tür/Seviye alanlarını otomatik doldurur. -->
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;">
+    <div id="manual-add-panel" style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;">
       <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px;">Detaylı ekle <span style="font-weight:400;color:var(--text3);">— elinde bilgi varsa direkt doldur</span></div>
 
       <div style="display:flex;gap:8px;margin-bottom:10px;">
@@ -1850,7 +1850,7 @@ details[open]>.disclosure-summary .dchev{transform:rotate(90deg);color:var(--acc
       // Sürüm damgası: index.html her güncellendiğinde app.js de tazeden çekilir.
       // Damga olmazsa tarayıcı eski app.js'i önbellekten verir ve yeni index.html
       // ile eşleşmediği için ekran boş kalır.
-      s.src = 'app.js?v=202609161000';
+      s.src = 'app.js?v=202609161215';
       s.onload = function(){
         var el = document.getElementById('wh-loading-overlay');
         if (el) el.remove();

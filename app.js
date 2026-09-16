@@ -2232,19 +2232,74 @@ function renderCustomWordGrid(){
   grid.innerHTML = words.map(w => {
     const k = w.word;
     const open = (k === customOpenKey);
+    const isInactive = w.status === 'inactive';
     const cefrBadge = w.cefr ? `<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>` : '';
     const manualBadge = `<span style="font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:10px;font-weight:600;">Manuel</span>`;
-    let html = `<div class="list-word-item" onclick="toggleCustomWord('${k.replace(/'/g,"\\'")}')">
-      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> ${w.pos?`<span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>`:''} ${cefrBadge} ${manualBadge}</div>${wordRowLine2Html(w)}</div>
+    const pasifBadge = isInactive ? `<span style="font-size:10px;color:var(--text3);background:var(--surface2);padding:2px 8px;border-radius:10px;font-weight:600;">Pasif</span>` : '';
+    let html = `<div class="list-word-item" style="${isInactive ? 'opacity:0.55;' : ''}" onclick="toggleCustomWord('${k.replace(/'/g,"\\'")}')">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> ${w.pos?`<span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>`:''} ${cefrBadge} ${manualBadge} ${pasifBadge}</div>${wordRowLine2Html(w)}</div>
       <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
     </div>`;
     if (open) {
       const c = customCache[k];
-      html += `<div style="grid-column:1/-1;border-bottom:0.5px solid var(--border);background:var(--surface);padding:14px;">${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);">Bu kelime için henüz içerik girilmedi — Sözlüğüm\'den düzenleyebilirsin.</p>'}</div>`;
+      html += `<div style="grid-column:1/-1;border-bottom:0.5px solid var(--border);background:var(--surface);padding:14px;">
+        ${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);margin-bottom:10px;">Bu kelime için henüz içerik girilmedi.</p>'}
+        <div style="display:flex;gap:8px;margin-top:12px;" onclick="event.stopPropagation();">
+          <button type="button" class="chip" style="padding:6px 12px;font-size:12px;" onclick="editCustomWord('${k.replace(/'/g,"\\'")}')">Düzenle</button>
+          <button type="button" class="chip" style="padding:6px 12px;font-size:12px;" onclick="toggleCustomWordStatus('${k.replace(/'/g,"\\'")}')">${isInactive ? 'Aktife Al' : 'Pasife Al'}</button>
+          <button type="button" class="chip" style="padding:6px 12px;font-size:12px;color:var(--danger);" onclick="deleteCustomWordFromGrid('${k.replace(/'/g,"\\'")}')">Sil</button>
+        </div>
+      </div>`;
     }
     return html;
   }).join('');
   ttsWireButtons(grid);
+}
+
+// "Düzenle": Sözlüğüm ekranına geçer ve Detaylı ekle formunu bu kelimenin
+// MEVCUT bilgileriyle DOLDURUR — önceki sürümde form her zaman boş geliyordu,
+// kullanıcı sıfırdan yazmak zorunda kalıyordu.
+function editCustomWord(word) {
+  const w = customWords[word];
+  if (!w) return;
+  const c = customCache[word] || {};
+  showView('wordadd');
+  document.getElementById('manual-word-input').value = w.word;
+  document.getElementById('manual-pos-input').value = w.pos || '';
+  document.getElementById('manual-cefr-select').value = w.cefr || '';
+  document.getElementById('manual-turkish-input').value = c.turkish || '';
+  document.getElementById('manual-definition-input').value = c.definition || '';
+  document.getElementById('manual-nuance-input').value = c.nuance || '';
+  const examples = c.examples || [];
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('manual-ex' + i + '-en').value = (examples[i-1] && examples[i-1].en) || '';
+    document.getElementById('manual-ex' + i + '-tr').value = (examples[i-1] && examples[i-1].tr) || '';
+  }
+  // Eşleştir'den gelen resmi bağlantı bilgisini de koru — düzenlenip tekrar
+  // kaydedildiğinde matchedOfficial/speaking/writing/freq kaybolmasın.
+  const wordInput = document.getElementById('manual-word-input');
+  if (w.matchedOfficial) {
+    wordInput.dataset.matchedFor = word;
+    wordInput.dataset.matchedSpeaking = w.speaking || '';
+    wordInput.dataset.matchedWriting = w.writing || '';
+    wordInput.dataset.matchedFreq = w.freq || '';
+  }
+  document.getElementById('manual-add-status').textContent = '';
+  const formPanel = document.getElementById('manual-add-panel');
+  if (formPanel && formPanel.scrollIntoView) formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleCustomWordStatus(word) {
+  const w = customWords[word];
+  if (!w) return;
+  w.status = (w.status === 'inactive') ? 'active' : 'inactive';
+  saveState();
+  renderCustomWordGrid();
+  renderCustomWordsList();
+}
+
+function deleteCustomWordFromGrid(word) {
+  removeCustomWord(word); // zaten confirm() içeriyor, customProgress/customCache'i de temizliyor
 }
 function toggleCustomWord(k){
   customOpenKey = (customOpenKey===k) ? null : k;
@@ -3076,7 +3131,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202609161000';
+const APP_VERSION = '202609161215';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -5587,7 +5642,7 @@ function addManualWordQuick() {
     if (useSuggestion) { input.value = suggestion; addManualWordQuick(); return; }
   }
 
-  customWords[word] = { word: word, addedAt: todayStr() };
+  customWords[word] = { word: word, status: 'active', addedAt: todayStr() };
   input.value = '';
   statusEl.style.color = 'var(--success)';
   statusEl.textContent = '✓ "' + word + '" eklendi — detayları istediğin zaman "Detaylı ekle" formundan (ya da Kendi Havuzum\'dan) tamamlayabilirsin.';
@@ -5695,7 +5750,10 @@ function addManualWord() {
     word: word, pos: pos, cefr: cefr,
     speaking: matchedSpeaking, writing: matchedWriting, freq: matchedFreq,
     matchedOfficial: matchIsForThisWord,
-    addedAt: todayStr()
+    // Zaten varsa (düzenleme) status'u KORUYORUZ — pasife alınmış bir
+    // kelimeyi düzenlemek onu sessizce yeniden aktifleştirmesin.
+    status: (isCompletingExisting && customWords[word] && customWords[word].status) || 'active',
+    addedAt: (isCompletingExisting && customWords[word] && customWords[word].addedAt) || todayStr()
   };
   if (definition || turkish || nuance || examples.length) {
     customCache[word] = { definition: definition, turkish: turkish, nuance: nuance, examples: examples };
@@ -5733,7 +5791,8 @@ function renderCustomWordsList() {
     }
     const cefrBadge = w.cefr ? `<span class="badge b-${w.cefr.toLowerCase()}" style="margin-left:4px;">${w.cefr}</span>` : '';
     const posLabel = w.pos ? `<span style="color:var(--text3);font-size:11px;font-style:italic;margin-left:4px;">${w.pos}</span>` : '';
-    return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;" data-word="${escAttr(w.word)}" onclick="handleWordClick(this)">${status} ${w.word}${posLabel}${cefrBadge} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">${ico('speaker',11,null,false)}</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
+    const inactiveStyle = w.status === 'inactive' ? 'opacity:0.5;' : '';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;${inactiveStyle}" data-word="${escAttr(w.word)}" onclick="openWordModal('${w.word.replace(/'/g,"\\'")}', true)">${status} ${w.word}${posLabel}${cefrBadge} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">${ico('speaker',11,null,false)}</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
   }).join('');
   ttsWireButtons(el);
 }
@@ -5759,9 +5818,53 @@ function getWordProgress(wordLower) {
   return null;
 }
 
-async function openWordModal(wordLower) {
+async function openWordModal(wordLower, forceCustom) {
   const myToken = ++modalOpenToken;
   markLookup(wordLower);
+  // forceCustom: Kendi Havuzum'daki bir kelimeye buradan tıklanmışsa (Sözlüğüm
+  // mini listesi vb.) — kelime AYNI ZAMANDA resmi bir kelime olsa bile (örn.
+  // "about" Oxford'da da var) kullanıcının KENDİ girdiği içeriği göster, resmi
+  // içeriği DEĞİL. Önceki hata tam buydu: "about" gibi resmi bir kelimeyi
+  // Eşleştir'le özel havuza ekleyip kendi notlarını yazsa bile, tıklayınca
+  // hep resmi kart açılıyordu, kullanıcının girdiği içerik HİÇ görünmüyordu.
+  if (forceCustom && customWords[wordLower]) {
+    const cw = customWords[wordLower];
+    const wordObj = { word: cw.word, pos: cw.pos || '—', cefr: cw.cefr || '', speaking: cw.speaking || '', writing: cw.writing || '', freq: cw.freq || '', categories: [], isCustom: true };
+    modalCurrentWord = wordObj;
+    renderModalOtherPos(wordLower, wordObj.pos);
+    renderModalFavoriteBtn();
+    renderModalContactRow();
+    const overlay = document.getElementById('word-modal-overlay');
+    overlay.classList.remove('hidden'); overlay.style.display = 'block';
+    const modal = document.getElementById('word-modal');
+    modal.classList.remove('hidden'); modal.style.display = 'block';
+    document.getElementById('modal-word').innerHTML = escHtml(wordObj.word) + ttsButtonHtml(wordObj.word, wordObj.word);
+    ttsWireButtons(document.getElementById('modal-word'));
+    document.getElementById('modal-pos').textContent = wordObj.pos;
+    document.getElementById('modal-loading').style.display = 'none';
+    document.getElementById('modal-content').classList.remove('hidden');
+    const cefrBadge = document.getElementById('modal-cefr-badge');
+    if (wordObj.cefr) { cefrBadge.textContent = wordObj.cefr; cefrBadge.className = 'modal-badge b-' + wordObj.cefr.toLowerCase(); cefrBadge.style.display = ''; } else cefrBadge.style.display = 'none';
+    const spBadge = document.getElementById('modal-sp-badge');
+    if (wordObj.speaking) { spBadge.textContent = wordObj.speaking; spBadge.className = 'modal-badge b-' + wordObj.speaking.toLowerCase(); spBadge.style.display = ''; } else spBadge.style.display = 'none';
+    const wrBadge = document.getElementById('modal-wr-badge');
+    if (wordObj.writing) { wrBadge.textContent = wordObj.writing; wrBadge.className = 'modal-badge b-' + wordObj.writing.toLowerCase(); wrBadge.style.display = ''; } else wrBadge.style.display = 'none';
+    document.getElementById('modal-custom-badge').classList.remove('hidden');
+    const srEl = document.getElementById('modal-sr-status');
+    const prog = customProgress[wordLower];
+    if (prog) {
+      const statusMap = { reviewing: ico('repeat')+'Tekrarda', consolidating: ico('trend')+'Pekişiyor', mastered: ico('award')+'Tam öğrenildi' };
+      srEl.innerHTML = `${statusMap[prog.mastery] || ico('repeat')} · Sonraki tekrar: ${prog.nextReview || '—'} · ${prog.repetitions || 0} tekrar yapıldı`;
+      srEl.classList.remove('hidden');
+    } else srEl.classList.add('hidden');
+    const actions = document.getElementById('modal-actions');
+    const restartWrap = document.getElementById('modal-restart-wrap');
+    if (prog && prog.mastery === 'mastered') { actions.style.display = 'none'; restartWrap.classList.remove('hidden'); }
+    else { actions.style.display = 'flex'; restartWrap.classList.add('hidden'); }
+    const c = customCache[wordLower] || { definition: '', turkish: '', nuance: '', examples: [] };
+    renderModalContent(c, wordObj);
+    return;
+  }
   // Determine if Oxford, topic-list, or custom
   const oxWords = OXFORD_WORD_MAP[wordLower] || [];
   const topicWords = TOPIC_WORD_MAP[wordLower] || [];
