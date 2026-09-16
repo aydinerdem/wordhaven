@@ -2284,9 +2284,26 @@ function editCustomWord(word) {
     wordInput.dataset.matchedWriting = w.writing || '';
     wordInput.dataset.matchedFreq = w.freq || '';
   }
-  document.getElementById('manual-add-status').textContent = '';
+  document.getElementById('manual-add-status').style.color = 'var(--accent)';
+  document.getElementById('manual-add-status').textContent = '"' + word + '" düzenleniyor — formu güncelleyip "Kendi Havuzuma Ekle"ye bas.';
   const formPanel = document.getElementById('manual-add-panel');
-  if (formPanel && formPanel.scrollIntoView) formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll çalışsın çalışmasın (bkz. aşağıdaki NOT), formun gerçekten
+  // dolduğu KESİN görülsün diye kısa bir vurgu (renk yanıp sönmesi) da
+  // ekliyoruz — "Düzenle direkt kapatıyor" hissinin garanti çözümü bu.
+  if (formPanel) {
+    formPanel.style.transition = 'background-color 0.3s';
+    formPanel.style.backgroundColor = 'var(--accentbg)';
+    setTimeout(function () { formPanel.style.backgroundColor = ''; }, 1200);
+  }
+  // NOT: scrollIntoView'ı hemen çağırmıyoruz — modal kapanıp view değişince
+  // (özellikle zaten Sözlüğüm'deyken, sadece mini listenin altındayken)
+  // tarayıcı henüz yerleşimi oturtmadan smooth-scroll güvenilir çalışmıyor,
+  // sessizce hiç kaymayabiliyordu ("Düzenle direkt kapatıyor" hissi buradan
+  // geliyordu — aslında form doluyor ama kullanıcı hâlâ sayfanın altında
+  // kalıp görmüyordu). setTimeout ile bir sonraki tick'e erteliyoruz.
+  setTimeout(function () {
+    if (formPanel && formPanel.scrollIntoView) formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
 }
 
 function toggleCustomWordStatus(word) {
@@ -3131,7 +3148,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202609161300';
+const APP_VERSION = '202609161345';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
