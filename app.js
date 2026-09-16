@@ -2201,16 +2201,55 @@ function selectListMode(mode){
   document.getElementById('list-mode-favorites').classList.toggle('active', mode==='favorites');
   document.getElementById('list-mode-struggle').classList.toggle('active', mode==='struggle');
   document.getElementById('list-mode-extra').classList.toggle('active', mode==='extra');
+  document.getElementById('list-mode-custom').classList.toggle('active', mode==='custom');
   document.getElementById('list-oxford-panel').classList.toggle('hidden', mode!=='oxford');
   document.getElementById('list-topic-panel').classList.toggle('hidden', mode!=='topic');
   document.getElementById('list-favorites-panel').classList.toggle('hidden', mode!=='favorites');
   document.getElementById('list-struggle-panel').classList.toggle('hidden', mode!=='struggle');
   document.getElementById('list-extra-panel').classList.toggle('hidden', mode!=='extra');
+  document.getElementById('list-custom-panel').classList.toggle('hidden', mode!=='custom');
   if(mode==='oxford'){ renderListBandFilters(); renderWordList(listLevel); }
   else if(mode==='topic'){ renderTopicGroupRow(); renderTopicLetterPanel(); renderTopicWordGrid(); }
   else if(mode==='favorites'){ renderFavoritesList(); }
   else if(mode==='extra'){ renderExtraFilters(); renderExtraLetterRow(); renderExtraGrid(); }
+  else if(mode==='custom'){ renderCustomWordGrid(); }
   else { renderStruggleList(); }
+}
+
+// ── KENDİ HAVUZUM (Sözlüğüm'den manuel eklenen kelimeler, Kelime Listem
+// içinde ayrı bir sekme olarak) — aynı kart/açılır-panel deseni diğer
+// sekmelerle BİREBİR aynı, sadece içerik kaynağı customCache[word] (resmi
+// BUILTIN_CONTENT değil, kullanıcının kendi girdiği veri). ─────────────────
+let customOpenKey = null;
+function renderCustomWordGrid(){
+  const grid = document.getElementById('custom-word-grid');
+  if (!grid) return;
+  const words = Object.values(customWords).sort((a,b) => a.word.localeCompare(b.word));
+  if (!words.length) {
+    grid.innerHTML = `<p style="grid-column:1/-1;font-size:13px;color:var(--text3);text-align:center;padding:24px 0;">Henüz Kendi Havuzuna kelime eklemedin — "Sözlüğüm" ekranından ekleyebilirsin.</p>`;
+    return;
+  }
+  grid.innerHTML = words.map(w => {
+    const k = w.word;
+    const open = (k === customOpenKey);
+    const cefrBadge = w.cefr ? `<span class="badge b-${w.cefr.toLowerCase()}">${w.cefr}</span>` : '';
+    const manualBadge = `<span style="font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:10px;font-weight:600;">Manuel</span>`;
+    let html = `<div class="list-word-item" onclick="toggleCustomWord('${k.replace(/'/g,"\\'")}')">
+      <div style="min-width:0;"><div><span class="wordfont">${w.word}</span> ${w.pos?`<span style="color:var(--text3);font-size:11px;font-style:italic;">${w.pos}</span>`:''} ${cefrBadge} ${manualBadge}</div>${wordRowLine2Html(w)}</div>
+      <span style="color:var(--text3);font-size:11px;margin-top:2px;">${open?'▾':'▸'}</span>
+    </div>`;
+    if (open) {
+      const c = customCache[k];
+      html += `<div style="grid-column:1/-1;border-bottom:0.5px solid var(--border);background:var(--surface);padding:14px;">${c ? renderListDefHTML(c, w) : '<p style="font-size:13px;color:var(--text3);">Bu kelime için henüz içerik girilmedi — Sözlüğüm\'den düzenleyebilirsin.</p>'}</div>`;
+    }
+    return html;
+  }).join('');
+  ttsWireButtons(grid);
+}
+function toggleCustomWord(k){
+  customOpenKey = (customOpenKey===k) ? null : k;
+  if (customOpenKey) markLookup(k);
+  renderCustomWordGrid();
 }
 
 // ── ZORLANDIKLARIM (arama sayısı eşiği geçmiş ama hâlâ "Biliyorum" olmamış
@@ -2659,12 +2698,15 @@ function performGlobalSearch() {
   let html = '';
   if (customMatch) {
     const content = customCache[raw] || BUILTIN_CONTENT[raw + '|—'];
+    const cefrBadge = customMatch.cefr ? `<span class="badge b-${customMatch.cefr.toLowerCase()}">${customMatch.cefr}</span>` : '';
+    const posLabel = customMatch.pos ? `<span style="font-size:12px;color:var(--text3);font-style:italic;">${customMatch.pos}</span>` : '';
     html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
         <span class="wordfont" style="font-size:22px;">${customMatch.word}</span>${ttsButtonHtml(customMatch.word, customMatch.word)}
-        <span style="font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:10px;font-weight:600;">Özel havuzunda zaten var</span>
+        ${posLabel} ${cefrBadge}
+        <span style="font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:10px;font-weight:600;">Manuel — Kendi Havuzunda</span>
       </div>
-      <button data-word="${escAttr(raw)}" onclick="handleWordClick(this)" style="padding:8px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text2);">Detayları / ilerlemeyi gör</button>
+      ${content ? renderListDefHTML(content, customMatch) : '<p style="font-size:13px;color:var(--text3);margin-bottom:8px;">Bu kelime için henüz içerik girilmedi.</p>'}
     </div>`;
   }
   if (matches.length) {
@@ -3034,7 +3076,7 @@ function setSrsEntry(key, correct) {
 // Ayarlar ekranındaki "Sürüm: ..." etiketiyle aynı değeri taşır — GitHub'a her
 // yükleyişte bunu ve index.html'deki app.js?v=... damgasını birlikte güncelle.
 // Bu, bir cihazın hangi sürümü çalıştırdığını tahmin etmeden görmeyi sağlar.
-const APP_VERSION = '202609121045';
+const APP_VERSION = '202609160940';
 (function () {
   const el = document.getElementById('app-version-label');
   if (el) el.textContent = 'Sürüm: ' + APP_VERSION;
@@ -5506,23 +5548,158 @@ function findClosestKnownWord(raw) {
   return (best && bestDist > 0 && bestDist <= maxAllowed) ? best : null;
 }
 
-function addManualWord() {
-  const input = document.getElementById('manual-word-input');
+// "Eşleştir": kelimeyi resmi Oxford havuzunda arar. Bulursa Tür/Seviye
+// alanlarını OTOMATİK doldurur (S/W bandı da customWords objesine saklanır,
+// kart görünümünde rozet olarak çıkar) — kullanıcı elle aynı bilgiyi tekrar
+// girmesin diye. Bulamazsa kullanıcı kendi girdiği bilgilerle devam eder.
+// Kelime alanı her değiştiğinde çağrılır — önceki Eşleştir sonucundan kalan
+// Tür/Seviye ve gizli S/W/freq bilgisini temizler. AKSİ HALDE: kullanıcı bir
+// kelime için Eşleştir'e basıp sonra kelimeyi DEĞİŞTİRİRSE (tekrar Eşleştir'e
+// basmadan), önceki kelimenin resmi bilgileri (yanlışlıkla) yeni kelimeye
+// yapışıp kalırdı — bu gerçek bir bug'dı, test sırasında yakalandı.
+function resetManualMatchFields() {
+  document.getElementById('manual-pos-input').value = '';
+  document.getElementById('manual-cefr-select').value = '';
+  document.getElementById('manual-match-status').textContent = '';
+  const wordInput = document.getElementById('manual-word-input');
+  delete wordInput.dataset.matchedFor;
+  delete wordInput.dataset.matchedSpeaking;
+  delete wordInput.dataset.matchedWriting;
+  delete wordInput.dataset.matchedFreq;
+}
+
+// Hızlı ekle: SADECE kelime, hiçbir başka alan yok — "detaylar sonra"
+// akışı için (elle sonradan Detaylı ekle formuyla düzenlenebilir, ya da
+// ileride BYOK ile otomatik doldurulabilir). Bu, detaylı formdan (aşağıdaki
+// addManualWord) TAMAMEN AYRI bir giriş noktası ama AYNI customWords/
+// customCache havuzuna yazıyor — Erdem'in isteği: "ikisi de olmalı".
+function addManualWordQuick() {
+  const input = document.getElementById('quick-word-input');
   const word = input.value.trim().toLowerCase().replace(/[^a-z'-]/g, '');
+  const statusEl = document.getElementById('quick-add-status');
   if (!word) return;
-  if (customWords[word]) { alert(`"${word}" zaten özel havuzda.`); return; }
-  if (OXFORD_WORD_SET.has(word)) { alert(`"${word}" Oxford listesinde var. Flashcard bölümünden çalışabilirsin.`); return; }
+  if (customWords[word]) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '"' + word + '" zaten Kendi Havuzunda.'; return; }
+  if (OXFORD_WORD_SET.has(word)) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '"' + word + '" zaten Oxford listesinde — Kart Modu\'ndan çalışabilirsin.'; return; }
 
   const suggestion = findClosestKnownWord(word);
   if (suggestion) {
-    const useSuggestion = confirm(`"${word}" bulunamadı — bunu mu demek istedin: "${suggestion}"?\n\nTamam: "${suggestion}" olarak devam et\nİptal: "${word}" kelimesini olduğu gibi ekle`);
-    if (useSuggestion) { input.value = suggestion; addManualWord(); return; }
+    const useSuggestion = confirm('"' + word + '" bulunamadı — bunu mu demek istedin: "' + suggestion + '"?\n\nTamam: "' + suggestion + '" olarak devam et\nİptal: "' + word + '" kelimesini olduğu gibi ekle');
+    if (useSuggestion) { input.value = suggestion; addManualWordQuick(); return; }
   }
 
-  customWords[word] = { word, addedAt: todayStr() };
+  customWords[word] = { word: word, addedAt: todayStr() };
   input.value = '';
+  statusEl.style.color = 'var(--success)';
+  statusEl.textContent = '✓ "' + word + '" eklendi — detayları istediğin zaman "Detaylı ekle" formundan (ya da Kendi Havuzum\'dan) tamamlayabilirsin.';
   saveState();
   renderCustomWordsList();
+  if (typeof listUpdatePersonalCounts === 'function') listUpdatePersonalCounts();
+  if (typeof listMode !== 'undefined' && listMode === 'custom' && typeof renderCustomWordGrid === 'function') renderCustomWordGrid();
+}
+
+function matchWordWithOfficialPool() {
+  const wordInput = document.getElementById('manual-word-input');
+  const statusEl = document.getElementById('manual-match-status');
+  const raw = wordInput.value.trim().toLowerCase();
+  if (!raw) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = 'Önce bir kelime yaz.'; return; }
+  const matches = OXFORD_WORD_MAP[raw];
+  if (!matches || !matches.length) {
+    statusEl.style.color = 'var(--text3)';
+    statusEl.textContent = '"' + raw + '" resmi Oxford havuzunda bulunamadı — kendi bilgilerinle devam edebilirsin.';
+    return;
+  }
+  // Birden fazla tür (isim/fiil vb.) varsa en sık konuşulanı (S1 önce) seç —
+  // openWordModal'daki AYNI önceliklendirme.
+  const priority = ['S1', 'S2', 'S3', ''];
+  matches.sort((a, b) => priority.indexOf(a.speaking || '') - priority.indexOf(b.speaking || ''));
+  const m = matches[0];
+  document.getElementById('manual-pos-input').value = m.pos || '';
+  document.getElementById('manual-cefr-select').value = m.cefr || '';
+  // "matchedFor": eşleşme HANGİ kelime için yapıldıysa onu saklıyoruz —
+  // kullanıcı kelime alanını değiştirip tekrar Eşleştir'e basmadan Ekle'ye
+  // basarsa, addManualWord bunu kontrol edip ESKİ eşleşmeyi kullanmıyor
+  // (aksi halde önceki kelimenin S1/W1 rozetleri yanlış kelimeye yapışabilirdi).
+  wordInput.dataset.matchedFor = raw;
+  wordInput.dataset.matchedSpeaking = m.speaking || '';
+  wordInput.dataset.matchedWriting = m.writing || '';
+  wordInput.dataset.matchedFreq = m.freq || '';
+  statusEl.style.color = 'var(--success)';
+  statusEl.textContent = '✓ Oxford havuzunda bulundu — Tür/Seviye dolduruldu (' + [m.cefr, m.speaking, m.writing].filter(Boolean).join(' · ') + ').';
+}
+
+function addManualWord() {
+  const wordInput = document.getElementById('manual-word-input');
+  const word = wordInput.value.trim().toLowerCase().replace(/[^a-z'-]/g, '');
+  const statusEl = document.getElementById('manual-add-status');
+  if (!word) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = 'Kelime alanı zorunlu.'; return; }
+  // ZATEN Kendi Havuzunda varsa (örn. daha önce "Hızlı ekle"yle sadece kelime
+  // eklenmişti) ENGELLEMİYORUZ — bu formu TAMAMLAMA/GÜNCELLEME olarak
+  // kullanıyoruz. Erdem'in istediği iş akışı tam olarak bu: önce hızlı ekle,
+  // sonra buradan detayları tamamla. `isCompletingExisting` sadece son
+  // mesajın metnini değiştiriyor ("eklendi" yerine "güncellendi").
+  const isCompletingExisting = !!customWords[word];
+  // "Eşleştir" ile BİLEREK eşleştirilmişse (matchedFor === word) Oxford'da
+  // olması ENGEL DEĞİL — kullanıcı tam olarak bunu istiyor: resmi kelimenin
+  // kendi notlarıyla (tanım/örnek/nüans) zenginleştirilmiş bir kopyasını
+  // Kendi Havuzu'na eklemek. Eşleştir HİÇ kullanılmadıysa (kazara aynı
+  // kelimeyi yazmışsa) eski uyarı geçerli — Kart Modu'na yönlendir.
+  const matchIsForThisWord = wordInput.dataset.matchedFor === word;
+  if (!isCompletingExisting && OXFORD_WORD_SET.has(word) && !matchIsForThisWord) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '"' + word + '" zaten Oxford listesinde — Kart Modu\'ndan çalışabilirsin (ya da önce "Eşleştir"e basıp kendi notlarınla eklemek istersen devam edebilirsin).'; return; }
+
+  if (!isCompletingExisting) {
+    const suggestion = findClosestKnownWord(word);
+    if (suggestion) {
+      const useSuggestion = confirm('"' + word + '" bulunamadı — bunu mu demek istedin: "' + suggestion + '"?\n\nTamam: "' + suggestion + '" olarak devam et\nİptal: "' + word + '" kelimesini olduğu gibi ekle');
+      if (useSuggestion) { wordInput.value = suggestion; addManualWord(); return; }
+    }
+  }
+
+  const pos = document.getElementById('manual-pos-input').value.trim();
+  const cefr = document.getElementById('manual-cefr-select').value;
+  const turkish = document.getElementById('manual-turkish-input').value.trim();
+  const definition = document.getElementById('manual-definition-input').value.trim();
+  const nuance = document.getElementById('manual-nuance-input').value.trim();
+  const examples = [];
+  for (let i = 1; i <= 3; i++) {
+    const en = document.getElementById('manual-ex' + i + '-en').value.trim();
+    const tr = document.getElementById('manual-ex' + i + '-tr').value.trim();
+    if (en) examples.push({ en: en, tr: tr || '' });
+  }
+
+  // "Eşleştir"in doldurduğu S/W/freq bilgisi varsa (input'un dataset'inde
+  // saklanmıştı) kaydediyoruz — ama SADECE eşleşme TAM OLARAK bu kelime için
+  // yapıldıysa (matchedFor === word). Kullanıcı Eşleştir'e bastıktan sonra
+  // kelimeyi değiştirip tekrar Eşleştir'e basmadan eklerse, önceki kelimenin
+  // bilgileri YANLIŞLIKLA yapışmasın diye.
+  const matchedSpeaking = matchIsForThisWord ? (wordInput.dataset.matchedSpeaking || '') : '';
+  const matchedWriting = matchIsForThisWord ? (wordInput.dataset.matchedWriting || '') : '';
+  const matchedFreq = matchIsForThisWord ? (wordInput.dataset.matchedFreq || '') : '';
+
+  customWords[word] = {
+    word: word, pos: pos, cefr: cefr,
+    speaking: matchedSpeaking, writing: matchedWriting, freq: matchedFreq,
+    matchedOfficial: matchIsForThisWord,
+    addedAt: todayStr()
+  };
+  if (definition || turkish || nuance || examples.length) {
+    customCache[word] = { definition: definition, turkish: turkish, nuance: nuance, examples: examples };
+  }
+
+  // Formu temizle
+  wordInput.value = ''; delete wordInput.dataset.matchedFor; delete wordInput.dataset.matchedSpeaking; delete wordInput.dataset.matchedWriting; delete wordInput.dataset.matchedFreq;
+  document.getElementById('manual-pos-input').value = '';
+  document.getElementById('manual-cefr-select').value = '';
+  document.getElementById('manual-turkish-input').value = '';
+  document.getElementById('manual-definition-input').value = '';
+  document.getElementById('manual-nuance-input').value = '';
+  for (let i = 1; i <= 3; i++) { document.getElementById('manual-ex' + i + '-en').value = ''; document.getElementById('manual-ex' + i + '-tr').value = ''; }
+  document.getElementById('manual-match-status').textContent = '';
+
+  statusEl.style.color = 'var(--success)';
+  statusEl.textContent = isCompletingExisting ? ('✓ "' + word + '" kaydı güncellendi.') : ('✓ "' + word + '" Kendi Havuzuna eklendi.');
+  saveState();
+  renderCustomWordsList();
+  if (typeof listUpdatePersonalCounts === 'function') listUpdatePersonalCounts();
 }
 
 function renderCustomWordsList() {
@@ -5538,7 +5715,9 @@ function renderCustomWordsList() {
       else if (p.mastery === 'consolidating') status = ico('trend',12,'#c9a548',false);
       else status = ico('repeat',12,'#6b9ee0',false);
     }
-    return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;" data-word="${escAttr(w.word)}" onclick="handleWordClick(this)">${status} ${w.word} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">${ico('speaker',11,null,false)}</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
+    const cefrBadge = w.cefr ? `<span class="badge b-${w.cefr.toLowerCase()}" style="margin-left:4px;">${w.cefr}</span>` : '';
+    const posLabel = w.pos ? `<span style="color:var(--text3);font-size:11px;font-style:italic;margin-left:4px;">${w.pos}</span>` : '';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin:3px 4px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;cursor:pointer;" data-word="${escAttr(w.word)}" onclick="handleWordClick(this)">${status} ${w.word}${posLabel}${cefrBadge} <button type="button" class="tts-btn" style="width:18px;height:18px;font-size:10px;margin-left:0;" data-tts-text="${escAttr(w.word)}" title="Dinle" onclick="event.stopPropagation();">${ico('speaker',11,null,false)}</button><span data-word="${escAttr(w.word)}" onclick="event.stopPropagation();handleRemoveClick(this)" style="color:var(--text3);margin-left:2px;">✕</span></span>`;
   }).join('');
   ttsWireButtons(el);
 }
@@ -5550,6 +5729,8 @@ function removeCustomWord(word) {
   delete customCache[word];
   saveState();
   renderCustomWordsList();
+  if (typeof listUpdatePersonalCounts === 'function') listUpdatePersonalCounts();
+  if (typeof listMode !== 'undefined' && listMode === 'custom' && typeof renderCustomWordGrid === 'function') renderCustomWordGrid();
 }
 
 function getWordProgress(wordLower) {
